@@ -43,84 +43,6 @@
        (map :text)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 'journal' metadata
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Made to support one-off syntax in journal entries
-;; May end up being useful elsewhere (commit bodies)
-
-(def str-key->key
-  {"Host" :host
-   "L"    :listening
-   "M"    :message})
-
-(def start-keys
-  (set
-    (map
-      (fn [[k _]]
-        (str k ": ")
-        )
-      str-key->key)))
-
-(defn ->meta-key-val
-  "Splits the passed string on the first colon `:`,
-  and selects a key based on that prefix.
-
-  Uses `str-key->key` for setting the key.
-
-  Otherwise uses the key from the string itself.
-  "
-  [{:keys [text]}]
-  (when text
-    (let [split (string/split text #":" 2)]
-      (when (> (count split) 1)
-        (let [[key-s val-s] split
-              key           (str-key->key key-s)
-              val-s         (string/trim val-s)
-              val-s         (if (empty? val-s) nil val-s)]
-          (if key
-            [key val-s]
-            [(keyword key-s) val-s]))))))
-
-
-(defn ->only-journal-meta
-  [body]
-  (->> body
-       (partition-by #(= :blank (:line-type %)))
-       (first)
-       (flatten)))
-
-(defn is-blank? [{:keys [line-type]}] (= :blank line-type))
-
-(defn ->journal-body
-  ""
-  [body]
-  (let [groups-by-blanks
-        (->> body (partition-by is-blank?))
-
-        first-group (-> groups-by-blanks first)
-        rst         (-> groups-by-blanks rest flatten)
-
-        ;; filter first group to remove key-vals
-        first-group (filter
-                      (comp #(contains? start-keys %) :text)
-                      first-group)
-
-        ;; filter first of rest if it is a blankline AND first-group is empty
-        rst (if (and (is-blank? (first rst))
-                     (empty? first-group))
-              (rest rst)
-              rst)
-        ]
-    (flatten (conj rst first-group))))
-
-(defn ->journal-meta
-  "A map built up from key/val pairs on entries."
-  [body]
-  (let [j-meta   (->only-journal-meta body)
-        meta-map (into {} (map ->meta-key-val j-meta))]
-    meta-map))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; property drawers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -128,6 +50,7 @@
   "Contains some types with known parses.
   For now supports a few string->dates parses."
   ;; TODO how to support for all fields? sniff types?
+  ;; otherwise, may need to make this dynamic
   {:archive-time util/date->ny-zdt
    :added-at     util/date->ny-zdt
    :seen-at      util/date->ny-zdt
@@ -137,7 +60,6 @@
 (comment
   (t/parse "2020-05-24T17:36-04:00[America/New_York]")
   (util/date->ny-zdt "2020-05-24T17:36-04:00[America/New_York]")
-  (util/date->ny-zdt "2020-05-23T13:05:32.637-04:00[America/New_York]")
   (util/date->ny-zdt "2020-05-23T13:05:32.637-04:00[America/New_York]"))
 
 (defn ->prop-key [text]
@@ -156,23 +78,6 @@
       (when val
         (let [val (string/trim val)]
           (if-let [parser (prop-parser key)] (parser val) val))))))
-
-(defn ->prop-key-val-map [text]
-  {(->prop-key text) (->prop-value text)})
-
-(defn lines->prop-map
-  "Converts the passed props text-lines to a map,
-  to aid merging with another map of props."
-  ;; TODO need to combine matching keys
-  [lines]
-  (some->> lines
-           (map ->prop-key-val-map)
-           (apply (partial util/merge-maps-with-multi *multi-prop-keys*))))
-
-(comment
-  (->>
-    (map ->prop-key-val-map [":hello: world" ":hello: sonny"])
-    (apply (partial util/merge-maps-with-multi *multi-prop-keys*))))
 
 (defn ->properties [x]
   (let [drawer-items (->drawer x)]
@@ -235,8 +140,7 @@
                     "We finally arrived at [file:path.org][name-for-path]"}
                    {:line-type :blank, :text ""}
                    {:line-type :table-row, :text "It's a wiki"}]}]
-    (->name raw))
-  )
+    (->name raw)))
 
 (defn ->raw-headline [{:keys [name level]}]
   (when level
@@ -245,32 +149,12 @@
 (defn ->tags [x]
   (-> x :tags (set)))
 
-(defn has-number?
-  [{:keys [name]}]
-  (boolean (when name (second (re-find #"(\d\d) " name)))))
-
-(defn has-TODO?
-  [name]
-  (let [name (if (string? name) name (:name name))]
-    (boolean (when name
-               (re-seq #"(\[( |X|-)\]|TODO|DONE)" name)))))
-
-(defn is-headline? [s]
-  (re-seq #"\*\*?\*?\*?" s))
-
-(defn tags-in-progress? [x]
-  (let [tags (->tags x)]
-    (contains? tags "current")))
-
-(comment
-  (contains? #{"current"} "current"))
-
 (defn ->todo-status
   "Returns either :not-started, :in-progress, or :done"
-  [{:keys [name] :as x}]
+  [{:keys [name]}]
   (when name
     (cond
-      (or (re-seq #"(\[-\])" name) (tags-in-progress? x))
+      (re-seq #"(\[-\])" name)
       :status/in-progress
 
       (re-seq #"(\[ \]|TODO)" name)
@@ -287,12 +171,6 @@
 (comment
   (->todo-status
     {:name "[X] parse/pull TODOs from repo files"}))
-
-(defn ->notes
-  [{:keys [content]}]
-  (let [text (map :text content)]
-    {:raw  content
-     :text text}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; dates
