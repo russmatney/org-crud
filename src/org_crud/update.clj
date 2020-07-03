@@ -7,6 +7,8 @@
    [org-crud.util :as util]
    [tick.alpha.api :as t]))
 
+(def multi-prop-keys #{:repo-ids})
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item -> org lines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -150,7 +152,7 @@
                           (into {}))
         props-update (remove is-remove? props-update)
         merged-props (util/merge-maps-with-multi
-                       util/multi-prop-keys old-props props-update)
+                       multi-prop-keys old-props props-update)
         merged-props (map (fn [[k vs]]
                             (if-let [remove-signal (get remove-props k)]
                               [k (let [to-remove (second remove-signal)]
@@ -499,12 +501,12 @@
   [lines]
   (some->> lines
            (map ->prop-key-val-map)
-           (apply (partial util/merge-maps-with-multi util/multi-prop-keys))))
+           (apply (partial util/merge-maps-with-multi multi-prop-keys))))
 
 (comment
   (->>
     (map ->prop-key-val-map [":hello: world" ":hello: sonny"])
-    (apply (partial util/merge-maps-with-multi util/multi-prop-keys))))
+    (apply (partial util/merge-maps-with-multi multi-prop-keys))))
 
 (defn ->properties [x]
   (let [drawer-items (->drawer x)]
@@ -513,7 +515,7 @@
            (group-by ->prop-key)
            (map (fn [[k vals]]
                   (let [vals (map ->prop-value vals)
-                        vals (if (contains? util/multi-prop-keys k)
+                        vals (if (contains? multi-prop-keys k)
                                ;; sorting just for testing convenience
                                (sort vals)
                                (first vals))]

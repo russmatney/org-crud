@@ -2,10 +2,11 @@
   (:require
    [org-crud.update :as sut]
    [clojure.test :refer [deftest testing is use-fixtures]]
-   [org-crud.util :as util]
    [me.raynes.fs :as fs]
-   [org-crud.core :as org]
-   [clojure.set :as set]))
+   [clojure.set :as set]
+   [org-crud.util :as util]
+   [org-crud.core :as org]))
+
 
 (defn test-fixtures
   [f]
@@ -70,18 +71,22 @@
       (let [headline (get-headline pred-map)]
         (is (= (get headline k) empty)))
 
+      ;; add two tags, expect both
       (sut/update! org-filepath (get-headline pred-map) {k tags})
       (let [headline (get-headline pred-map)]
         (is (= (get headline k) tags)))
 
+      ;; add one more, expect all three
       (sut/update! org-filepath (get-headline pred-map) {k another-tag})
       (let [headline (get-headline pred-map)]
         (is (set/subset? #{another-tag} (get headline k)))
         (is (set/subset? tags (get headline k))))
 
+      ;; set empty, has no affect
       (sut/update! org-filepath (get-headline pred-map) {k empty})
       (let [headline (get-headline pred-map)]
-        (is (= (get headline k) empty))))))
+        (is (set/subset? #{another-tag} (get headline k)))
+        (is (set/subset? tags (get headline k)))))))
 
 (deftest remove-tags-test
   (let [pred-map {:name "add/remove tags"}]
