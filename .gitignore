@@ -21,3 +21,4 @@ pom.xml.asc
 target
 tmp/
 .clj-kondo/.cache/
+test/org_crud/*.org

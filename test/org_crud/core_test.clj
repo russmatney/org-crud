@@ -11,16 +11,16 @@
   (str (str fs/*cwd*) "/test/org_crud/core-test.org"))
 
 (defn ->items []
-  (sut/path->items org-filepath))
+  (sut/path->flattened-items org-filepath))
 
-(defn ->nested-items []
-  (sut/path->items-with-nested org-filepath))
+(defn ->nested-item []
+  (sut/path->nested-item org-filepath))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; parsing basic items
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(deftest path->items-test
+(deftest path->flattened-items-test
   (testing "Helpers parse org headlines into basic items"
     (let [items (->items)]
       (is (seq items))
@@ -31,17 +31,11 @@
 ;; parsing into a nested, heirarchical structure
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(deftest path->items-with-nested-test
+(deftest path->nested-item-test
   (testing "parsed items include their children"
-    (let [items (->nested-items)]
-      ;; (doall
-      ;;   (for [it items]
-      ;;     (pprint/pprint
-      ;;       (dissoc it :org-section :tags :raw-headline :props))))
-      (is (seq items))
-      (doseq [item items]
-        (let [level (-> item :level)]
-          (is (= level :root)))))))
+    (let [item  (->nested-item)
+          level (-> item :level)]
+      (is (= level :root)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; flattned->nested

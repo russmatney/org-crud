@@ -5,40 +5,29 @@
    [org-crud.headline :as headline]
    [clojure.walk :as walk]))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Parse helpers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; DEPRECATED
-(defn parse-headlines
-  "Return just the headlines from an org file as strings."
-  [{:keys [parsed]}]
-  (let [sections (filter #(= (:type %) :section) parsed)]
-    (map :name sections)))
-
 (defn parse-org-file
   [path]
-  (let [parsed (org/parse-file (fs/absolute path))]
-    {:filename (fs/base-name path)
-     :parsed   parsed}))
-
-(defn parse-org-lines
-  "Very close to the internal org/parse-file function,
-  except that it expects a seq of text lines."
-  [lines]
-  (when (seq lines)
-    (reduce org/handle-line [(org/root)] lines)))
+  (-> path
+      fs/absolute
+      org/parse-file))
 
 (comment
   (parse-org-file "repos.org"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Parsing basic items for all headlines
+;; Parsing flattened items
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn parsed->items
-  "Only parses :type :section (skipping :root)"
+(defn parsed->flattened-items
+  "Only parses :type :section (skipping :root).
+
+  Produces flattened items, rather than nested.
+  This means deeper org headlines will not be contained within parents.
+  "
   [parsed]
   (reduce
     (fn [items next]
@@ -47,13 +36,23 @@
     []
     parsed))
 
-(defn path->items
+(defn path->flattened-items
+  "Returns a flattned list of org items in the passed file.
+
+  Only parses :type :section. (Skipping the :root element.)
+
+  Produces flattened items, rather than nested.
+  This means deeper org headlines will not be contained within parents.
+  See `path->nested-items`."
   [p]
   (->> p
        parse-org-file
-       :parsed
-       parsed->items
+       parsed->flattened-items
        (remove (comp nil? :name))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Parsing nested items
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn flattened->nested
   "Returns top-level items with sub-items as children"
@@ -109,7 +108,6 @@
              items)))))))
 
 (comment
-  (range -1 1)
   (->
     (flattened->nested
       (fn [parent item]
@@ -137,7 +135,7 @@
                               :items [{:level 4 :name "e"}]}]}]}
                   {:level 1 :name "g"}]))
 
-(defn parsed->items-with-nested
+(defn parsed->nested-items
   "Parses level-1 items with sub-sections as children"
   [parsed]
   (->> parsed
@@ -151,22 +149,27 @@
                           (update x :items reverse)
                           x)))))
 
-(defn path->items-with-nested
-  [p]
-  (->> p
-       parse-org-file
-       :parsed
-       parsed->items-with-nested
-       (remove nil?)
-       (map #(assoc % :source-file p))
-       ))
+(defn path->nested-item
+  "Produces a single item, the :root of the org file.
+  Level-1 sections can be found as :items, all children are nested as
+  further lists of :items all the way down.
 
-(defn dir->items
+  If you want the org file as a flattened list, see `path->flattened-items`.
+  "
+  [p]
+  (some->> p
+           parse-org-file
+           parsed->nested-items
+           (remove nil?)
+           (map #(assoc % :source-file p))
+           first))
+
+(defn dir->nested-items
   [dir]
   (->> (fs/list-dir dir)
        (filter #(contains? #{".org"} (fs/extension %)))
-       (mapcat path->items-with-nested)))
+       (map path->nested-item)))
 
 (comment
-  (-> (dir->items "/home/russ/Dropbox/roam")
+  (-> (dir->nested-items "/home/russ/Dropbox/roam")
       first))

@@ -7,7 +7,9 @@
    [org-crud.util :as util]
    [tick.alpha.api :as t]))
 
+;; TODO move to dynamic scope so consumers can overwrite
 (def multi-prop-keys #{:repo-ids})
+(defn item->org-path [& _] nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item -> org lines
@@ -249,12 +251,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn update!
-  ([item up] (update! (util/item->org-path item) item up))
+  ([item up] (update! (item->org-path item) item up))
   ([path item up]
    (println "Updating props TWO"
             {:path      path         :item-name (:name item)
              :item-type (:type item) :update    up})
-   (let [parsed-items (org/path->items path)
+   (let [parsed-items (org/path->flattened-items path)
          updated      (update-items parsed-items item up)]
      (write-updated path updated))))
 
@@ -301,8 +303,8 @@
   to the item if the context is :top-level."
   [item context]
   (let [org-path (if (map? context)
-                   (util/item->org-path context)
-                   (util/item->org-path item))]
+                   (item->org-path context)
+                   (item->org-path item))]
     (if (fs/file? org-path)
       (add-to-file! org-path item context)
       (println "Item add attempted for bad org-path" {:org-path org-path
@@ -320,7 +322,7 @@
 (defn delete-item!
   "Deletes the item passed, if a match is found in the path"
   [item]
-  (let [org-path (util/item->org-path item)]
+  (let [org-path (item->org-path item)]
     (if (fs/file? org-path)
       (delete-from-file! org-path item)
       (do

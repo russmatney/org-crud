@@ -25,7 +25,7 @@
   (str (str fs/*cwd*) "/test/org_crud/update-test.org"))
 
 (defn ->items []
-  (org/path->items org-filepath))
+  (org/path->flattened-items org-filepath))
 
 (defn get-headline [pred-map]
   (util/get-one pred-map (->items)))
