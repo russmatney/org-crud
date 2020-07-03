@@ -1,10 +1,17 @@
 (ns org-crud.headline-test
   (:require
    [org-crud.headline :as sut]
-   [clojure.test :refer [deftest testing is]]
+   [clojure.test :refer [deftest testing is use-fixtures]]
    [org-crud.util :as util]
    [tick.alpha.api :as t]
    [clojure.set :as set]))
+
+(defn test-fixtures
+  [f]
+  (binding [sut/*multi-prop-keys* #{:repo-ids}]
+    (f)))
+
+(use-fixtures :each test-fixtures)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; parse, headline helper unit tests
@@ -16,19 +23,6 @@
     (is (= "01 test todo" (sut/->name {:name "[ ] 01 test todo" :type :section})))
     (is (= "01 test todo" (sut/->name {:name "[X] 01 test todo" :type :section})))
     (is (= "test todo" (sut/->name {:name "test todo" :type :section})))))
-
-(deftest has-TODO?-test
-  (testing "parsing names from todo headlines"
-    (is (= false (sut/has-TODO? {:name "01"})))
-    (is (= false (sut/has-TODO? {:name "01 test todo"})))
-    (is (= false (sut/has-TODO? {:name "test todo"})))
-    (testing "with bracket TODO blocks"
-      (is (= true (sut/has-TODO? {:name "[ ] 01 test todo"})))
-      (is (= true (sut/has-TODO? {:name " [ ] 01 test todo"})))
-      (is (= true (sut/has-TODO? {:name "[X] 01 test todo"}))))
-    (testing "with TODO and DONE keywords"
-      (is (= true (sut/has-TODO? {:name "TODO 01 test todo"})))
-      (is (= true (sut/has-TODO? {:name "DONE 01 test todo"}))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; date parsers
