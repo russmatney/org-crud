@@ -1,0 +1,27 @@
+{:path ["src"]
+
+ :deps
+ {org.clojure/clojure           {:mvn/version "1.10.1"}
+  org.clojars.gmorpheme/organum {:mvn/version "0.1.1"}
+  pathetic                      {:mvn/version "0.5.1"}
+  clj-commons/fs                {:mvn/version "1.5.1"}
+  tick                          {:mvn/version "0.4.23-alpha"}
+  com.cognitect/transit-clj     {:mvn/version "1.0.324"}
+  time-literals                 {:mvn/version "0.1.3"}
+  cuerdas                       {:mvn/version "0.3.2"}
+
+  cider/cider-nrepl {:mvn/version "0.25.0-SNAPSHOT"}
+  refactor-nrepl    {:mvn/version "2.5.0"}}
+
+ :aliases
+ {:dev {:jvm-opts    ["-XX:-OmitStackTraceInFastThrow"]
+        :extra-paths ["test"]}
+
+  :test
+  {:extra-paths ["test"]
+   :extra-deps
+   {lambdaisland/kaocha {:mvn/version "0.0-601"}}}
+
+  :nrepl {:extra-deps
+          {cider/cider-nrepl {:mvn/version "0.25.0-SNAPSHOT"}
+           refactor-nrepl    {:mvn/version "2.5.0"}}}}}

@@ -1,0 +1,13 @@
+#+TITLE: Core Test
+
+* some header
+* some other header
+** some nested header
+* some third header
+** with multiple
+*** levels of
+**** nesting
+**** like this
+*** and multiple
+** items
+*** that are nested
