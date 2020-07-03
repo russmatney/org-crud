@@ -1,7 +1,7 @@
 (ns org-crud.core
   (:require
    [organum.core :as org]
-   [me.raynes.fs :as fs]
+   [org-crud.fs :as fs]
    [org-crud.headline :as headline]
    [clojure.walk :as walk]))
 

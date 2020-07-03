@@ -8,7 +8,6 @@
    [org-crud.util :as util]
    [org-crud.core :as org]))
 
-
 (defn test-fixtures
   [f]
   (fs/copy

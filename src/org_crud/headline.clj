@@ -1,7 +1,8 @@
 (ns org-crud.headline
-  (:require [org-crud.util :as util]
-            [clojure.string :as string]
-            [tick.alpha.api :as t]))
+  (:require
+   [org-crud.util :as util]
+   [clojure.string :as string]))
+
 
 (def ^:dynamic *multi-prop-keys* #{})
 
@@ -58,7 +59,7 @@
    :finished-at  util/date->ny-zdt})
 
 (comment
-  (t/parse "2020-05-24T17:36-04:00[America/New_York]")
+  ;; (t/parse "2020-05-24T17:36-04:00[America/New_York]")
   (util/date->ny-zdt "2020-05-24T17:36-04:00[America/New_York]")
   (util/date->ny-zdt "2020-05-23T13:05:32.637-04:00[America/New_York]"))
 
@@ -188,27 +189,29 @@
 (comment
   (->date-pattern "SCHEDULED" "SCHEDULED: <2020-03-18 Wed>"))
 
-(defn ->date-for-label [label s]
-  (some->
-    (->date-pattern label s)
-    (string/split #" ")
-    (first)
-    (t/date)
-    (util/date->ny-zdt)))
+;; (defn ->date-for-label [label s]
+;;   (some->
+;;     (->date-pattern label s)
+;;     (string/split #" ")
+;;     (first)
+;;     (t/date)
+;;     (util/date->ny-zdt)))
 
-(defn ->deadline [s] (->date-for-label "DEADLINE" s))
+;; (defn ->deadline [s] (->date-for-label "DEADLINE" s))
 
-(defn ->scheduled [s] (->date-for-label "SCHEDULED" s))
+;; (defn ->scheduled [s] (->date-for-label "SCHEDULED" s))
 
-(defn metadata->date-map [s]
-  {:scheduled (->scheduled s)
-   :deadline  (->deadline s)})
+;; (defn metadata->date-map [s]
+;;   {:scheduled (->scheduled s)
+;;    :deadline  (->deadline s)})
 
 (defn ->dates [x]
-  (let [metadata (->metadata x)]
-    (if (seq metadata)
-      (metadata->date-map (first metadata))
-      {})))
+  {}
+  ;; (let [metadata (->metadata x)]
+  ;;   (if (seq metadata)
+  ;;     (metadata->date-map (first metadata))
+  ;;     {}))
+  )
 
 (defn ->date-from-name [{:keys [name]}]
   (util/date->ny-zdt name))

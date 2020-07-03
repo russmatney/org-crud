@@ -2,7 +2,7 @@
   (:require
    [clojure.string :as string]
    [clojure.set :as set]
-   [me.raynes.fs :as fs]
+   [org-crud.fs :as fs]
    [org-crud.core :as org]
    [org-crud.util :as util]
    [org-crud.headline :as headline]))
@@ -267,7 +267,10 @@
   (let [lines (item->lines
                 (update item :props
                         (fn [props]
-                          (merge {:added-at (util/now)} props))) 1)]
+                          (merge
+                            ;; TODO support via adapter/dynamism?
+                            ;; {:added-at (util/now)}
+                            props))) 1)]
     (append-to-file! path lines)))
 
 (defn add-to-context
@@ -277,7 +280,10 @@
            {:add-item
             (update item :props
                     (fn [props]
-                      (merge {:added-at (util/now)} props)))}))
+                      (merge
+                        ;; TODO support via adapter/dynamism?
+                        ;; {:added-at (util/now)}
+                        props)))}))
 
 (defn add-to-file!
   "Adds an item as an org headline to the indicated filepath.

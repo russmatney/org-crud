@@ -1,6 +1,6 @@
 (ns org-crud.util
-  (:require [tick.alpha.api :as t]
-            [clojure.set :as set]))
+  (:require
+   [clojure.set :as set]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; get-all, get-one
@@ -73,38 +73,38 @@
 ;; Date helpers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn date->fields [d]
-  (when d
-    (into {} (t/fields d))))
+;; (defn date->fields [d]
+;;   (when d
+;;     (into {} (t/fields d))))
 
-(defn has-time? [d]
-  (:hour-of-day (date->fields d)))
+;; (defn has-time? [d]
+;;   (:hour-of-day (date->fields d)))
 
-(comment
-  (:hour-of-day
-   (into {} (t/fields
-              (-> (t/date "2020-03-13")
-                  ;; (t/at (t/time "15:38"))
-                  )))))
+;; (comment
+;;   (:hour-of-day
+;;    (into {} (t/fields
+;;               (-> (t/date "2020-03-13")
+;;                   ;; (t/at (t/time "15:38"))
+;;                   )))))
 
-(defn string->date [s]
-  (let [date (re-find #"\d{4}-\d{2}-\d{2}" s)
-        time (re-find #"\d{2}:\d{2}:\d{2}" s)
-        time (or time
-                 (re-find #"\d{2}:\d{2}" s))
-        time (or time
-                 (let [digits (re-find #"\d{2}\d{2}\d{2}" s)]
-                   (when digits
-                     (as-> digits digits
-                       (re-seq #"\d\d" digits)
-                       (apply str (interleave digits [":" ":" ""]))))))]
-    (cond
-      (and date time)
-      (-> (t/date date)
-          (t/at (t/time time)))
+;; (defn string->date [s]
+;;   (let [date (re-find #"\d{4}-\d{2}-\d{2}" s)
+;;         time (re-find #"\d{2}:\d{2}:\d{2}" s)
+;;         time (or time
+;;                  (re-find #"\d{2}:\d{2}" s))
+;;         time (or time
+;;                  (let [digits (re-find #"\d{2}\d{2}\d{2}" s)]
+;;                    (when digits
+;;                      (as-> digits digits
+;;                        (re-seq #"\d\d" digits)
+;;                        (apply str (interleave digits [":" ":" ""]))))))]
+;;     (cond
+;;       (and date time)
+;;       (-> (t/date date)
+;;           (t/at (t/time time)))
 
-      date
-      (-> (t/date date)))))
+;;       date
+;;       (-> (t/date date)))))
 
 (defn date->ny-zdt
   "Converts the passed date to a ny-based zoned date time.
@@ -113,35 +113,37 @@
 
   If a string is passed, it is parsed and then converted.
   "
-  [d]
-  (when d
-    (let [res
-          (if (string? d)
-            (-> d
-                string->date
-                date->ny-zdt)
+  [_d]
+  nil
+  ;; (when d
+  ;;   (let [res
+  ;;         (if (string? d)
+  ;;           (-> d
+  ;;               string->date
+  ;;               date->ny-zdt)
 
-            (cond-> d
-              (not (has-time? d))
-              (t/at (t/midnight))
+  ;;           (cond-> d
+  ;;             (not (has-time? d))
+  ;;             (t/at (t/midnight))
 
-              true
-              (t/in "America/New_York")))]
-      res)))
+  ;;             true
+  ;;             (t/in "America/New_York")))]
+  ;;     res))
+  )
 
-(comment
-  (date->ny-zdt
-    #time/date-time
-    "2020-06-20T20:10:11.392")
-  (date->ny-zdt "2019-04-07 Sun 10:23")
-  (date->ny-zdt (-> (t/date "2020-03-13")
-                    (t/at (t/time "15:38"))))
-  (date->ny-zdt (t/date "2020-03-13")))
+;; (comment
+;;   (date->ny-zdt
+;;     #time/date-time
+;;     "2020-06-20T20:10:11.392")
+;;   (date->ny-zdt "2019-04-07 Sun 10:23")
+;;   (date->ny-zdt (-> (t/date "2020-03-13")
+;;                     (t/at (t/time "15:38"))))
+;;   (date->ny-zdt (t/date "2020-03-13")))
 
-(defn now []
-  (some-> (t/date)
-          (t/at (t/time))
-          (date->ny-zdt)))
+;; (defn now []
+;;   (some-> (t/date)
+;;           (t/at (t/time))
+;;           (date->ny-zdt)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
