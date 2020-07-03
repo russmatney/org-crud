@@ -309,7 +309,7 @@
   (let [org-path (if (map? context)
                    (*item->org-path* context)
                    (*item->org-path* item))]
-    (if (fs/file? org-path)
+    (if org-path
       (add-to-file! org-path item context)
       (println "Item add attempted for bad org-path" {:org-path org-path
                                                       :item     item}))))
@@ -327,7 +327,7 @@
   "Deletes the item passed, if a match is found in the path"
   [item]
   (let [org-path (*item->org-path* item)]
-    (if (fs/file? org-path)
+    (if org-path
       (delete-from-file! org-path item)
       (do
         (println item)
