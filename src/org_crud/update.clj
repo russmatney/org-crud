@@ -5,11 +5,10 @@
    [me.raynes.fs :as fs]
    [org-crud.core :as org]
    [org-crud.util :as util]
+   [org-crud.headline :as headline]
    [tick.alpha.api :as t]))
 
-;; TODO move to dynamic scope so consumers can overwrite
-(def multi-prop-keys #{:repo-ids})
-(defn item->org-path [& _] nil)
+(defn ^:dynamic *item->org-path* [& _] nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item -> org lines
@@ -154,7 +153,7 @@
                           (into {}))
         props-update (remove is-remove? props-update)
         merged-props (util/merge-maps-with-multi
-                       multi-prop-keys old-props props-update)
+                       headline/*multi-prop-keys* old-props props-update)
         merged-props (map (fn [[k vs]]
                             (if-let [remove-signal (get remove-props k)]
                               [k (let [to-remove (second remove-signal)]
@@ -251,7 +250,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn update!
-  ([item up] (update! (item->org-path item) item up))
+  ([item up] (update! (*item->org-path* item) item up))
   ([path item up]
    (println "Updating props TWO"
             {:path      path         :item-name (:name item)
@@ -303,8 +302,8 @@
   to the item if the context is :top-level."
   [item context]
   (let [org-path (if (map? context)
-                   (item->org-path context)
-                   (item->org-path item))]
+                   (*item->org-path* context)
+                   (*item->org-path* item))]
     (if (fs/file? org-path)
       (add-to-file! org-path item context)
       (println "Item add attempted for bad org-path" {:org-path org-path
@@ -322,7 +321,7 @@
 (defn delete-item!
   "Deletes the item passed, if a match is found in the path"
   [item]
-  (let [org-path (item->org-path item)]
+  (let [org-path (*item->org-path* item)]
     (if (fs/file? org-path)
       (delete-from-file! org-path item)
       (do
@@ -503,12 +502,12 @@
   [lines]
   (some->> lines
            (map ->prop-key-val-map)
-           (apply (partial util/merge-maps-with-multi multi-prop-keys))))
+           (apply (partial util/merge-maps-with-multi headline/*multi-prop-keys*))))
 
 (comment
   (->>
     (map ->prop-key-val-map [":hello: world" ":hello: sonny"])
-    (apply (partial util/merge-maps-with-multi multi-prop-keys))))
+    (apply (partial util/merge-maps-with-multi headline/*multi-prop-keys*))))
 
 (defn ->properties [x]
   (let [drawer-items (->drawer x)]
@@ -517,7 +516,7 @@
            (group-by ->prop-key)
            (map (fn [[k vals]]
                   (let [vals (map ->prop-value vals)
-                        vals (if (contains? multi-prop-keys k)
+                        vals (if (contains? headline/*multi-prop-keys* k)
                                ;; sorting just for testing convenience
                                (sort vals)
                                (first vals))]

@@ -3,7 +3,7 @@
             [clojure.string :as string]
             [tick.alpha.api :as t]))
 
-(def multi-prop-keys #{:repo-ids})
+(def ^:dynamic *multi-prop-keys* #{})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; headline helpers
@@ -167,12 +167,12 @@
   [lines]
   (some->> lines
            (map ->prop-key-val-map)
-           (apply (partial util/merge-maps-with-multi multi-prop-keys))))
+           (apply (partial util/merge-maps-with-multi *multi-prop-keys*))))
 
 (comment
   (->>
     (map ->prop-key-val-map [":hello: world" ":hello: sonny"])
-    (apply (partial util/merge-maps-with-multi multi-prop-keys))))
+    (apply (partial util/merge-maps-with-multi *multi-prop-keys*))))
 
 (defn ->properties [x]
   (let [drawer-items (->drawer x)]
@@ -181,7 +181,7 @@
            (group-by ->prop-key)
            (map (fn [[k vals]]
                   (let [vals (map ->prop-value vals)
-                        vals (if (contains? multi-prop-keys k)
+                        vals (if (contains? *multi-prop-keys* k)
                                ;; sorting just for testing convenience
                                (sort vals)
                                (first vals))]
