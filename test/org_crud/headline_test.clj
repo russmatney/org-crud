@@ -10,30 +10,12 @@
 ;; parse, headline helper unit tests
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(deftest ->id-test
-  (testing "parsing ids from todo headlines"
-    (is (= "01" (sut/->id {:name "01"})))
-    (is (= "01" (sut/->id {:name "01 test todo"})))
-    (is (= "01" (sut/->id {:name "[ ] 01 test todo"})))
-    (is (= "01" (sut/->id {:name "[X] 01 test todo"})))
-    (is (= nil (sut/->id {:name "test todo"})))))
-
 (deftest ->name-test
   (testing "parsing names from todo headlines"
-    (is (= "" (sut/->name {:name "01"})))
-    (is (= "test todo" (sut/->name {:name "01 test todo"})))
-    (is (= "test todo" (sut/->name {:name "[ ] 01 test todo"})))
-    (is (= "test todo" (sut/->name {:name "[X] 01 test todo"})))
-    (is (= "test todo" (sut/->name {:name "test todo"})))))
-
-(deftest has-number?-test
-  (testing "parsing names from todo headlines"
-    (is (= true (sut/has-number? {:name "01"})))
-    (is (= true (sut/has-number? {:name "01 test todo"})))
-    (is (= true (sut/has-number? {:name "[ ] 01 test todo"})))
-    (is (= true (sut/has-number? {:name " [ ] 01 test todo"})))
-    (is (= true (sut/has-number? {:name "[X] 01 test todo"})))
-    (is (= false (sut/has-number? {:name "test todo"})))))
+    (is (= "01 test todo" (sut/->name {:name "01 test todo" :type :section})))
+    (is (= "01 test todo" (sut/->name {:name "[ ] 01 test todo" :type :section})))
+    (is (= "01 test todo" (sut/->name {:name "[X] 01 test todo" :type :section})))
+    (is (= "test todo" (sut/->name {:name "test todo" :type :section})))))
 
 (deftest has-TODO?-test
   (testing "parsing names from todo headlines"

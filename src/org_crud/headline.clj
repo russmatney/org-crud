@@ -3,6 +3,7 @@
             [clojure.string :as string]
             [tick.alpha.api :as t]))
 
+(def multi-prop-keys #{:repo-ids})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; headline helpers
@@ -166,12 +167,12 @@
   [lines]
   (some->> lines
            (map ->prop-key-val-map)
-           (apply (partial util/merge-maps-with-multi util/multi-prop-keys))))
+           (apply (partial util/merge-maps-with-multi multi-prop-keys))))
 
 (comment
   (->>
     (map ->prop-key-val-map [":hello: world" ":hello: sonny"])
-    (apply (partial util/merge-maps-with-multi util/multi-prop-keys))))
+    (apply (partial util/merge-maps-with-multi multi-prop-keys))))
 
 (defn ->properties [x]
   (let [drawer-items (->drawer x)]
@@ -180,7 +181,7 @@
            (group-by ->prop-key)
            (map (fn [[k vals]]
                   (let [vals (map ->prop-value vals)
-                        vals (if (contains? util/multi-prop-keys k)
+                        vals (if (contains? multi-prop-keys k)
                                ;; sorting just for testing convenience
                                (sort vals)
                                (first vals))]
@@ -194,13 +195,12 @@
 
 (defn ->level [{:keys [level]}] (or level :root))
 
-(defn ->id [{:keys [name] :as hl}]
-  (let [props   (->properties hl)
-        prop-id (:id props)]
-    (if prop-id
-      prop-id
-      (when name
-        (second (re-find #"(\d\d) " name))))))
+(defn ->id [hl]
+  (if-let [prop-id (-> hl ->properties :id)]
+    prop-id
+    (when (:name hl)
+      (second (re-find #"(\d\d) " (:name hl))))))
+
 
 (defn ->name [{:keys [name type content]}]
   (cond
