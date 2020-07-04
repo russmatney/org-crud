@@ -10,4 +10,9 @@ Content therein.
 (-> "hello"
     (println "world"))
 #+END_SRC
-* Conclusion
+* content with a link
+It's focuses are:
+- Wide net for [[file:20200609220548-capture_should_be_easy.org][easy
+  capture]]
+- inbox processing
+- daily planning

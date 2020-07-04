@@ -99,6 +99,9 @@
                                          (remove #(string/starts-with? % "#"))
                                          last))))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; src blocks
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def example-item-src-block
   {:level :root,
@@ -127,3 +130,78 @@
       (is (= "```" (->> lines
                         (filter #(string/starts-with? % "```"))
                         last))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; lists
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def example-org-with-list
+  {:level :root,
+   :name  "Example Org File",
+   :body  [{:line-type :comment, :text "#+TITLE: Example Org File"}]
+   :items
+   [{:level 1,
+     :name  "content with a link",
+     :body
+     [{:line-type :table-row, :text "It's focuses are:"}
+      {:line-type :unordered-list, :text "- inbox processing"}
+      {:line-type :unordered-list, :text "- daily planning"}],}]})
+
+(deftest markdown-with-list-test
+  (let [example-org example-org-with-list
+        lines       (->> example-org sut/item->md-body
+                         (remove empty?))]
+    ;; TODO we may need newlines before and after lists
+    (testing "includes unordered lists"
+      (is (= "- inbox processing" (->> lines
+                                       (filter #(string/starts-with? % "-"))
+                                       first))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; links
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def example-item-with-link
+  {:level :root,
+   :name  "Example Org File",
+   :body  [{:line-type :comment, :text "#+TITLE: Example Org File"}]
+   :items
+   [{:level 1,
+     :name  "content with a link",
+     :body
+     [{:line-type :unordered-list,
+       :text
+       "- Wide net for [[file:20200609220548-capture_should_be_easy.org][easy capture]]"}]}]})
+
+(deftest markdown-with-link-test
+  (let [example-org example-item-with-link
+        lines       (->> example-org sut/item->md-body
+                         (remove empty?))]
+    (def --lines lines)
+    (testing "includes markdown-style links"
+      (is (= "- Wide net for [easy capture](/20200609220548-capture_should_be_easy)"
+             (->> lines
+                  (filter #(string/starts-with? % "- Wide"))
+                  first))))))
+
+(def example-item-with-line-broken-link
+  {:level :root,
+   :name  "Example Org File",
+   :body  [{:line-type :comment, :text "#+TITLE: Example Org File"}]
+   :items
+   [{:level 1,
+     :name  "content with a link",
+     :body
+     [{:line-type :unordered-list,
+       :text
+       "- Wide net for [[file:20200609220548-capture_should_be_easy.org][easy"}
+      {:line-type :table-row, :text "  capture]]"}]}]})
+
+(deftest markdown-with-link-test-line-break
+  (let [example-org example-item-with-line-broken-link
+        lines       (->> example-org sut/item->md-body
+                         (remove empty?))]
+    (testing "includes markdown-style links"
+      (is (= ["- Wide net for [easy"
+              "  capture](/20200609220548-capture_should_be_easy)"]
+             (->> lines (drop 1)))))))
