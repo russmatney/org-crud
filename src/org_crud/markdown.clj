@@ -1,6 +1,8 @@
 (ns org-crud.markdown
   (:require [clojure.string :as string]
-            [org-crud.fs :as fs]))
+            [org-crud.fs :as fs]
+            [org-crud.core :as org]
+            [org-crud.util :as util]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Frontmatter
@@ -73,7 +75,6 @@
 (defn item->strs [item]
   (let [name      (:name item)
         body-strs (->> (:body item)
-                       ;; TODO support more line-types, etc
                        (map :text))]
     (concat [name] body-strs)))
 
@@ -101,10 +102,10 @@ Two [[file:2020-06-10.org][in]] [[file:2020-06-11.org][one]]."))
 (defn item->links [item]
   (->> item
        all-body-strs
-       (mapcat str->file-refs)
-       (remove nil?)
+       (string/join "\n")
+       str->file-refs
        (map (fn [[link text]]
-              {:text text
+              {:name text
                :link (-> link
                          (string/replace #"\n" ""))}))))
 
@@ -112,28 +113,71 @@ Two [[file:2020-06-10.org][in]] [[file:2020-06-11.org][one]]."))
 ;; item -> markdown
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn item->link [item]
+  (-> item
+      :source-file
+      fs/base-name
+      fs/split-ext
+      first))
+
 (defn item->md-lines [item]
   (concat
     (item->frontmatter item)
     (item->md-body item)))
 
 (defn item->md-filename [item]
-  (-> item
-      :source-file
-      fs/base-name
-      fs/split-ext
-      first
-      (str ".md")))
+  (-> item item->link (str ".md")))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Building backlinks
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn process-backlinks [md-items]
+  (let [link->md-items (->> md-items
+                            (map (fn [md-it]
+                                   (update md-it :links
+                                           (fn [links]
+                                             (map :link links)))))
+                            (util/multi-group-by :links))]
+    (->> md-items
+         (map (fn [md-item]
+                (assoc md-item :backlinks
+                       (let [linked-md-items
+                             (-> md-item :self-link link->md-items)]
+                         (->> linked-md-items
+                              (map
+                                (fn [linked-md-item]
+                                  {:name (:name linked-md-item)
+                                   :link (:self-link linked-md-item)}))))))))))
+
+(defn backlink->line [link]
+  (str "- [" (:name link) "](/" (:link link) ")"))
+
+(defn append-backlink-body [md-item]
+  (if-let [links (seq (:backlinks md-item))]
+    (update md-item :body (fn [body]
+                            (concat body ["" "# Backlinks" ""]
+                                    (map backlink->line links))))
+    md-item))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public: converting to and writing a markdown file
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn item->md-item [item]
-  {:filename (item->md-filename item)
-   :lines    (item->md-lines item)
-   :links    (item->links item)})
+  {:filename  (item->md-filename item)
+   :body      (item->md-lines item)
+   :name      (:name item)
+   :self-link (item->link item)
+   :links     (item->links item)})
 
 (defn write-md-item [target-dir md-item]
   (spit (str target-dir "/" (:filename md-item))
-        (->> md-item :lines (string/join "\n"))))
+        (->> md-item :body (string/join "\n"))))
+
+(defn org-dir->md-dir [source-dir target-dir]
+  (->> (org/dir->nested-items source-dir)
+       (map item->md-item)
+       process-backlinks
+       (map append-backlink-body)
+       (map (partial write-md-item target-dir))))

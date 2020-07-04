@@ -1,0 +1,5 @@
+#+TITLE: Linked Org File
+
+Another org file, now with a link!
+
+- [[file:example.org][example link]]

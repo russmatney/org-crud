@@ -14,20 +14,13 @@
 (defn parsed-org-file [fname]
   (org/path->nested-item (str fixture-dir "/" fname)))
 
-(defn build-md-files
-  "Converts all the .org files in fixture-dir to .md files."
-  []
-  (doall
-    (->> (parsed-org-files)
-         (map sut/item->md-item)
-         (map (partial sut/write-md-item fixture-dir)))))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; general
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (deftest build-and-write-count-test
-  (build-md-files)
+  (sut/org-dir->md-dir fixture-dir fixture-dir)
+
   (let [files (fs/list-dir fixture-dir)]
     (testing "same number of org and md files"
       (is (> (->> files (filter #(= (fs/extension %) ".org")) count) 0))
@@ -187,7 +180,7 @@
   (let [example-org example-item-with-link
         links       (->> example-org sut/item->links)]
     (testing "includes markdown-style links"
-      (is (= {:text "easy capture"
+      (is (= {:name "easy capture"
               :link "20200609220548-capture_should_be_easy"}
              (first links))))))
 

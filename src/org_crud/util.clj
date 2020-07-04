@@ -195,3 +195,25 @@
        (apply (partial merge-maps-with-multi #{})))
   (->> [{:hello "world"} {:hello "sonny"}]
        (apply (partial merge-maps-with-multi #{:hello}))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; multi-group-by
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn multi-group-by
+  [f xs]
+  (reduce
+    (fn [acc x]
+      (->> (f x)
+           (#(if (seq %) % [nil]))
+           (reduce
+             (fn [acc v]
+               (update acc v conj x))
+             acc)))
+    {} xs))
+
+(comment
+  (multi-group-by
+    :types
+    [{:c :c :types [:a :b]}
+     {:d :d :types []}]))
