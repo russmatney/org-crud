@@ -1,24 +1,15 @@
 (ns org-crud.fs
-  "Subset of me.raynes.fs (clj-commons.fs) ripped for bb compatibility.
-  File system utilities in Clojure"
+  "Subset of me.raynes.fs (clj-commons.fs) ripped for bb compatibility."
   (:refer-clojure :exclude [name parents])
   (:require [clojure.java.io :as io])
   (:import [java.io File]))
 
-;; Once you've started a JVM, that JVM's working directory is set in stone
-;; and cannot be changed. This library will provide a way to simulate a
-;; working directory change. `cwd` is considered to be the current working
-;; directory for functions in this library. Unfortunately, this will only
-;; apply to functions inside this library since we can't change the JVM's
-;; actual working directory.
 (def ^{:doc     "Current working directory. This cannot be changed in the JVM.
              Changing this will only change the working directory for functions
              in this library."
        :dynamic true}
   *cwd* (.getCanonicalFile (io/file ".")))
 
-;; Library functions will call this function on paths/files so that
-;; we get the cwd effect on them.
 (defn ^File file
   "If path is a period, replaces it with cwd and creates a new File object
    out of it and paths. Or, if the resulting File object does not constitute
