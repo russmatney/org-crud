@@ -36,7 +36,11 @@
         lines       (-> example-org sut/item->frontmatter)]
     (testing "org items convert to a proper frontmatter"
       (is (= "---" (first lines)))
-      (is (= "---" (last lines))))))
+      (is (= "---" (last lines)))
+      (is (contains? (set lines) "title: Example Org File"))
+      (is (contains? (set lines) "tags:"))
+      (is (contains? (set lines) "  - garden"))
+      )))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item->md-body
@@ -171,7 +175,7 @@
         lines       (->> example-org sut/item->md-body
                          (remove empty?))]
     (testing "includes markdown-style links"
-      (is (= "- Wide net for [easy capture](/20200609220548-capture_should_be_easy)"
+      (is (= "- Wide net for [easy capture](/garden/20200609220548-capture_should_be_easy)"
              (->> lines
                   (filter #(string/starts-with? % "- Wide"))
                   first))))))
@@ -203,8 +207,26 @@
                          (remove empty?))]
     (testing "includes markdown-style links"
       (is (= ["- Wide net for [easy"
-              "  capture](/20200609220548-capture_should_be_easy)"]
+              "  capture](/garden/20200609220548-capture_should_be_easy)"]
              (->> lines (drop 1)))))))
+
+(def example-header-link
+  {:level :root,
+   :name  "yodo, the pitch and demo outline",
+   :body
+   [{:line-type :comment, :text "#+TITLE: yodo, the pitch and demo outline"}]
+   :items
+   [{:level 1,
+     :name
+     "[[file:link-name.org][text name]] blah"}]})
+
+(deftest markdown-with-link-in-header-test
+  (let [example-org example-header-link
+        lines       (->> example-org sut/item->md-body
+                         (remove empty?))]
+    (testing "includes markdown-style links"
+      (is (contains? (set lines)
+                     "# [text name](/garden/link-name) blah")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; backlinks

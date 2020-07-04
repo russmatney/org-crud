@@ -5,12 +5,38 @@
             [org-crud.util :as util]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; item -> link, filename
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn item->link [item]
+  (-> item
+      :source-file
+      fs/base-name
+      fs/split-ext
+      first))
+
+(defn markdown-link
+  "TODO refactor /garden out of here, or into something configurable."
+  [{:keys [name link]}]
+  (str "[" name "](/garden/" link ")"))
+
+(defn item->md-filename [item]
+  (-> item item->link (str ".md")))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Frontmatter
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn item->frontmatter [item]
-  (let [name (:name item)]
-    ["---" (str "title: " name) "---"]))
+  (let [name (:name item)
+        name (or name (item->link item))
+        tags (conj (or (:tags item) #{}) "garden")]
+    (flatten ["---"
+              (str "title: " name)
+              (str "date: " "2020-07-04")
+              (str "tags:")
+              (->> tags (map (fn [tag] (str "  - " tag))))
+              "---"])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item -> markdown body
@@ -36,7 +62,7 @@
         (let [file-path (some->> res (drop 1) first fs/base-name fs/split-ext first)
               link-text (some->> res (drop 2) first)]
           (when (and file-path link-text)
-            (str "[" link-text "](/" file-path ")")))))))
+            (markdown-link {:name link-text :link file-path})))))))
 
 (defn body-line->md-lines [line]
   (cond
@@ -49,11 +75,16 @@
               (map body-line->md-lines (:content line))
               "```"])))
 
+(comment
+  (org-links->md-links
+    "[[file:20200627150518-spaced_repetition_in_decision_making.org][Spaced-repetition]] for accumulating a design or an approach"))
+
 (defn item->md-body [item]
   (let [child-lines (mapcat item->md-body (:items item))
         header-line
         (if (int? (:level item))
-          (str (apply str (repeat (:level item) "#")) " " (:name item))
+          (str (apply str (repeat (:level item) "#")) " "
+               (org-links->md-links (:name item)))
           "")
         body-lines  (->> item
                          :body
@@ -95,6 +126,10 @@
 
 (comment
   (str->file-refs "no links")
+
+  (str->file-refs
+    "[[file:20200627150518-spaced_repetition_in_decision_making.org][Spaced-repetition]] for accumulating a design or an approach")
+
   (str->file-refs
     "Written the same day as [[file:2020-06-10.org][this today file]].
 Two [[file:2020-06-10.org][in]] [[file:2020-06-11.org][one]]."))
@@ -108,25 +143,6 @@ Two [[file:2020-06-10.org][in]] [[file:2020-06-11.org][one]]."))
               {:name text
                :link (-> link
                          (string/replace #"\n" ""))}))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; item -> markdown
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn item->link [item]
-  (-> item
-      :source-file
-      fs/base-name
-      fs/split-ext
-      first))
-
-(defn item->md-lines [item]
-  (concat
-    (item->frontmatter item)
-    (item->md-body item)))
-
-(defn item->md-filename [item]
-  (-> item item->link (str ".md")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Building backlinks
@@ -151,7 +167,7 @@ Two [[file:2020-06-10.org][in]] [[file:2020-06-11.org][one]]."))
                                    :link (:self-link linked-md-item)}))))))))))
 
 (defn backlink->line [link]
-  (str "- [" (:name link) "](/" (:link link) ")"))
+  (str "- " (markdown-link link)))
 
 (defn append-backlink-body [md-item]
   (if-let [links (seq (:backlinks md-item))]
@@ -163,6 +179,11 @@ Two [[file:2020-06-10.org][in]] [[file:2020-06-11.org][one]]."))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public: converting to and writing a markdown file
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn item->md-lines [item]
+  (concat
+    (item->frontmatter item)
+    (item->md-body item)))
 
 (defn item->md-item [item]
   {:filename  (item->md-filename item)
