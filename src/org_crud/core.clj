@@ -31,8 +31,9 @@
   [parsed]
   (reduce
     (fn [items next]
-      (conj items (merge {:org-section next}
-                         (headline/->item next))))
+      (conj items (merge
+                    ;; {:org-section next}
+                    (headline/->item next))))
     []
     parsed))
 

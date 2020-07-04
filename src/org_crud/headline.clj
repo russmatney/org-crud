@@ -240,7 +240,8 @@
     (let [dates (->dates raw)]
       (merge
         dates
-        {:org-section  raw
+        {
+         ;; :org-section  raw
          :level        (->level raw)
          :id           (->id raw)
          :name         (->name raw)
@@ -254,11 +255,12 @@
     (let [dates (->dates raw)]
       (merge
         dates
-        {:org-section raw
-         :level       (->level raw)
+        {
+         ;; :org-section raw
+         :level (->level raw)
          ;; :id          (->id raw)
-         :name        (->name raw)
+         :name  (->name raw)
          ;; :tags        (->tags raw)
-         :body        (->body raw)
+         :body  (->body raw)
          ;; :props       (->properties raw)
          }))))

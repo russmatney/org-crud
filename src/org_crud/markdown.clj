@@ -6,13 +6,42 @@
   (let [name (:name item)]
     ["---" (str "title: " name) "---"]))
 
-(defn item->content [item]
-  (->> item :body (map :text) (remove nil?) seq))
+(defn body-line->md-lines [item]
+  (cond
+    (contains? #{:blank :table-row} (:line-type item))
+    [(:text item)]
+
+    (and (= :block (:type item))
+         (= "SRC" (:block-type item)))
+    (flatten [(str "``` " (:qualifier item))
+              (map body-line->md-lines (:content item))
+              "```"])))
+
+(defn item->md-body [item]
+  (let [child-lines (mapcat item->md-body (:items item))
+        header-line
+        (if (int? (:level item))
+          (str (apply str (repeat (:level item) "#")) " " (:name item))
+          "")
+        body-lines  (->> item
+                        :body
+                        (remove #(= (:line-type %) :comment))
+                        (mapcat body-line->md-lines)
+                        (remove nil?)
+                        seq)]
+    (println "header" header-line)
+    (println "body" body-lines)
+    (println "child" child-lines)
+    (concat [header-line] body-lines child-lines)))
+
+(comment
+  (str (apply str (repeat 2 "#")) " thats my name")
+  )
 
 (defn item->md-lines [item]
   (concat
     (item->frontmatter item)
-    (item->content item)))
+    (item->md-body item)))
 
 (defn item->md-filename [item]
   (-> item
