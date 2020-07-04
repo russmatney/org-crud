@@ -19,14 +19,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (deftest build-and-write-count-test
-  (do
-    ;; seems to not run?
-    (sut/org-dir->md-dir fixture-dir fixture-dir)
-    (let [files (fs/list-dir fixture-dir)]
-      (testing "same number of org and md files"
-        (is (> (->> files (filter #(= (fs/extension %) ".org")) count) 0))
-        (is (= (->> files (filter #(= (fs/extension %) ".org")) count)
-               (->> files (filter #(= (fs/extension %) ".md")) count)))))))
+  (doall (sut/org-dir->md-dir fixture-dir fixture-dir))
+  (let [files (fs/list-dir fixture-dir)]
+    (testing "same number of org and md files"
+      (is (> (->> files (filter #(= (fs/extension %) ".org")) count) 0))
+      (is (= (->> files (filter #(= (fs/extension %) ".org")) count)
+             (->> files (filter #(= (fs/extension %) ".md")) count))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item->frontmatter

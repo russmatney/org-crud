@@ -81,7 +81,7 @@
 
 (defn org-line->md-line [s]
   (-> s
-      (string/replace #"~(.*)~" "`$1`")
+      (string/replace #"~([^~]*)~" "`$1`")
       org-links->md-links))
 
 (defn body-line->md-lines [line]
