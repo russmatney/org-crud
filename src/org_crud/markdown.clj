@@ -1,8 +1,9 @@
 (ns org-crud.markdown
-  (:require [clojure.string :as string]
-            [org-crud.fs :as fs]
-            [org-crud.core :as org]
-            [org-crud.util :as util]))
+  (:require
+   [clojure.string :as string]
+   [org-crud.fs :as fs]
+   [org-crud.core :as org]
+   [org-crud.util :as util]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item -> link, filename
@@ -78,10 +79,15 @@
           (when (and file-path link-text)
             (markdown-link {:name link-text :link file-path})))))))
 
+(defn org-line->md-line [s]
+  (-> s
+      (string/replace #"~(.*)~" "`$1`")
+      org-links->md-links))
+
 (defn body-line->md-lines [line]
   (cond
     (contains? #{:blank :table-row :unordered-list} (:line-type line))
-    [(:text line)]
+    [(-> (:text line) org-line->md-line)]
 
     (and (= :block (:type line))
          (= "SRC" (:block-type line)))
@@ -98,7 +104,9 @@
         header-line
         (if (int? (:level item))
           (str (apply str (repeat (:level item) "#")) " "
-               (org-links->md-links (:name item)))
+               (-> item
+                   :name
+                   org-line->md-line))
           "")
         body-lines  (->> item
                          :body
