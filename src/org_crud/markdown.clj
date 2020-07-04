@@ -16,7 +16,7 @@
       first))
 
 (defn markdown-link
-  "TODO refactor /garden out of here, or into something configurable."
+  ;; TODO refactor /garden out of here, maybe into something configurable.
   [{:keys [name link]}]
   (str "[" name "](/garden/" link ")"))
 

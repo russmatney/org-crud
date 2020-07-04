@@ -110,24 +110,24 @@
 (defn ->name [{:keys [name type content]}]
   (cond
     (and name (= type :section))
-    (second (re-find
-              ;; #"\*?\*?\*?\*? ?\[?[ X-]?\]?(?:TODO|DONE|CANCELLED)? ?(.*)" name
-              #"\*?\*?\*?\*? ?(?:TODO|DONE|CANCELLED)? ?(.*)" name
-              ))
+    (->> name
+         (re-find
+           #"\*?\*?\*?\*? ?(?:TODO|DONE|CANCELLED)? ?(.*)")
+         second
+         ((fn [s] (string/replace s #"\[[ X-]\] " ""))))
 
     (= type :root)
-    (let [text (some->> content
-                        (filter (fn [c]
-                                  (and (= (:line-type c) :comment)
-                                       (string/includes?
-                                         (-> c :text string/lower-case)
-                                         "#+title"))))
-                        first
-                        :text)]
-      (when text
-        (some->
-          (re-find #".*TITLE: (.*)" text)
-          second)))))
+    (some->> content
+             (filter
+               (fn [c]
+                 (and (= (:line-type c) :comment)
+                      (string/includes?
+                        (-> c :text string/lower-case)
+                        "#+title"))))
+             first
+             :text
+             (re-find #".*TITLE: (.*)")
+             second)))
 
 (comment
 
@@ -153,8 +153,29 @@
   (when level
     (str (apply str (repeat level "*")) " " name)))
 
-(defn ->tags [x]
-  (-> x :tags (set)))
+(defn ->tags [{:keys [type content tags]}]
+  (cond
+    (= :root type)
+    (let [text
+          (some->>
+            content
+            (filter (fn [c]
+                      (and (= (:line-type c) :comment)
+                           (string/includes?
+                             (-> c :text string/lower-case)
+                             "#+roam_tags"))))
+            first
+            :text)]
+      (when text
+        (some->
+          (->> text
+               string/lower-case
+               (re-find #".*roam_tags: (.*)"))
+          second
+          (string/split #" ")
+          (into #{}))))
+
+    :else (-> tags (set))))
 
 (defn ->todo-status
   "Returns either :not-started, :in-progress, or :done"
@@ -211,7 +232,7 @@
 ;;   {:scheduled (->scheduled s)
 ;;    :deadline  (->deadline s)})
 
-(defn ->dates [x]
+(defn ->dates [_x]
   {}
   ;; (let [metadata (->metadata x)]
   ;;   (if (seq metadata)
@@ -241,15 +262,13 @@
 ;; item - a general headline
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn ->item [raw] ;; expects not a string, but an parsed org map
+(defn ->item [raw]
   (cond
     (= :section (:type raw))
     (let [dates (->dates raw)]
       (merge
         dates
-        {
-         ;; :org-section  raw
-         :level        (->level raw)
+        {:level        (->level raw)
          :id           (->id raw)
          :name         (->name raw)
          :raw-headline (->raw-headline raw)
@@ -263,11 +282,10 @@
       (merge
         dates
         {
-         ;; :org-section raw
          :level (->level raw)
          ;; :id          (->id raw)
          :name  (->name raw)
-         ;; :tags        (->tags raw)
+         :tags  (->tags raw)
          :body  (->body raw)
          ;; :props       (->properties raw)
          }))))

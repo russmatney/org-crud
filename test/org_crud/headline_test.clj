@@ -3,7 +3,14 @@
    [org-crud.headline :as sut]
    [clojure.test :refer [deftest testing is use-fixtures]]
    [org-crud.util :as util]
+   [org-crud.core :as org]
+   [org-crud.fs :as fs]
    [clojure.set :as set]))
+
+(def fixture-dir (str fs/*cwd* "/test/org_crud"))
+
+(defn parsed-org-file [fname]
+  (org/path->nested-item (str fixture-dir "/" fname)))
 
 (defn test-fixtures
   [f]
@@ -102,3 +109,12 @@
   (let [urls (set (sut/->urls url-headline))]
     (testing "parses urls from headline name"
       (is (contains? urls name-url)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Tags
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest roam-tags-test
+  (let [item (parsed-org-file "core-test.org")]
+    (is (set/subset? #{"roam" "tags" "like" "this"}
+                     (set (:tags item))))))

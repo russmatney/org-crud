@@ -1,4 +1,5 @@
 #+TITLE: Core Test
+#+ROAM_TAGS: roam tags like this
 
 * some header
 * some other header
