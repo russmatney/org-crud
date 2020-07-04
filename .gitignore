@@ -22,3 +22,4 @@ target
 tmp/
 .clj-kondo/.cache/
 test/org_crud/*.org
+test/org_crud/markdown_fixtures/*.md

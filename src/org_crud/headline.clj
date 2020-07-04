@@ -26,7 +26,6 @@
   [{:keys [content]}]
   (->> content
        (remove #(= :drawer (:type %)))
-       (partition-by #(= :blank (:line-type %)))
        (flatten)))
 
 (defn ->metadata
