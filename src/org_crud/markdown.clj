@@ -218,8 +218,13 @@ Two [[file:2020-06-10.org][in]] [[file:2020-06-11.org][one]]."))
   (spit (str target-dir "/" (:filename md-item))
         (->> md-item :body (string/join "\n"))))
 
+;; TODO patch 'excluded' links so we don't have dead links when published
+(defn exclude-item? [item]
+  (contains? (-> item :tags set) "private"))
+
 (defn org-dir->md-dir [source-dir target-dir]
   (->> (org/dir->nested-items source-dir)
+       (remove exclude-item?)
        (map item->md-item)
        process-backlinks
        (map append-backlink-body)
