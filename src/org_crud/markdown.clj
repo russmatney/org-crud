@@ -24,42 +24,22 @@
   The structure is a supported relative link usable with the gatsby-catch-links
   plugin.
 
-  Works across line breaks, expects to be passed the entire joined file."
+  Works across line breaks within the string."
   [s]
-  (string/replace
-    s
-    #"\[\[file:([^\]]*)\]\[([^\]]*)\]\]"
-    (fn [res]
-      (let [file-path (some->> res (drop 1) first fs/base-name fs/split-ext first)
-            link-text (some->> res (drop 2) first)]
-        (when (and file-path link-text)
-          (str "[" link-text "](/" file-path ")")))
-      )))
+  (when s
+    (string/replace
+      s
+      #"\[\[file:([^\]]*)\]\[([^\]]*)\]\]"
+      (fn [res]
+        (let [file-path (some->> res (drop 1) first fs/base-name fs/split-ext first)
+              link-text (some->> res (drop 2) first)]
+          (when (and file-path link-text)
+            (str "[" link-text "](/" file-path ")")))))))
 
 (comment
-  (string/replace "hello" #"l(.*)" #(str "hi" %1))
-
-  (re-seq
-    #"\[\[file:([^\]]*)\]\[([^\]]*)\]\]"
-    "Wide net for [[file:20200609220548-capture_should_be_easy.org][easy capture]]")
-
   (org-links->md-links
     "Wide net for [[file:20200609220548-capture_should_be_easy.org][easy \n  capture]]
-\n
-    and other things too [[file:20200609220548-other-things-too.org][something \n  capture]]
-"
-    )
-
-  (string/replace
-    "Wide net for [[file:20200609220548-capture_should_be_easy.org][easy \n  capture]]"
-    #"\[\[file:([^\]]*)\]\[([^\]]*)\]\]"
-    (fn [res]
-      (let [file-path (some->> res (drop 1) first fs/base-name fs/split-ext first)
-            link-text (some->> res (drop 2) first)]
-        (when (and file-path link-text)
-          (str "[" link-text "](/" file-path ")")))
-      ))
-  )
+    and other things too [[file:20200609220548-other-things-too.org][something \n  capture]]"))
 
 (defn body-line->md-lines [line]
   (cond
@@ -82,13 +62,14 @@
                          :body
                          (remove #(= (:line-type %) :comment))
                          (mapcat body-line->md-lines)
-                         (remove nil?)
-                         seq)]
-    (reduce
-      (fn [lines line]
-        (conj lines line))
-      []
-      (concat [header-line] body-lines child-lines))))
+                         (remove nil?))
+        body-lines  (when (seq body-lines)
+                      (->> body-lines
+                           (string/join "\n")
+                           org-links->md-links
+                           ((fn [s] (string/split s #"\n")))
+                           ))]
+    (concat [header-line] body-lines child-lines)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item -> markdown

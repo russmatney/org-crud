@@ -177,7 +177,6 @@
   (let [example-org example-item-with-link
         lines       (->> example-org sut/item->md-body
                          (remove empty?))]
-    (def --lines lines)
     (testing "includes markdown-style links"
       (is (= "- Wide net for [easy capture](/20200609220548-capture_should_be_easy)"
              (->> lines
