@@ -1,4 +1,6 @@
-(ns org-crud.markdown)
+(ns org-crud.markdown
+  (:require [clojure.string :as string]
+            [org-crud.fs :as fs]))
 
 (defn item->frontmatter [item]
   (let [name (:name item)]
@@ -11,3 +13,19 @@
   (concat
     (item->frontmatter item)
     (item->content item)))
+
+(defn item->md-filename [item]
+  (-> item
+      :source-file
+      fs/base-name
+      fs/split-ext
+      first
+      (str ".md")))
+
+(defn item->md-item [item]
+  {:filename (item->md-filename item)
+   :lines    (item->md-lines item)})
+
+(defn write-md-item [target-dir md-item]
+  (spit (str target-dir "/" (:filename md-item))
+        (->> md-item :lines (string/join "\n"))))

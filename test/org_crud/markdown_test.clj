@@ -14,12 +14,8 @@
   (doall
     (->> fixture-dir
          org/dir->nested-items
-         (map (fn [item]
-                {:filename (str (:name item) ".md")
-                 :lines    (sut/item->md-lines item)}))
-         (map (fn [file]
-                (spit (str fixture-dir "/" (:filename file))
-                      (->> file :lines (string/join "\n"))))))))
+         (map sut/item->md-item)
+         (map (partial sut/write-md-item fixture-dir)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item->frontmatter

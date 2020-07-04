@@ -48,7 +48,8 @@
   (->> p
        parse-org-file
        parsed->flattened-items
-       (remove (comp nil? :name))))
+       (remove (comp nil? :name))
+       (map #(assoc % :source-file p))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Parsing nested items
