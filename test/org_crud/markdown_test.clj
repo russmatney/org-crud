@@ -173,7 +173,7 @@
        :text
        "- Wide net for [[file:20200609220548-capture_should_be_easy.org][easy capture]]"}]}]})
 
-(deftest markdown-with-link-test
+(deftest markdown-with-link-test-conversion
   (let [example-org example-item-with-link
         lines       (->> example-org sut/item->md-body
                          (remove empty?))]
@@ -182,6 +182,14 @@
              (->> lines
                   (filter #(string/starts-with? % "- Wide"))
                   first))))))
+
+(deftest markdown-with-link-test-links-func
+  (let [example-org example-item-with-link
+        links       (->> example-org sut/item->links)]
+    (testing "includes markdown-style links"
+      (is (= {:text "easy capture"
+              :link "20200609220548-capture_should_be_easy"}
+             (first links))))))
 
 (def example-item-with-line-broken-link
   {:level :root,
@@ -204,3 +212,7 @@
       (is (= ["- Wide net for [easy"
               "  capture](/20200609220548-capture_should_be_easy)"]
              (->> lines (drop 1)))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; backlinks
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

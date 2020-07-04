@@ -36,11 +36,6 @@
           (when (and file-path link-text)
             (str "[" link-text "](/" file-path ")")))))))
 
-(comment
-  (org-links->md-links
-    "Wide net for [[file:20200609220548-capture_should_be_easy.org][easy \n  capture]]
-    and other things too [[file:20200609220548-other-things-too.org][something \n  capture]]"))
-
 (defn body-line->md-lines [line]
   (cond
     (contains? #{:blank :table-row :unordered-list} (:line-type line))
@@ -72,6 +67,48 @@
     (concat [header-line] body-lines child-lines)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; backlinks
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn item->strs [item]
+  (let [name      (:name item)
+        body-strs (->> (:body item)
+                       ;; TODO support more line-types, etc
+                       (map :text))]
+    (concat [name] body-strs)))
+
+(defn all-body-strs [item]
+  (loop [items    [item]
+         all-strs []]
+    (let [children (->> items (mapcat :items))
+          strs     (->> items (mapcat item->strs))
+          all-strs (concat all-strs strs)]
+      (if (seq children)
+        (recur children all-strs)
+        all-strs))))
+
+(defn str->file-refs [s]
+  (some->> s
+           (re-seq #"\[\[file:([^\]]*).org\]\[([^\]]*)\]\]")
+           (map #(drop 1 %))))
+
+(comment
+  (str->file-refs "no links")
+  (str->file-refs
+    "Written the same day as [[file:2020-06-10.org][this today file]].
+Two [[file:2020-06-10.org][in]] [[file:2020-06-11.org][one]]."))
+
+(defn item->links [item]
+  (->> item
+       all-body-strs
+       (mapcat str->file-refs)
+       (remove nil?)
+       (map (fn [[link text]]
+              {:text text
+               :link (-> link
+                         (string/replace #"\n" ""))}))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item -> markdown
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -94,7 +131,8 @@
 
 (defn item->md-item [item]
   {:filename (item->md-filename item)
-   :lines    (item->md-lines item)})
+   :lines    (item->md-lines item)
+   :links    (item->links item)})
 
 (defn write-md-item [target-dir md-item]
   (spit (str target-dir "/" (:filename md-item))
