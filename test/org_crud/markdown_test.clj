@@ -19,13 +19,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (deftest build-and-write-count-test
-  (sut/org-dir->md-dir fixture-dir fixture-dir)
-
-  (let [files (fs/list-dir fixture-dir)]
-    (testing "same number of org and md files"
-      (is (> (->> files (filter #(= (fs/extension %) ".org")) count) 0))
-      (is (= (->> files (filter #(= (fs/extension %) ".org")) count)
-             (->> files (filter #(= (fs/extension %) ".md")) count))))))
+  (do
+    ;; seems to not run?
+    (sut/org-dir->md-dir fixture-dir fixture-dir)
+    (let [files (fs/list-dir fixture-dir)]
+      (testing "same number of org and md files"
+        (is (> (->> files (filter #(= (fs/extension %) ".org")) count) 0))
+        (is (= (->> files (filter #(= (fs/extension %) ".org")) count)
+               (->> files (filter #(= (fs/extension %) ".md")) count)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item->frontmatter
@@ -41,6 +42,12 @@
       (is (contains? (set lines) "tags:"))
       (is (contains? (set lines) "  - garden"))
       )))
+
+(deftest frontmatter-test-dates
+  (let [example-org (parsed-org-file "20200618104339-dated-example.org")
+        lines       (-> example-org sut/item->frontmatter)]
+    (testing "org items convert to a proper frontmatter"
+      (is (contains? (set lines) "date: 2020-06-18")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item->md-body
@@ -231,3 +238,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; backlinks
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; test rn by example - check that they show up in fixture-dir/example.md

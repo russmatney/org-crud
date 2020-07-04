@@ -28,12 +28,26 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn item->frontmatter [item]
-  (let [name (:name item)
-        name (or name (item->link item))
-        tags (conj (or (:tags item) #{}) "garden")]
+  (let [name     (:name item)
+        basename (some-> item
+                         :source-file
+                         fs/base-name
+                         fs/split-ext
+                         first)
+        name     (or name (str "Garden journal for " basename))
+        tags     (conj (or (:tags item) #{}) "garden")
+        date-str (if (re-seq #"^\d{8}" basename)
+                   (some->> basename
+                            (take 8)
+                            (apply str)
+                            ((fn [s]
+                               (string/replace
+                                 s #"(\d\d\d\d)(\d\d)(\d\d)"
+                                 "$1-$2-$3"))))
+                   basename)]
     (flatten ["---"
               (str "title: " name)
-              (str "date: " "2020-07-04")
+              (str "date: " date-str)
               (str "tags:")
               (->> tags (map (fn [tag] (str "  - " tag))))
               "---"])))

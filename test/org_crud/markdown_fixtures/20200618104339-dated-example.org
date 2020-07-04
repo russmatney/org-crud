@@ -1,0 +1,3 @@
+#+TITLE: Dated Example
+
+Dated to match the org-roam default style.
