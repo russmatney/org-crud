@@ -111,7 +111,9 @@
   (cond
     (and name (= type :section))
     (second (re-find
-              #"\*?\*?\*?\*? ?\[?[ X-]?\]?(?:TODO|DONE|CANCELLED)? ?(.*)" name))
+              ;; #"\*?\*?\*?\*? ?\[?[ X-]?\]?(?:TODO|DONE|CANCELLED)? ?(.*)" name
+              #"\*?\*?\*?\*? ?(?:TODO|DONE|CANCELLED)? ?(.*)" name
+              ))
 
     (= type :root)
     (let [text (some->> content
@@ -128,6 +130,11 @@
           second)))))
 
 (comment
+
+  (->name
+    {:type :section
+     :name
+     "[[file:20200627150518-spaced_repetition_in_decision_making.org][Spaced-repetition]] for accumulating a design or an approach"})
   (->name {:name "* CANCELLED Reduce baggage" :type :section})
   (->name {:name "* TODO Reduce baggage" :type :section})
   (->name {:name "* [X] Reduce baggage" :type :section})
