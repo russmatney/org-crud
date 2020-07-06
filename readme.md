@@ -32,7 +32,7 @@ Org-crud aims to provide simple interactions with org files to clojure code.
 
 There is not much to the parser besides a thin layer on top of
 [organum](https://github.com/gmorpheme/organum). Organum does not nest the org
-items - it returns a flattened list, regardless of the items' heirarchichal
+items - it returns a flattened list, regardless of the items' hierarchical
 relationship. Org-crud provides both a flattened and nested option for parsing
 org items.
 
