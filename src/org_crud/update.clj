@@ -6,7 +6,7 @@
    [org-crud.util :as util]
    [org-crud.headline :as headline]))
 
-(defn ^:dynamic *item->org-path* [& _] nil)
+(def ^:dynamic *item->org-path* nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item -> org lines

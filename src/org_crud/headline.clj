@@ -5,6 +5,9 @@
 
 
 (def ^:dynamic *multi-prop-keys* #{})
+(def ^:dynamic *prop-parser*
+  "Contains some types with known parses.
+  For now supports a few string->dates parses." {})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; headline helpers
@@ -46,22 +49,6 @@
 ;; property drawers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def prop-parser
-  "Contains some types with known parses.
-  For now supports a few string->dates parses."
-  ;; TODO how to support for all fields? sniff types?
-  ;; otherwise, may need to make this dynamic
-  {:archive-time util/date->ny-zdt
-   :added-at     util/date->ny-zdt
-   :seen-at      util/date->ny-zdt
-   :started-at   util/date->ny-zdt
-   :finished-at  util/date->ny-zdt})
-
-(comment
-  ;; (t/parse "2020-05-24T17:36-04:00[America/New_York]")
-  (util/date->ny-zdt "2020-05-24T17:36-04:00[America/New_York]")
-  (util/date->ny-zdt "2020-05-23T13:05:32.637-04:00[America/New_York]"))
-
 (defn ->prop-key [text]
   (let [[key _val] (string/split text #" " 2)]
     (when key
@@ -77,7 +64,7 @@
     (let [[_k val] (string/split text #" " 2)]
       (when val
         (let [val (string/trim val)]
-          (if-let [parser (prop-parser key)] (parser val) val))))))
+          (if-let [parser (*prop-parser* key)] (parser val) val))))))
 
 (defn ->properties [x]
   (let [drawer-items (->drawer x)]
