@@ -188,49 +188,6 @@
     {:name "[X] parse/pull TODOs from repo files"}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; dates
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn safe-find [pat s]
-  (let [res (re-find pat s)]
-    (when (and res (< 0 (count res)))
-      (second res))))
-
-(defn ->date-pattern [label s]
-  (let [pattern (re-pattern (str label ": <(.{14})>"))]
-    (safe-find pattern s)))
-
-(comment
-  (->date-pattern "SCHEDULED" "SCHEDULED: <2020-03-18 Wed>"))
-
-;; (defn ->date-for-label [label s]
-;;   (some->
-;;     (->date-pattern label s)
-;;     (string/split #" ")
-;;     (first)
-;;     (t/date)
-;;     (util/date->ny-zdt)))
-
-;; (defn ->deadline [s] (->date-for-label "DEADLINE" s))
-
-;; (defn ->scheduled [s] (->date-for-label "SCHEDULED" s))
-
-;; (defn metadata->date-map [s]
-;;   {:scheduled (->scheduled s)
-;;    :deadline  (->deadline s)})
-
-(defn ->dates [_x]
-  {}
-  ;; (let [metadata (->metadata x)]
-  ;;   (if (seq metadata)
-  ;;     (metadata->date-map (first metadata))
-  ;;     {}))
-  )
-
-(defn ->date-from-name [{:keys [name]}]
-  (util/date->ny-zdt name))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; url parsing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -252,27 +209,20 @@
 (defn ->item [raw]
   (cond
     (= :section (:type raw))
-    (let [dates (->dates raw)]
-      (merge
-        dates
-        {:level        (->level raw)
-         :id           (->id raw)
-         :name         (->name raw)
-         :raw-headline (->raw-headline raw)
-         :tags         (->tags raw)
-         :body         (->body raw)
-         :status       (->todo-status raw)
-         :props        (->properties raw)}))
+    {:level        (->level raw)
+     :id           (->id raw)
+     :name         (->name raw)
+     :raw-headline (->raw-headline raw)
+     :tags         (->tags raw)
+     :body         (->body raw)
+     :status       (->todo-status raw)
+     :props        (->properties raw)}
 
     (= :root (:type raw))
-    (let [dates (->dates raw)]
-      (merge
-        dates
-        {
-         :level (->level raw)
-         ;; :id          (->id raw)
-         :name  (->name raw)
-         :tags  (->tags raw)
-         :body  (->body raw)
-         ;; :props       (->properties raw)
-         }))))
+    {:level (->level raw)
+     ;; :id          (->id raw)
+     :name  (->name raw)
+     :tags  (->tags raw)
+     :body  (->body raw)
+     ;; :props       (->properties raw)
+     }))
