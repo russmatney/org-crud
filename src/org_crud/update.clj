@@ -2,7 +2,6 @@
   (:require
    [clojure.string :as string]
    [clojure.set :as set]
-   [org-crud.fs :as fs]
    [org-crud.core :as org]
    [org-crud.util :as util]
    [org-crud.headline :as headline]))
