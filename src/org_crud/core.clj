@@ -18,6 +18,17 @@
 (comment
   (parse-org-file "repos.org"))
 
+(defn parse-org-lines
+  "Very close to the internal org/parse-file function,
+  except that it expects a seq of text lines.
+
+  Used to get basic text into the item's 'body' structure
+  for commit messages and other non-org sources.
+  "
+  [lines]
+  (when (seq lines)
+    (reduce org/handle-line [(org/root)] lines)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Parsing flattened items
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
