@@ -6,7 +6,7 @@
    [org-crud.util :as util]
    [org-crud.headline :as headline]))
 
-(def ^:dynamic *item->org-path* nil)
+(def ^:dynamic *item->source-file* nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item -> org lines
@@ -248,11 +248,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn update!
-  ([item up] (update! (*item->org-path* item) item up))
+  ([item up] (update! (*item->source-file* item) item up))
   ([path item up]
-   (println "Updating props TWO"
-            {:path      path         :item-name (:name item)
-             :item-type (:type item) :update    up})
+   (println "Updating item"
+            {:path             path
+             :item-source-file (:source-file item)
+             :item-name        (:name item)
+             :item-type        (:type item)
+             :update           up})
    (let [parsed-items (org/path->flattened-items path)
          updated      (update-items parsed-items item up)]
      (write-updated path updated))))
@@ -306,8 +309,8 @@
   to the item if the context is :top-level."
   [item context]
   (let [org-path (if (map? context)
-                   (*item->org-path* context)
-                   (*item->org-path* item))]
+                   (*item->source-file* context)
+                   (*item->source-file* item))]
     (if org-path
       (add-to-file! org-path item context)
       (println "Item add attempted for bad org-path" {:org-path org-path
@@ -325,7 +328,7 @@
 (defn delete-item!
   "Deletes the item passed, if a match is found in the path"
   [item]
-  (let [org-path (*item->org-path* item)]
+  (let [org-path (*item->source-file* item)]
     (if org-path
       (delete-from-file! org-path item)
       (do

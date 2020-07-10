@@ -39,12 +39,12 @@
   Produces flattened items, rather than nested.
   This means deeper org headlines will not be contained within parents.
   "
-  [parsed]
+  [source-file parsed]
   (reduce
     (fn [items next]
       (conj items (merge
                     ;; {:org-section next}
-                    (headline/->item next))))
+                    (headline/->item next source-file))))
     []
     parsed))
 
@@ -59,9 +59,8 @@
   [p]
   (->> p
        parse-org-file
-       parsed->flattened-items
-       (remove (comp nil? :name))
-       (map #(assoc % :source-file p))))
+       (parsed->flattened-items p)
+       (remove (comp nil? :name))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Parsing nested items
@@ -150,10 +149,10 @@
 
 (defn parsed->nested-items
   "Parses level-1 items with sub-sections as children"
-  [parsed]
+  [source-file parsed]
   (->> parsed
        ;; (filter #(= :section (:type %)))
-       (map headline/->item)
+       (map (fn [raw] (headline/->item raw source-file)))
        (flattened->nested
          (fn [parent item] (update parent :items conj item)))
        (walk/postwalk (fn [x]
@@ -172,9 +171,8 @@
   [p]
   (some->> p
            parse-org-file
-           parsed->nested-items
+           (parsed->nested-items p)
            (remove nil?)
-           (map #(assoc % :source-file p))
            first))
 
 (defn dir->nested-items

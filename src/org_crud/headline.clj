@@ -1,7 +1,8 @@
 (ns org-crud.headline
   (:require
    [org-crud.util :as util]
-   [clojure.string :as string]))
+   [clojure.string :as string]
+   [org-crud.fs :as fs]))
 
 
 (def ^:dynamic *multi-prop-keys* #{})
@@ -206,10 +207,11 @@
 ;; item - a general headline
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn ->item [raw]
+(defn ->item [raw source-file]
   (cond
     (= :section (:type raw))
     {:level        (->level raw)
+     :source-file  (-> source-file fs/absolute str)
      :id           (->id raw)
      :name         (->name raw)
      :raw-headline (->raw-headline raw)
@@ -219,10 +221,11 @@
      :props        (->properties raw)}
 
     (= :root (:type raw))
-    {:level (->level raw)
+    {:level       (->level raw)
+     :source-file (-> source-file fs/absolute str)
      ;; :id          (->id raw)
-     :name  (->name raw)
-     :tags  (->tags raw)
-     :body  (->body raw)
+     :name        (->name raw)
+     :tags        (->tags raw)
+     :body        (->body raw)
      ;; :props       (->properties raw)
      }))
