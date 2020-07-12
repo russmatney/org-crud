@@ -38,7 +38,7 @@
       (is (= "---" (last lines)))
       (is (contains? (set lines) "title: Example Org File"))
       (is (contains? (set lines) "tags:"))
-      (is (contains? (set lines) "  - garden"))
+      (is (contains? (set lines) "  - notes"))
       )))
 
 (deftest frontmatter-test-dates
@@ -180,7 +180,7 @@
         lines       (->> example-org sut/item->md-body
                          (remove empty?))]
     (testing "includes markdown-style links"
-      (is (= "- Wide net for [easy capture](/garden/20200609220548-capture_should_be_easy)"
+      (is (= "- Wide net for [easy capture](/notes/20200609220548-capture_should_be_easy)"
              (->> lines
                   (filter #(string/starts-with? % "- Wide"))
                   first))))))
@@ -212,7 +212,7 @@
                          (remove empty?))]
     (testing "includes markdown-style links"
       (is (= ["- Wide net for [easy"
-              "  capture](/garden/20200609220548-capture_should_be_easy)"]
+              "  capture](/notes/20200609220548-capture_should_be_easy)"]
              (->> lines (drop 1)))))))
 
 (def example-header-link
@@ -231,7 +231,7 @@
                          (remove empty?))]
     (testing "includes markdown-style links"
       (is (contains? (set lines)
-                     "# [text name](/garden/link-name) blah")))))
+                     "# [text name](/notes/link-name) blah")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; backlinks

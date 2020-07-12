@@ -17,9 +17,9 @@
       first))
 
 (defn markdown-link
-  ;; TODO refactor /garden out of here, maybe into something configurable.
+  ;; TODO refactor /notes out of here, maybe into something configurable.
   [{:keys [name link]}]
-  (str "[" name "](/garden/" link ")"))
+  (str "[" name "](/notes/" link ")"))
 
 (defn item->md-filename [item]
   (-> item item->link (str ".md")))
@@ -35,8 +35,8 @@
                          fs/base-name
                          fs/split-ext
                          first)
-        name     (or name (str "Garden journal for " basename))
-        tags     (conj (or (:tags item) #{}) "garden")
+        name     (or name (str "Daily Note for " basename))
+        tags     (conj (or (:tags item) #{}) "note")
         date-str (if (re-seq #"^\d{8}" basename)
                    (some->> basename
                             (take 8)

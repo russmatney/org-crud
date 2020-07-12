@@ -39,8 +39,8 @@ org items.
 This library is also [babashka](https://github.com/borkdude/babashka)
 compatible, so you can drop it into a bb script without issue. This was
 necessary for tools like [ralphie](https://github.com/russmatney/ralphie) to run
-the exporter. You can see how ralphie consumes it [in the ralphie.garden
-namespace](https://github.com/russmatney/ralphie/blob/e67ab9be12731ff0d6418a63357053b6e841f2a4/src/ralphie/garden.clj#L12).
+the exporter. You can see how ralphie consumes it [in the ralphie.notes
+namespace](https://github.com/russmatney/ralphie/blob/f6432e433e7e447aa1c0784e62ade2935c557cfc/src/ralphie/notes.clj#L21)
 
 ## Features
 

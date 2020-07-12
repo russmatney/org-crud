@@ -182,5 +182,5 @@
        (map path->nested-item)))
 
 (comment
-  (-> (dir->nested-items "/home/russ/Dropbox/roam")
+  (-> (dir->nested-items "/home/russ/Dropbox/notes")
       first))
