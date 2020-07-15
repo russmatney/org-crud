@@ -18,7 +18,9 @@
       :status/cancelled   "CANCELLED"
       :status/done        "[X]"
       :status/not-started "[ ]"
-      :status/in-progress "[-]")))
+      :status/in-progress "[-]"
+      ;; anything else clears the status completely
+      "")))
 
 (defn append-tags [line tags]
   (if-not tags
