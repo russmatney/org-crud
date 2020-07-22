@@ -262,6 +262,29 @@
          updated      (update-items parsed-items item up)]
      (write-updated path updated))))
 
+(defn update-all-with-fn!
+  "item->up should construct an update based on the passed item.
+  If item->up returns nil, no update will be performed for that item.
+
+  (comment
+    (-> (str *drafts-dir* \"/journal-2019-12.org\")
+        (org-crud.update/update-all-with-fn!
+          (fn [item]
+            (when-not (-> item :props :id)
+              {:props {:id (.toString (java.util.UUID/randomUUID))}})))))
+  "
+  [path item->up]
+  (println "Updating items at path with f" {:path path})
+  (let [parsed-items (org/path->flattened-items path)
+        updated      (reduce
+                       (fn [agg item]
+                         (if-let [up (item->up item)]
+                           (update-items agg item up)
+                           agg))
+                       parsed-items
+                       parsed-items)]
+    (write-updated path updated)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public add function
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
