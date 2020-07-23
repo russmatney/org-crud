@@ -89,10 +89,7 @@
 (defn ->level [{:keys [level]}] (or level :root))
 
 (defn ->id [hl]
-  (if-let [prop-id (-> hl ->properties :id)]
-    prop-id
-    (when (:name hl)
-      (second (re-find #"(\d\d) " (:name hl))))))
+  (-> hl ->properties :id))
 
 
 (defn ->name [{:keys [name type content]}]

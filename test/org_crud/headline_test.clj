@@ -2,7 +2,6 @@
   (:require
    [org-crud.headline :as sut]
    [clojure.test :refer [deftest testing is use-fixtures]]
-   [org-crud.util :as util]
    [org-crud.core :as org]
    [org-crud.fs :as fs]
    [clojure.set :as set]))
@@ -80,11 +79,11 @@
        :text      ":repo_ids+: my/other-repo"}]}]
    :name "[X] create cards"})
 
-(deftest ->properties-test
-  (testing "parses property buckets into reasonable props"
-    (let [hl   (sut/->properties example-headline)
-          date (util/date->ny-zdt "2019-04-07 Sun 10:23")]
-      (is (= date (:archive-time hl))))))
+;; (deftest ->properties-test
+;;   (testing "parses property buckets into reasonable props"
+;;     (let [hl   (sut/->properties example-headline)
+;;           date (util/date->ny-zdt "2019-04-07 Sun 10:23")]
+;;       (is (= date (:archive-time hl))))))
 
 (deftest ->properties-test-multi-value
   (testing "parses property buckets into lists when applicable"

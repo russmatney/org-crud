@@ -215,12 +215,11 @@
            (fn [agg it]
              (if is-delete?
                (if (matching-items? it item)
-                 ;; don't conj here to remove the item
                  (assoc agg :deleting? true)
                  (if (and (:deleting? agg)
                           (> (:level it)
                              (:level item)))
-                   ;; don't conj here to remove nested items
+                   ;; don't conj when :deleting? to remove nested items
                    agg
                    ;; remove deleting?, appending the rest
                    (-> agg
