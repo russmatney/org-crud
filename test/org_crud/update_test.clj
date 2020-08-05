@@ -108,7 +108,7 @@
     ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; update property on headline property buckets
+;; update property on property buckets
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (deftest update-properties-test
@@ -209,73 +209,6 @@
     (prop-order-update {:props {:c "hi"}})
     (is (= (prop-order-props) {:a "1" :b "2" :c "hi"}))
     ))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; delete a headline
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(def deleted-headline-name ""
-  "delete headline")
-
-(def deleted-nested-headline-name ""
-  "delete nested headline")
-
-(defn ->deleted-headline []
-  (get-headline {:name deleted-headline-name}))
-
-(defn ->deleted-nested-headline []
-  (get-headline {:name deleted-nested-headline-name}))
-
-(defn do-delete-headline [item]
-  (sut/delete-from-file! org-filepath item))
-
-(deftest delete-headline
-  (testing "deletes a headline"
-    (is (= deleted-headline-name (:name (->deleted-headline))))
-    (do-delete-headline (->deleted-headline))
-    (is (= nil (->deleted-headline)))
-    (is (= nil (get-headline {:name "deleted more content"})))))
-
-
-(deftest delete-nested-headline
-  (testing "deletes a nested headline"
-    (is (= deleted-nested-headline-name (:name (->deleted-nested-headline))))
-    (do-delete-headline (->deleted-nested-headline))
-    (is (= nil (->deleted-nested-headline)))
-    (is (not= nil (get-headline {:name "deleted more content"})))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; refile an item
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(def to-refile "some inbox item")
-
-(defn do-refile [item context]
-  (sut/refile-within-file! org-filepath item context))
-
-(deftest refile-headline
-  (testing "refiles a headline to the top level"
-    (is (= to-refile (:name (get-headline {:name to-refile}))))
-    (do-refile (get-headline {:name to-refile}) :top-level)
-    (is (= 1 (:level (get-headline {:name to-refile}))))))
-
-(deftest refile-headline-nested
-  (testing "refiles a headline under the passed context"
-    (is (= to-refile (:name (get-headline {:name to-refile}))))
-    (do-refile (get-headline {:name to-refile})
-               (get-headline {:name "target todo"}))
-    (is (= 4 (:level (get-headline {:name to-refile}))))))
-
-(deftest refile-headline-include-body
-  (testing "refiles a headline, including it's body content"
-    (is (= to-refile (:name (get-headline {:name to-refile}))))
-    (let [body-count (count (:body (get-headline {:name to-refile})))]
-      (do-refile (get-headline {:name to-refile})
-                 (get-headline {:name "target todo"}))
-      (is (not (nil? body-count)))
-      (is (= body-count (count (:body (get-headline {:name to-refile}))))))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; update using id prop

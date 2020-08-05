@@ -283,37 +283,3 @@
                        parsed-items
                        parsed-items)]
     (write-updated path updated)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Delete items
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn delete-from-file!
-  "Deletes the item passed, if a match is found in the path"
-  [path item]
-  (update! path item :delete-item))
-
-(defn delete-item!
-  "Deletes the item passed, if a match is found in the path"
-  [item]
-  (let [org-path (*item->source-file* item)]
-    (if org-path
-      (delete-from-file! org-path item)
-      (do
-        (println item)
-        (println "Item delete attempted for bad org-path" org-path)))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Refile items
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn refile-within-file! [path item context]
-  (println "Refiling item within file"
-           {:file path :item item :context context})
-  (delete-from-file! path item)
-  (add-to-file! path item context))
-
-(defn refile! [item context]
-  (println "Refiling item to context" {:item item :context context})
-  (delete-item! item)
-  (add-item! item context))
