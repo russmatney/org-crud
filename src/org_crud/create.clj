@@ -2,8 +2,8 @@
   (:require
    [org-crud.update :as up]
    [org-crud.fs :as fs]
-   [org-crud.lines :as lines]))
-
+   [org-crud.lines :as lines]
+   [clojure.string :as string]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public add function
@@ -11,7 +11,7 @@
 
 (defn append-top-level
   [path item]
-  (let [lines (up/item->lines
+  (let [lines (lines/item->lines
                 (update item :props
                         (fn [props]
                           (merge
@@ -48,6 +48,31 @@
       (fs/touch path)
       (let [lines (lines/item->root-lines item)]
         (up/append-to-file! path lines)))))
+
+(defn slugify [item]
+  (-> item
+      :name
+      (string/replace #"\s" "_")
+      (string/replace #"[^A-Za-z0-9]" "_")
+      (string/replace #"__*" "_")
+      (string/replace #"^_" "")
+      (string/replace #"_$" "")
+      string/lower-case))
+
+(comment
+  (slugify {:name "This wasn't ____ a tasknam&*e8989"}))
+
+(defn create-roam-file
+  "Creates a new roam file in the passed `dir`.
+  The roam file path created is opinionated but easily abstracted.
+  "
+  [dir-path item]
+  (when (and (fs/exists? dir-path)
+             (seq (:name item)))
+    (let [slug     (slugify item)
+          dir-name (str dir-path "/" slug ".org")]
+      (create-root-file dir-name item))))
+
 
 (defn add-to-file!
   "Adds an item as an org headline to the indicated filepath.
