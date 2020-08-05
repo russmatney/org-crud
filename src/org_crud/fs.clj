@@ -65,3 +65,28 @@
 (defn extension
   "Return the extension part of a file."
   [path] (last (split-ext path)))
+
+(defn directory?
+  "Return true if `path` is a directory."
+  [path]
+  (if (file path)
+    (.isDirectory (file path))
+    false))
+
+(defn create
+  "Create a new file."
+  [^File f]
+  (.createNewFile f))
+
+(defn touch
+  "Set file modification time (default to now). Returns path."
+  [path & [time]]
+  (let [f (file path)]
+    (when-not (create f)
+      (.setLastModified f (or time (System/currentTimeMillis))))
+    f))
+
+(defn exists?
+  "Return true if `path` exists."
+  [path]
+  (. (file path) exists))

@@ -57,6 +57,7 @@
           (string/replace ":" "")
           (string/replace "_" "-")
           (string/replace "+" "")
+          (string/replace "#" "")
           string/lower-case
           keyword))))
 
@@ -68,9 +69,19 @@
           (if-let [parser (*prop-parser* key)] (parser val) val))))))
 
 (defn ->properties [x]
-  (let [drawer-items (->drawer x)]
-    (if (seq drawer-items)
-      (->> drawer-items
+  (let [prop-lines
+        (cond
+          (= :section (:type x))
+          (->drawer x)
+
+          (= :root (:type x))
+          ;; TODO stop after first non-comment?
+          (->> x
+               :content
+               (filter #(= (:line-type %) :comment))
+               (map :text)))]
+    (if (seq prop-lines)
+      (->> prop-lines
            (group-by ->prop-key)
            (map (fn [[k vals]]
                   (let [vals (map ->prop-value vals)
@@ -91,7 +102,6 @@
 (defn ->id [hl]
   (-> hl ->properties :id))
 
-
 (defn ->name [{:keys [name type content]}]
   (cond
     (and name (= type :section))
@@ -99,23 +109,9 @@
          (re-find
            #"\*?\*?\*?\*? ?(?:TODO|DONE|CANCELLED)? ?(.*)")
          second
-         ((fn [s] (string/replace s #"\[[ X-]\] " ""))))
-
-    (= type :root)
-    (some->> content
-             (filter
-               (fn [c]
-                 (and (= (:line-type c) :comment)
-                      (string/includes?
-                        (-> c :text string/lower-case)
-                        "#+title"))))
-             first
-             :text
-             (re-find #".*TITLE: (.*)")
-             second)))
+         ((fn [s] (string/replace s #"\[[ X-]\] " ""))))))
 
 (comment
-
   (->name
     {:type :section
      :name
@@ -158,7 +154,7 @@
                (re-find #".*roam_tags: (.*)"))
           second
           (string/split #" ")
-          (into #{}))))
+          set)))
 
     :else (-> tags (set))))
 
@@ -218,11 +214,11 @@
      :props        (->properties raw)}
 
     (= :root (:type raw))
-    {:level       (->level raw)
-     :source-file (-> source-file fs/absolute str)
-     ;; :id          (->id raw)
-     :name        (->name raw)
-     :tags        (->tags raw)
-     :body        (->body raw)
-     ;; :props       (->properties raw)
-     }))
+    (let [props (->properties raw)]
+      {:level       (->level raw)
+       :source-file (-> source-file fs/absolute str)
+       :name        (:title props)
+       :tags        (->tags raw)
+       :body        (->body raw)
+       :props       props
+       :id          (:id props)})))

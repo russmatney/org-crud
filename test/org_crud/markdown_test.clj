@@ -38,7 +38,6 @@
       (is (= "---" (last lines)))
       (is (contains? (set lines) "title: Example Org File"))
       (is (contains? (set lines) "tags:"))
-      (is (contains? (set lines) "  - notes"))
       )))
 
 (deftest frontmatter-test-dates

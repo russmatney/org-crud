@@ -4,109 +4,15 @@
    [clojure.set :as set]
    [org-crud.core :as org]
    [org-crud.util :as util]
+   [org-crud.lines :as lines]
    [org-crud.headline :as headline]))
 
 (def ^:dynamic *item->source-file* nil)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; item -> org lines
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn status->status-text [status]
-  (when status
-    (case status
-      :status/cancelled   "CANCELLED"
-      :status/done        "[X]"
-      :status/not-started "[ ]"
-      :status/in-progress "[-]"
-      ;; anything else clears the status completely
-      "")))
-
-(defn append-tags [line tags]
-  (if-not tags
-    line
-    (let [tags
-          (if (coll? tags) (set tags) (set [tags]))]
-      (str line
-           (when (seq tags)
-             (str " :"
-                  (string/join ":" tags)
-                  ":"))))))
-
-(defn new-property-text [key value]
-  (str (string/lower-case key) ": " value))
-
-(defn prop->new-property [[k val]]
-  (if (coll? val)
-    (map-indexed (fn [i v]
-                   (new-property-text (str k (when (> i 0) "+")) v)) val)
-    (new-property-text k val)))
-
-(defn new-property-bucket [props]
-  (let [res
-        (flatten
-          (seq [":PROPERTIES:"
-                (sort (flatten (map prop->new-property props)))
-                ":END:"]))]
-    res))
-
-(defn body->lines [body]
-  (reduce
-    (fn [agg line]
-      (cond
-        ;; includes blank lines
-        ;; also writes scheduled lines
-        (:text line)
-        (conj agg (:text line))
-
-        (and (= :block (:type line))
-             (= "SRC" (:block-type line)))
-        (apply conj agg (flatten [(str "#+BEGIN_SRC " (:qualifier line))
-                                  (map :text (:content line))
-                                  "#+END_SRC"]))
-
-        (and (= :drawer (:type line))
-             (= :property-drawer-item (some-> line :content first :line-type)))
-        ;; skip property drawers, they are handled elsewhere
-        ;; could write these here, but i like them coming from `props` as a map
-        agg
-
-        :else
-        (do
-          (println "unhandled line in item->lines/body->lines" line)
-          agg)))
-    []
-    body))
-
-(defn item->lines
-  ([item] (item->lines item (:level item)))
-  ([{:keys [name props tags body status items]} level]
-   (if (= :root level)
-     (body->lines body)
-     (let [level          (or level 1)
-           level-str      (apply str (repeat level "*"))
-           headline       (str level-str
-                               (when status
-                                 (str " " (status->status-text status)))
-                               " " name)
-           headline       (append-tags headline tags)
-           prop-lines     (new-property-bucket props)
-           body-lines     (body->lines body)
-           children-lines (->> items
-                               (mapcat item->lines))]
-       (concat
-         (conj
-           (concat prop-lines body-lines)
-           headline)
-         children-lines)))))
-
-(comment
-  (item->lines {:name "hi" :tags ["next"] :props {:hi :bye}} 3))
-
 (defn append-to-file!
-  [path lines]
-  (let [as-str (string/join "\n" lines)]
-    (spit path (str "\n\n" as-str) :append true)))
+  ([path lines]
+   (let [as-str (string/join "\n" lines)]
+     (spit path as-str :append true))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Tag Updates
@@ -240,7 +146,7 @@
   [path items]
   (when path
     (let [lines  (reduce (fn [acc item]
-                           (concat acc (item->lines item))) [] items)
+                           (concat acc (lines/item->lines item))) [] items)
           as-str (string/join "\n" lines)]
       (spit path as-str))))
 

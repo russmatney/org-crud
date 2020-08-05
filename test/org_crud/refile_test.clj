@@ -41,7 +41,7 @@
 (deftest refile-headline
   (testing "refiles a headline to the top level"
     (is (= to-refile (:name (get-headline {:name to-refile}))))
-    (do-refile (get-headline {:name to-refile}) :top-level)
+    (do-refile (get-headline {:name to-refile}) :org/level-1)
     (is (= 1 (:level (get-headline {:name to-refile}))))))
 
 (deftest refile-headline-nested

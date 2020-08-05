@@ -1,6 +1,8 @@
 (ns org-crud.create
   (:require
-   [org-crud.update :as up]))
+   [org-crud.update :as up]
+   [org-crud.fs :as fs]
+   [org-crud.lines :as lines]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -16,7 +18,7 @@
                             ;; TODO support via adapter/dynamism?
                             ;; {:added-at (util/now)}
                             props))) 1)]
-    (up/append-to-file! path lines)))
+    (up/append-to-file! path (concat ["\n\n"] lines))))
 
 (defn add-to-context
   [path item context]
@@ -30,6 +32,23 @@
                            ;; {:added-at (util/now)}
                            props)))}))
 
+(defn create-root-file
+  "Creates a new file at the passed `path` treating the item as a root-level
+  org-item.
+
+  Properties are converted to file props.
+
+  TBD overwriting existing files
+  "
+  [path item]
+  (if (fs/exists? path)
+    (println "Refusing create, file exists.")
+    (do
+      (println "Creating file for root item" path item)
+      (fs/touch path)
+      (let [lines (lines/item->root-lines item)]
+        (up/append-to-file! path lines)))))
+
 (defn add-to-file!
   "Adds an item as an org headline to the indicated filepath.
   `context` indicates where to put the item.
@@ -37,7 +56,12 @@
   "
   [path item context]
   (cond
-    (= :top-level context)
+    (= :org/root context)
+    (create-root-file path item)
+
+    (or
+      (= :org/level-1 context)
+      (= :top-level context))
     (append-top-level path item)
 
     (map? context)
