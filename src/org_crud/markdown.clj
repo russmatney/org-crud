@@ -5,6 +5,8 @@
    [org-crud.core :as org]
    [org-crud.util :as util]))
 
+;; TODO refactor hardcoded '/notes/' into something configurable.
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item -> link, filename
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -17,9 +19,8 @@
       first))
 
 (defn markdown-link
-  ;; TODO refactor /notes out of here, maybe into something configurable.
   [{:keys [name link]}]
-  (str "[" name "](/notes/" link ")"))
+  (str "[" name "](" link ")"))
 
 (defn item->md-filename [item]
   (-> item item->link (str ".md")))
@@ -47,7 +48,7 @@
                                  "$1-$2-$3"))))
                    basename)]
     (flatten ["---"
-              (str "title: " name)
+              (str "title: \"" name "\"")
               (str "date: " date-str)
               (str "tags:")
               (->> tags (map (fn [tag] (str "  - " tag))))
@@ -72,12 +73,29 @@
   (when s
     (string/replace
       s
-      #"\[\[file:([^\]]*)\]\[([^\]]*)\]\]"
+      #"\[\[([^\]]*)\]\[([^\]]*)\]\]"
       (fn [res]
-        (let [file-path (some->> res (drop 1) first fs/base-name fs/split-ext first)
+        (let [file-path (some->> res (drop 1) first
+                                 ((fn [raw-link]
+                                    (println raw-link)
+                                    (cond
+                                      (string/starts-with? raw-link "file:")
+                                      (some-> raw-link
+                                              fs/base-name fs/split-ext first
+                                              (string/replace "file:" "")
+                                              (#(str "/notes/" %)))
+
+                                      :else raw-link))))
               link-text (some->> res (drop 2) first)]
           (when (and file-path link-text)
             (markdown-link {:name link-text :link file-path})))))))
+
+(comment
+  (org-links->md-links
+    "[[https://github.com/russmatney/org-crud][link to external repo]] for accumulating a design or an approach")
+  (org-links->md-links
+    "[[file:20200627150518-spaced_repetition_in_decision_making.org][Spaced-repetition]] for accumulating a design or an approach")
+  )
 
 (defn org-line->md-line [s]
   (-> s
@@ -94,10 +112,6 @@
     (flatten [(str "``` " (:qualifier line))
               (map body-line->md-lines (:content line))
               "```"])))
-
-(comment
-  (org-links->md-links
-    "[[file:20200627150518-spaced_repetition_in_decision_making.org][Spaced-repetition]] for accumulating a design or an approach"))
 
 (defn item->md-body [item]
   (let [child-lines (mapcat item->md-body (:items item))
@@ -178,15 +192,18 @@ Two [[file:2020-06-10.org][in]] [[file:2020-06-11.org][one]]."))
                                              (map :link links)))))
                             (util/multi-group-by :links))]
     (->> md-items
-         (map (fn [md-item]
-                (assoc md-item :backlinks
-                       (let [linked-md-items
-                             (-> md-item :self-link link->md-items)]
-                         (->> linked-md-items
-                              (map
-                                (fn [linked-md-item]
-                                  {:name (:name linked-md-item)
-                                   :link (:self-link linked-md-item)}))))))))))
+         (map
+           (fn [md-item]
+             (assoc md-item :backlinks
+                    (let [linked-md-items
+                          (-> md-item :self-link link->md-items)]
+                      (->> linked-md-items
+                           (map
+                             (fn [linked-md-item]
+                               {:name (:name linked-md-item)
+                                :link
+                                (str "/notes/"
+                                     (:self-link linked-md-item))}))))))))))
 
 (defn backlink->line [link]
   (str "- " (markdown-link link)))

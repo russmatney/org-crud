@@ -36,7 +36,7 @@
     (testing "org items convert to a proper frontmatter"
       (is (= "---" (first lines)))
       (is (= "---" (last lines)))
-      (is (contains? (set lines) "title: Example Org File"))
+      (is (contains? (set lines) "title: \"Example Org File\""))
       (is (contains? (set lines) "tags:"))
       )))
 
@@ -142,7 +142,7 @@
    :body  [{:line-type :comment, :text "#+TITLE: Example Org File"}]
    :items
    [{:level 1,
-     :name  "content with a link",
+     :name  "content without a link",
      :body
      [{:line-type :table-row, :text "It's focuses are:"}
       {:line-type :unordered-list, :text "- inbox processing"}
@@ -159,7 +159,7 @@
                                        first))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; links
+;; internal links
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def example-item-with-link
@@ -168,7 +168,7 @@
    :body  [{:line-type :comment, :text "#+TITLE: Example Org File"}]
    :items
    [{:level 1,
-     :name  "content with a link",
+     :name  "content with an internal link",
      :body
      [{:line-type :unordered-list,
        :text
@@ -237,3 +237,29 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; test rn by example - check that they show up in fixture-dir/example.md
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; external links
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def example-item-with-external-link
+  {:level :root,
+   :name  "Example Org File",
+   :body  [{:line-type :comment, :text "#+TITLE: Example Org File"}]
+   :items
+   [{:level 1,
+     :name  "content with an external link",
+     :body
+     [{:line-type :unordered-list,
+       :text
+       "- Repo for [[https://github.com/russmatney/org-crud][org-crud for clojure]]"}]}]})
+
+(deftest markdown-with-external-link-conversion
+  (let [example-org example-item-with-external-link
+        lines       (->> example-org sut/item->md-body
+                         (remove empty?))]
+    (testing "includes markdown-style external links"
+      (is (= "- Repo for [org-crud for clojure](https://github.com/russmatney/org-crud)"
+             (->> lines
+                  (filter #(string/starts-with? % "- Repo"))
+                  first))))))

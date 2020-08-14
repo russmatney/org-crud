@@ -49,9 +49,7 @@
     parsed))
 
 (defn path->flattened-items
-  "Returns a flattned list of org items in the passed file.
-
-  Only parses :type :section. (Skipping the :root element.)
+  "Returns a flattened list of org items in the passed file.
 
   Produces flattened items, rather than nested.
   This means deeper org headlines will not be contained within parents.
