@@ -155,6 +155,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn update!
+  ;; TODO refactor - handle as passed path or ->path fn
   ([item up] (update! (*item->source-file* item) item up))
   ([path item up]
    (println "Updating item"

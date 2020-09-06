@@ -13,6 +13,9 @@
   (fs/copy
     (str fs/*cwd* "/test/org_crud/update-test-before.org")
     (str fs/*cwd* "/test/org_crud/update-test.org"))
+  (fs/copy
+    (str fs/*cwd* "/test/org_crud/update-test-root-item-before.org")
+    (str fs/*cwd* "/test/org_crud/update-test-root-item.org"))
   (binding [headline/*multi-prop-keys* #{:repo-ids}]
     (f)))
 
@@ -24,6 +27,9 @@
 
 (def org-filepath
   (str (str fs/*cwd*) "/test/org_crud/update-test.org"))
+
+(def root-item-filepath
+  (str (str fs/*cwd*) "/test/org_crud/update-test-root-item.org"))
 
 (defn ->items []
   (org/path->flattened-items org-filepath))
@@ -259,3 +265,21 @@
                   (map #(dissoc % :org-section)))
              (->> (->items)
                   (map #(dissoc % :org-section))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Updating root items
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn parse-item []
+  (org/path->nested-item root-item-filepath))
+
+(deftest update-root-item
+  (testing "root-level tags are updated as expected"
+    (sut/update! root-item-filepath (parse-item) {:tags "newtag"})
+    (is (contains? (-> (parse-item) :tags) "newtag"))
+    (is (contains? (-> (parse-item) :tags) "existing")))
+
+  (testing "root-level props are updated as expected"
+    (is (= nil (-> (parse-item) :props :new-prop)))
+    (sut/update! root-item-filepath  (parse-item) {:props {:new-prop "newprop"}})
+    (is (= "newprop" (-> (parse-item) :props :new-prop)))))

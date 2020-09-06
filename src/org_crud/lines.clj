@@ -65,7 +65,9 @@
       [[:title (:name item)]
        [:id (or (:id item) (-> item :props :id))]
        [:roam_tags (string/join " " (:tags item))]]
-      (-> item :props (dissoc :title :id :tags :roam-tags)))
+      (some-> item :props
+              (#(into {} %))
+              (dissoc :title :id :tags :roam-tags)))
     (remove (comp nil? second))
     (map prop->new-root-property)
     flatten
@@ -111,6 +113,12 @@
     []
     body))
 
+(defn root-body->lines [body]
+  (->> body
+       (remove (fn [line]
+                 (-> line :text (string/starts-with? "#+"))))
+       body->lines))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; name / status
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -139,11 +147,13 @@
 ;; item->lines as headline
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declare item->root-lines)
+
 (defn item->lines
   ([item] (item->lines item (:level item)))
   ([{:keys [props body items] :as item} level]
    (if (= :root level)
-     (body->lines body)
+     (item->root-lines item)
      (let [headline       (headline-name item level)
            prop-lines     (new-property-bucket props)
            body-lines     (body->lines body)
@@ -155,6 +165,7 @@
          children-lines)))))
 
 (comment
+  (item->lines {:name "hi" :tags ["next"] :props {:hi :bye}} :root)
   (item->lines {:name "hi" :tags ["next"] :props {:hi :bye}} 3))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -165,10 +176,12 @@
 (defn item->root-lines
   [{:keys [body items] :as item}]
   (let [root-prop-lines (new-root-property-bucket item)
-        body-lines      (body->lines body)
-        children-lines  (->> items
-                            (mapcat item->lines))]
+        body-lines      (root-body->lines body)
+        children-lines  (->> items (mapcat item->lines))]
     (concat
       root-prop-lines
       body-lines
       children-lines)))
+
+(comment
+  (item->root-lines {:name "hi" :tags ["next" "day"] :props {:hi :bye}}))
