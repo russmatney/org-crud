@@ -189,3 +189,10 @@
                        parsed-items
                        parsed-items)]
     (write-updated path updated)))
+
+(comment
+  (-> ""
+      (org-crud.update/update-all-with-fn!
+        (fn [item]
+          (when-not (-> item :props :id)
+            {:props {:id (.toString (java.util.UUID/randomUUID))}})))))

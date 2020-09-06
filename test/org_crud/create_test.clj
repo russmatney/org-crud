@@ -38,8 +38,7 @@
 ;; creating new headlines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def new-headline-name ""
-  "new headline")
+(def new-headline-name "" "new headline")
 
 (defn ->new-headline []
   (->item {:name new-headline-name}))
@@ -76,7 +75,7 @@
   (sut/add-to-file! org-filepath item context))
 
 (deftest create-new-headline-nested
-  (testing "a new, top-level headline is created"
+  (testing "a new, nested headline is created"
     (is (= nil (->new-headline)))
     (add-new-nested-headline {:name new-headline-name}
                              (->item {:name "parent headline"}))
@@ -84,11 +83,10 @@
     (is (= 2 (:level (->new-headline))))))
 
 (deftest create-new-headline-nested-newlines
-  (testing "a new, top-level headline is placed in the right spot"
+  (testing "a new, nested headline is placed in the right spot"
     (is (= nil (->new-headline)))
     (add-new-nested-headline {:name new-headline-name}
-                             (->item {:name
-                                      "parent with mid-line asterisk"}))
+                             (->item {:name "parent with mid-line asterisk"}))
     (is (= new-headline-name (:name (->new-headline))))
     (is (= 2 (:level (->new-headline))))))
 
@@ -124,3 +122,4 @@
                                      (string/join " " (:tags some-item))
                                      :title (:name some-item))))
       (is (= (:tags fetched) (:tags some-item))))))
+
