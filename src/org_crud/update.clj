@@ -106,8 +106,9 @@
          (= (:id it) (:id item)))
     ;; try to match on name if no id
     (and
-      (not (:id it))
-      (not (:id item))
+      ;; temp! allowing one to not have the id, so that ids can be set without some other treatment
+      (or (not (:id it))
+          (not (:id item)))
       (:name it)
       (= (:name it) (:name item)))))
 
@@ -134,7 +135,8 @@
 
                (update agg :items
                        conj (if (matching-items? it item)
-                              (apply-update it up)
+                              (let [res (apply-update it up)]
+                                res)
                               it))))
            {:items []})
          :items
@@ -168,7 +170,7 @@
          updated      (update-items parsed-items item up)]
      (write-updated path updated))))
 
-(defn update-all-with-fn!
+(defn update-path-with-fn!
   "item->up should construct an update based on the passed item.
   If item->up returns nil, no update will be performed for that item.
 
@@ -191,9 +193,17 @@
                        parsed-items)]
     (write-updated path updated)))
 
-(comment
-  (-> ""
-      (org-crud.update/update-all-with-fn!
-        (fn [item]
-          (when-not (-> item :props :id)
-            {:props {:id (.toString (java.util.UUID/randomUUID))}})))))
+
+(defn update-dir-with-fn!
+  "item->up should construct an update based on the passed item.
+  If item->up returns nil, no update will be performed for that item.
+  "
+  [dir-path item->up]
+  (println "Updating paths in dir with item->up" {:dir-path dir-path})
+  (let [root-items (org/dir->nested-items dir-path)]
+    (->> root-items
+         (map (fn [it]
+                (when-let [up (item->up it)]
+                  (println (:source-file it))
+                  (update! (:source-file it) it up))))
+         doall)))

@@ -60,23 +60,35 @@
 (defn new-root-property-bucket
   "Make sure #+title lands on top to support `deft`."
   [item]
-  (->>
-    (concat
-      [[:title (:name item)]
-       [:id (or (:id item) (-> item :props :id))]
-       [:roam_tags (string/join " " (:tags item))]]
-      (some-> item :props
-              (#(into {} %))
-              (dissoc :title :id :tags :roam-tags)))
-    (remove (comp nil? second))
-    (map prop->new-root-property)
-    flatten
-    (remove nil?)))
+  (let [item (update item :props #(into {} %))
+        prop-bucket
+        (->>
+          (concat
+            [[:title (:name item)]
+             [:id (or (:id item) (-> item :props :id))]
+             [:roam_tags (when (-> item :tags seq)
+                           (string/join " " (:tags item)))]]
+            (some-> item :props
+                    (dissoc :title :id :tags :roam-tags)))
+          (remove (comp nil? second))
+          (map prop->new-root-property)
+          flatten
+          (remove nil?))]
+    prop-bucket))
 
 (comment
   (new-root-property-bucket
+    {:level :root
+     :name  "hi"
+     :props '([:title "2020-08-02"]
+              [:roam-tags #{}]
+              [:id "e79bec75-6e54-4ccb-b753-3ec359291355"])
+     :id    nil}
+    )
+  (new-root-property-bucket
     {:name  "item name"
      :tags  #{"hello" "world"}
+     :id    nil
      :props {:some "value"
              :id   "and such"
              :urls ["blah" "other blah.com"]}}))
@@ -116,7 +128,7 @@
 (defn root-body->lines [body]
   (->> body
        (remove (fn [line]
-                 (-> line :text (string/starts-with? "#+"))))
+                 (some-> line :text (string/starts-with? "#+"))))
        body->lines))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
