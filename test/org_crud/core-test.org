@@ -1,14 +1,26 @@
 #+TITLE: Core Test
 #+ROAM_TAGS: roam tags like this
 
+Some otha body
+
 * some header
+body words
 * some other header
+body words
 ** some nested header
+body words
 * some third header
+body words
 ** with multiple
+body words
 *** levels of
+body words
 **** nesting
+body words
 **** like this
+body words
 *** and multiple
+body words
 ** items
 *** that are nested
+body words

@@ -65,3 +65,16 @@
                  (filter (fn [{:keys [name]}]
                            (= name "d")))
                  first :items first :name (= "e")))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; word count test
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest word-count-test
+  (testing "nested word-count is calced and set on items"
+    (let [nested (->nested-item)]
+      (is (= 5 (:word-count nested)))))
+
+  (testing "flattened word-count is calced and set on items"
+    (let [items (->items)]
+      (is (= 49 (reduce + 0 (map :word-count items)))))))

@@ -197,28 +197,48 @@
   (util/->url "read http://github.com"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; word count
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn str->count [str]
+  (when str
+    (some->
+      (string/split str #" ")
+      count))
+  )
+
+(defn ->word-count [item raw]
+  (+ (-> item :name str->count)
+     (->> raw
+          ->body-as-strings
+          (map str->count)
+          (reduce + 0))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item - a general headline
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ->item [raw source-file]
-  (cond
-    (= :section (:type raw))
-    {:level        (->level raw)
-     :source-file  (-> source-file fs/absolute str)
-     :id           (->id raw)
-     :name         (->name raw)
-     :raw-headline (->raw-headline raw)
-     :tags         (->tags raw)
-     :body         (->body raw)
-     :status       (->todo-status raw)
-     :props        (->properties raw)}
+  (-> (cond
+        (= :section (:type raw))
+        {:level        (->level raw)
+         :source-file  (-> source-file fs/absolute str)
+         :id           (->id raw)
+         :name         (->name raw)
+         :raw-headline (->raw-headline raw)
+         :tags         (->tags raw)
+         :body         (->body raw)
+         :status       (->todo-status raw)
+         :props        (->properties raw)}
 
-    (= :root (:type raw))
-    (let [props (->properties raw)]
-      {:level       (->level raw)
-       :source-file (-> source-file fs/absolute str)
-       :name        (:title props)
-       :tags        (->tags raw)
-       :body        (->body raw)
-       :props       props
-       :id          (:id props)})))
+        (= :root (:type raw))
+        (let [props (->properties raw)]
+          {:level       (->level raw)
+           :source-file (-> source-file fs/absolute str)
+           :name        (:title props)
+           :tags        (->tags raw)
+           :body        (->body raw)
+           :props       props
+           :id          (:id props)}))
+      ((fn [item]
+         (assoc item :word-count (->word-count item raw))))))
