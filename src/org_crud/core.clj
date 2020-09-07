@@ -3,7 +3,8 @@
    [organum.core :as org]
    [org-crud.fs :as fs]
    [org-crud.headline :as headline]
-   [clojure.walk :as walk]))
+   [clojure.walk :as walk]
+   [clojure.string :as string]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Parse helpers
@@ -174,11 +175,27 @@
            first))
 
 (defn dir->nested-items
-  [dir]
-  (->> (fs/list-dir dir)
-       (filter #(contains? #{".org"} (fs/extension %)))
-       (map path->nested-item)))
+  "For now, :recursive? goes one layer down.
+
+  TODO impl with loop to recur properly."
+  ([dir] (dir->nested-items {} dir))
+  ([opts dir]
+   (->> (fs/list-dir dir)
+        (map (fn [f]
+               (if (and (:recursive? opts)
+                        (not (string/includes? f ".git"))
+                        (fs/directory? f))
+                 (fs/list-dir f)
+                 [f])))
+        (apply concat)
+        (filter #(contains? #{".org"} (fs/extension %)))
+        (map path->nested-item))))
 
 (comment
+  (-> (dir->nested-items "/home/russ/Dropbox/notes")
+      count)
+  (-> (dir->nested-items {:recursive? true} "/home/russ/Dropbox/notes")
+      count)
+
   (-> (dir->nested-items "/home/russ/Dropbox/notes")
       first))
