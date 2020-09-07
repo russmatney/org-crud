@@ -14,14 +14,11 @@
         (assoc-in [:props :id] id))))
 
 (comment
-  (ensure-id {})
-  )
-
-(comment
   (def --roam-dir "/home/russ/Dropbox/notes")
 
   (org/dir->nested-items --roam-dir)
   (upd/update-dir-with-fn! --roam-dir ensure-id)
+
 
   (defn missing-id [item]
     (and (not (:id item))

@@ -66,10 +66,11 @@
           (concat
             [[:title (:name item)]
              [:id (or (:id item) (-> item :props :id))]
-             [:roam_tags (when (-> item :tags seq)
-                           (string/join " " (:tags item)))]]
+             (when (->> item :tags (map string/trim) (remove empty?) seq)
+               [:roam_tags (string/join " " (:tags item))])]
             (some-> item :props
-                    (dissoc :title :id :tags :roam-tags)))
+                    (dissoc :title :id :tags :roam_tags :roam-tags)))
+          (remove nil?)
           (remove (comp nil? second))
           (map prop->new-root-property)
           flatten
@@ -80,11 +81,10 @@
   (new-root-property-bucket
     {:level :root
      :name  "hi"
+     :tags  #{" "}
      :props '([:title "2020-08-02"]
-              [:roam-tags #{}]
               [:id "e79bec75-6e54-4ccb-b753-3ec359291355"])
-     :id    nil}
-    )
+     :id    nil})
   (new-root-property-bucket
     {:name  "item name"
      :tags  #{"hello" "world"}
