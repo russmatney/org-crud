@@ -193,14 +193,13 @@
                        parsed-items)]
     (write-updated path updated)))
 
-
 (defn update-dir-with-fn!
   "item->up should construct an update based on the passed item.
   If item->up returns nil, no update will be performed for that item.
   "
-  [dir-path item->up]
-  (println "Updating paths in dir with item->up" {:dir-path dir-path})
-  (let [root-items (org/dir->nested-items dir-path)]
+  [opts item->up]
+  (println "Updating paths in dir with item->up" opts)
+  (let [root-items (org/dir->nested-items opts (:dir opts))]
     (->> root-items
          (map (fn [it]
                 (when-let [up (item->up it)]
