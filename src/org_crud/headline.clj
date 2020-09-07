@@ -102,7 +102,7 @@
 (defn ->id [hl]
   (-> hl ->properties :id))
 
-(defn ->name [{:keys [name type content]}]
+(defn ->name [{:keys [name type]}]
   (cond
     (and name (= type :section))
     (->> name
@@ -241,4 +241,6 @@
            :props       props
            :id          (:id props)}))
       ((fn [item]
-         (assoc item :word-count (->word-count item raw))))))
+         (-> item
+             (assoc :word-count (->word-count item raw))
+             (assoc :urls (-> raw ->urls set)))))))

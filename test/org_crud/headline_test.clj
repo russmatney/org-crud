@@ -99,14 +99,15 @@
   {:type :section
    :content
    [{:line-type :table-row
-     :text      "https://www.principles.com/"}
+     :text      "some context https://www.principles.com/"}
     {:line-type :table-row
-     :text      "https://github.com/gothinkster/clojurescript-reframe-realworld-example-app"}]
+     :text      "https://github.com/gothinkster/clojurescript-reframe-realworld-example-app or other"}]
    :name (str "[X] name " name-url)})
 
 (deftest ->urls-test
   (let [urls (set (sut/->urls url-headline))]
     (testing "parses urls from headline name"
+      (is (= 3 (count urls)))
       (is (contains? urls name-url)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -117,3 +118,4 @@
   (let [item (parsed-org-file "core-test.org")]
     (is (set/subset? #{"roam" "tags" "like" "this"}
                      (set (:tags item))))))
+
