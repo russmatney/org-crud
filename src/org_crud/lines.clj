@@ -67,9 +67,12 @@
             [[:title (:name item)]
              [:id (or (:id item) (-> item :props :id))]
              (when (->> item :tags (map string/trim) (remove empty?) seq)
-               [:roam_tags (string/join " " (:tags item))])]
+               [:roam_tags (string/join " " (:tags item))])
+             (when-let [k (some->> item :props :roam-key)]
+               [:roam_key k])
+             ]
             (some-> item :props
-                    (dissoc :title :id :tags :roam_tags :roam-tags)))
+                    (dissoc :title :id :tags :roam_tags :roam-tags :roam-key)))
           (remove nil?)
           (remove (comp nil? second))
           (map prop->new-root-property)
