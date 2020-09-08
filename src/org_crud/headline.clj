@@ -208,11 +208,15 @@
   )
 
 (defn ->word-count [item raw]
-  (+ (-> item :name str->count)
-     (->> raw
-          ->body-as-strings
-          (map str->count)
-          (reduce + 0))))
+  (+ (or (some-> item :name str->count) 0)
+     (or (some->> raw
+                  ->body-as-strings
+                  (map str->count)
+                  (reduce + 0)) 0)))
+
+(comment
+  (->word-count nil nil)
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item - a general headline
@@ -241,6 +245,7 @@
            :props       props
            :id          (:id props)}))
       ((fn [item]
-         (-> item
-             (assoc :word-count (->word-count item raw))
-             (assoc :urls (-> raw ->urls set)))))))
+         (when item
+           (-> item
+               (assoc :word-count (->word-count item raw))
+               (assoc :urls (-> raw ->urls set))))))))
