@@ -28,7 +28,7 @@
   "
   [lines]
   (when (seq lines)
-    (reduce org/handle-line [(org/root)] lines)))
+    (reduce #'org/handle-line [(#'org/root)] lines)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Parsing flattened items
