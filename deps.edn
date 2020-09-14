@@ -7,16 +7,16 @@
  {:dev {:jvm-opts    ["-XX:-OmitStackTraceInFastThrow"]
         :extra-paths ["test"]
         :extra-deps
-        {tick           {:mvn/version "0.4.23-alpha"}
+        {tick/tick      {:mvn/version "0.4.23-alpha"}
          clj-commons/fs {:mvn/version "1.5.1"}}}
 
   :test
   {:extra-paths ["test"]
    :extra-deps
-   {tick                {:mvn/version "0.4.23-alpha"}
+   {tick/tick           {:mvn/version "0.4.23-alpha"}
     clj-commons/fs      {:mvn/version "1.5.1"}
     lambdaisland/kaocha {:mvn/version "0.0-601"}}}
 
   :nrepl {:extra-deps
-          {cider/cider-nrepl {:mvn/version "0.25.0-SNAPSHOT"}
-           refactor-nrepl    {:mvn/version "2.5.0"}}}}}
+          {cider/cider-nrepl             {:mvn/version "0.25.0-SNAPSHOT"}
+           refactor-nrepl/refactor-nrepl {:mvn/version "2.5.0"}}}}}
