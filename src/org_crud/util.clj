@@ -2,6 +2,25 @@
   (:require
    [clojure.set :as set]))
 
+(defn ns-select-keys
+  "Selects all keys from the provided `map` that match the given `ns-str`
+
+  Pulled from `wing.core`.
+  "
+  [ns-str map]
+  (into {} (filter (comp #{ns-str} namespace key)) map))
+
+(defn ns-remove-keys
+  [ns-str map]
+  (into {} (remove (comp #{ns-str} namespace key)) map))
+
+(comment
+  (ns-remove-keys
+    "org.prop"
+    {:hi           :bye
+     :org.prop/sup :whatever
+     }))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; get-all, get-one
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

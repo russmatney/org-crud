@@ -1,7 +1,8 @@
 (ns org-crud.core-test
-  (:require [org-crud.core :as sut]
-            [clojure.test :refer [deftest testing is]]
-            [me.raynes.fs :as fs]))
+  (:require
+   [org-crud.core :as sut]
+   [clojure.test :refer [deftest testing is]]
+   [me.raynes.fs :as fs]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; mocks and fixtures

@@ -117,14 +117,15 @@
 ;; update property on property buckets
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; (get-headline {:org/name "basic properties"})
 (deftest update-properties-test
   (testing "updates a headline's properties"
     (let [pred-map {:org/name "basic properties"}
           ->props  (fn []
-                     (-> pred-map
-                         get-headline
-                         (get :props)
-                         (dissoc :id)))
+                     (->> pred-map
+                          get-headline
+                          (util/ns-select-keys "org.prop")
+                          (#(dissoc % :org.prop/id))))
           update!  (fn [up]
                      (sut/update!
                        org-filepath (get-headline pred-map) up))]
@@ -132,20 +133,20 @@
         (is (= (->props) {})))
 
       (testing "sets a basic key-value"
-        (update! {:props {:hello "world"}})
-        (is (= (->props) {:hello "world"})))
+        (update! {:org.prop/hello "world"})
+        (is (= (->props) {:org.prop/hello "world"})))
 
       (testing "overwrites a basic key-value"
-        (update! {:props {:hello "world"}})
-        (is (= (->props) {:hello "world"}))
-        (update! {:props {:hello "duty"}})
-        (is (= (->props) {:hello "duty"}))
-        (update! {:props {:hello "world"}})
-        (is (= (->props) {:hello "world"})))
+        (update! {:org.prop/hello "world"})
+        (is (= (->props) {:org.prop/hello "world"}))
+        (update! {:org.prop/hello "duty"})
+        (is (= (->props) {:org.prop/hello "duty"}))
+        (update! {:org.prop/hello "world"})
+        (is (= (->props) {:org.prop/hello "world"})))
 
       (testing "clears a basic key-value"
-        (update! {:props {:hello "world"}})
-        (update! {:props {:hello nil}})
+        (update! {:org.prop/hello "world"})
+        (update! {:org.prop/hello nil})
         (is (= (->props) {}))))))
 
 (defn same-xs? [x y]
@@ -155,13 +156,12 @@
 
 (defn ->multi-test-repo-ids []
   (-> (get-headline multi-prop-pred-map)
-      :props
-      :repo-ids))
+      :org.prop/repo-ids))
 
 (defn multi-test-update [repo-ids]
   (sut/update!
     org-filepath (get-headline multi-prop-pred-map)
-    {:props {:repo-ids repo-ids}}))
+    {:org.prop/repo-ids repo-ids}))
 
 (deftest update-properties-multiple-values-test-add
   (testing "adds new repo-ids"
@@ -203,17 +203,19 @@
   (sut/update! org-filepath (->prop-order-headline) up))
 
 (defn prop-order-props []
-  (-> (->prop-order-headline) :props (dissoc :id)))
+  (-> (->prop-order-headline)
+      (#(util/ns-select-keys "org.prop" %))
+      (dissoc :org.prop/id)))
 
 ;; the test result is not useful yet - need to eye-ball the order in the org file
 (deftest update-property-order
   (testing "updating property buckets results in a determined order (to prevent annoying commit cruft)"
-    (prop-order-update {:props {:a "1" :b "2"}})
-    (is (= (prop-order-props) {:a "1" :b "2"}))
+    (prop-order-update #:org.prop{:a "1" :b "2"})
+    (is (= (prop-order-props) #:org.prop{:a "1" :b "2"}))
 
     ;; note that running this can swap the order of a/b in the org file
-    (prop-order-update {:props {:c "hi"}})
-    (is (= (prop-order-props) {:a "1" :b "2" :c "hi"}))
+    (prop-order-update #:org.prop{:c "hi"})
+    (is (= (prop-order-props) #:org.prop{:a "1" :b "2" :c "hi"}))
     ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -234,10 +236,10 @@
   (testing "updates each item's props and ensures they got the right value"
     (let [v1 (rand-int 100)
           v2 (rand-int 100)]
-      (sut/update! org-filepath (same-name-1) {:props {:rand v1}})
-      (sut/update! org-filepath (same-name-2) {:props {:rand v2}})
-      (is (= (-> (same-name-1) :props :rand) (str v1)))
-      (is (= (-> (same-name-2) :props :rand) (str v2))))))
+      (sut/update! org-filepath (same-name-1) {:org.prop/rand v1})
+      (sut/update! org-filepath (same-name-2) {:org.prop/rand v2})
+      (is (= (-> (same-name-1) :org.prop/rand) (str v1)))
+      (is (= (-> (same-name-2) :org.prop/rand) (str v2))))))
 
 (deftest update-same-name-tags
   (testing "updates each item's tags"
@@ -280,6 +282,6 @@
     (is (contains? (-> (parse-item) :org/tags) "existing")))
 
   (testing "root-level props are updated as expected"
-    (is (= nil (-> (parse-item) :props :new-prop)))
-    (sut/update! root-item-filepath  (parse-item) {:props {:new-prop "newprop"}})
-    (is (= "newprop" (-> (parse-item) :props :new-prop)))))
+    (is (= nil (-> (parse-item) :org.prop/new-prop)))
+    (sut/update! root-item-filepath  (parse-item) #:org.prop{:new-prop "newprop"})
+    (is (= "newprop" (-> (parse-item) :org.prop/new-prop)))))

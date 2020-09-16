@@ -1,5 +1,7 @@
 (ns org-crud.lines
-  (:require [clojure.string :as string]))
+  (:require
+   [clojure.string :as string]
+   [org-crud.util :as util]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -21,30 +23,57 @@
 ;; property bucket
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn new-property-text [key value]
-  (str (string/lower-case key) ": " value))
+(defn k->org-prop-key [k]
+  (string/lower-case (name k)))
+
+(defn new-property-text [k value]
+  (str ":" (k->org-prop-key k) ": " value))
+
+(comment
+  (name :org.prop/my-key)
+  (new-property-text :org.prop/my-key "hi"))
 
 (defn prop->new-property [[k val]]
   (if (coll? val)
     (map-indexed (fn [i v]
-                   (new-property-text (str k (when (> i 0) "+")) v)) val)
+                   (new-property-text
+                     (str (k->org-prop-key k) (when (> i 0) "+")) v)) val)
     (new-property-text k val)))
 
-(defn new-property-bucket [props]
+(defn new-property-bucket [item]
   (let [res
         (flatten
           (seq [":PROPERTIES:"
-                (sort (flatten (map prop->new-property props)))
+                (->> item
+                     (util/ns-select-keys "org.prop")
+                     (map prop->new-property)
+                     flatten
+                     sort)
                 ":END:"]))]
     res))
 
+
+(comment
+  (new-property-bucket
+    {:org/name       "hi"
+     :org/tags       #{" "}
+     :org.prop/title "2020-08-02"
+     :org.prop/id    "e79bec75-6e54-4ccb-b753-3ec359291355"
+     :org/id         nil})
+  (new-property-bucket
+    {:org/name      "item name"
+     :org/tags      #{"hello" "world"}
+     :org/id        nil
+     :org.prop/some "value"
+     :org.prop/id   "and such"
+     :org.prop/urls ["blah" "other blah.com"]}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; root comment/properties
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn new-root-property-text [key value]
-  (str "#+" (string/lower-case (name key)) ": " value))
+(defn new-root-property-text [k value]
+  (str "#+" (k->org-prop-key k) ": " value))
 
 (defn prop->new-root-property
   "Flattens multi-values."
@@ -54,7 +83,7 @@
       (map-indexed
         (fn [i v]
           (new-root-property-text
-            (str k (when (> i 0) "+")) v)) val)
+            (str (k->org-prop-key k) (when (> i 0) "+")) v)) val)
       (new-root-property-text k val))))
 
 (defn new-root-property-bucket
@@ -65,14 +94,17 @@
         (->>
           (concat
             [[:title (:org/name item)]
-             [:id (or (:org/id item) (-> item :props :id))]
+             [:id (or (:org/id item) (:org.prop/id item))]
              (when (->> item :org/tags (map string/trim) (remove empty?) seq)
                [:roam_tags (string/join " " (:org/tags item))])
-             (when-let [k (some->> item :props :roam-key)]
-               [:roam_key k])
-             ]
-            (some-> item :props
-                    (dissoc :title :org/id :org/tags :roam_tags :roam-tags :roam-key)))
+             (when-let [k (:org.prop/roam-key item)]
+               [:roam_key k])]
+            (some->
+              (util/ns-select-keys "org.prop" item)
+              (dissoc :org.prop/title
+                      :org.prop/id :org/tags
+                      :org.prop/roam_tags :org.prop/roam-tags
+                      :org.prop/roam-key)))
           (remove nil?)
           (remove (comp nil? second))
           (map prop->new-root-property)
@@ -82,19 +114,19 @@
 
 (comment
   (new-root-property-bucket
-    {:org/level :root
-     :org/name  "hi"
-     :org/tags  #{" "}
-     :props     '([:title "2020-08-02"]
-                  [:id "e79bec75-6e54-4ccb-b753-3ec359291355"])
-     :org/id    nil})
+    {:org/level      :root
+     :org/name       "hi"
+     :org/tags       #{" "}
+     :org.prop/title "2020-08-02"
+     :org.prop/id    "e79bec75-6e54-4ccb-b753-3ec359291355"
+     :org/id         nil})
   (new-root-property-bucket
-    {:org/name "item name"
-     :org/tags #{"hello" "world"}
-     :org/id   nil
-     :props    {:some "value"
-                :id   "and such"
-                :urls ["blah" "other blah.com"]}}))
+    {:org/name      "item name"
+     :org/tags      #{"hello" "world"}
+     :org/id        nil
+     :org.prop/some "value"
+     :org.prop/id   "and such"
+     :org.prop/urls ["blah" "other blah.com"]}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; body text
@@ -166,11 +198,11 @@
 
 (defn item->lines
   ([item] (item->lines item (:org/level item)))
-  ([{:keys [props org/body org/items] :as item} level]
+  ([{:keys [org/body org/items] :as item} level]
    (if (= :level/root level)
      (item->root-lines item)
      (let [headline       (headline-name item level)
-           prop-lines     (new-property-bucket props)
+           prop-lines     (new-property-bucket item)
            body-lines     (body->lines body)
            children-lines (->> items (mapcat item->lines))]
        (concat
@@ -180,8 +212,10 @@
          children-lines)))))
 
 (comment
-  (item->lines {:org/name "hi" :org/tags ["next"] :props {:hi :bye}} :level/root)
-  (item->lines {:org/name "hi" :org/tags ["next"] :props {:hi :bye}} 3))
+  (item->lines {:org/name "hi" :org/tags ["next"] :org.prop/hi :bye} :level/root)
+  (item->lines {:org/name "hi" :org/tags ["next"] :org.prop/hi :bye} 3)
+  (new-property-bucket {:org/name "hi" :org/tags ["next"] :org.prop/hi :bye})
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item->root-lines as full file
@@ -199,4 +233,4 @@
       children-lines)))
 
 (comment
-  (item->root-lines {:org/name "hi" :org/tags ["next" "day"] :props {:hi :bye}}))
+  (item->root-lines {:org/name "hi" :org/tags ["next" "day"] :org.prop/hi :bye}))

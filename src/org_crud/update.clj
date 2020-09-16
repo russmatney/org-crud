@@ -53,26 +53,39 @@
   (when (and v (coll? v))
     (some-> v first (= :remove))))
 
+(defn remove-key-ns [[k v]]
+  [(keyword (name k)) v])
+(defn add-key-ns [ns [k v]]
+  [(keyword (str ns "/" (name k))) v])
+
 (defn updated-props [old-props props-update]
-  (let [remove-props (->> props-update
-                          (filter is-remove?)
-                          (into {}))
-        props-update (remove is-remove? props-update)
-        merged-props (util/merge-maps-with-multi
-                       headline/*multi-prop-keys* old-props props-update)
-        merged-props (map (fn [[k vs]]
-                            (if-let [remove-signal (get remove-props k)]
-                              [k (let [to-remove (second remove-signal)]
-                                   (remove #(= to-remove %) vs))]
-                              [k vs])) merged-props)
-        merged-props (map
-                       (fn [[k v]]
-                         (if (coll? v)
-                           [k (sort (set v))]
-                           [k v]))
-                       merged-props)
-        merged-props (remove (comp nil? second) merged-props)]
-    merged-props))
+  (let [old-props    (->> old-props (map remove-key-ns) (into {}))
+        props-update (->> props-update (map remove-key-ns) (into {}))
+        _            (println old-props)
+        _            (println props-update)
+
+        remove-props  (->> props-update
+                           (filter is-remove?)
+                           (into {}))
+        props-update  (remove is-remove? props-update)
+        merged-props  (util/merge-maps-with-multi
+                        headline/*multi-prop-keys* old-props props-update)
+        merged-props  (map (fn [[k vs]]
+                             (if-let [remove-signal (get remove-props k)]
+                               [k (let [to-remove (second remove-signal)]
+                                    (remove #(= to-remove %) vs))]
+                               [k vs])) merged-props)
+        merged-props  (map
+                        (fn [[k v]]
+                          (if (coll? v)
+                            [k (sort (set v))]
+                            [k v]))
+                        merged-props)
+        merged-props  (remove (comp nil? second) merged-props)
+        updated-props (->> merged-props
+                           (map (partial add-key-ns "org.prop"))
+                           (into {}))]
+    updated-props))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Update fn helpers
@@ -97,8 +110,13 @@
     (:org/name up)
     (assoc :org/name (:org/name up))
 
-    (seq (:props up))
-    (update :props updated-props (:props up))))
+    (seq (util/ns-select-keys "org.prop" up))
+    ((fn [item]
+       (let [new-props (updated-props
+                         (util/ns-select-keys "org.prop" item)
+                         (util/ns-select-keys "org.prop" up))]
+         (-> (util/ns-remove-keys "org.prop" item)
+             (merge new-props)))))))
 
 (defn matching-items? [it item]
   (or
@@ -203,6 +221,5 @@
     (->> root-items
          (map (fn [it]
                 (when-let [up (item->up it)]
-                  (println (:org/source-file it))
                   (update! (:org/source-file it) it up))))
          doall)))

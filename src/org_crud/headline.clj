@@ -4,7 +4,6 @@
    [clojure.string :as string]
    [org-crud.fs :as fs]))
 
-
 (def ^:dynamic *multi-prop-keys* #{})
 (def ^:dynamic *prop-parser*
   "Contains some types with known parses.
@@ -55,9 +54,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ->prop-key [text]
-  (let [[key _val] (string/split text #" " 2)]
-    (when key
-      (-> key
+  (let [[k _val] (string/split text #" " 2)]
+    (when k
+      (-> k
           (string/replace ":" "")
           (string/replace "_" "-")
           (string/replace "+" "")
@@ -66,11 +65,11 @@
           keyword))))
 
 (defn ->prop-value [text]
-  (when-let [key (->prop-key text)]
+  (when-let [k (->prop-key text)]
     (let [[_k val] (string/split text #" " 2)]
       (when val
         (let [val (string/trim val)]
-          (if-let [parser (*prop-parser* key)] (parser val) val))))))
+          (if-let [parser (*prop-parser* k)] (parser val) val))))))
 
 (defn ->properties [x]
   (let [prop-lines
@@ -93,9 +92,28 @@
                                ;; sorting just for testing convenience
                                (sort vals)
                                (first vals))]
-                    [k vals])))
+                    [(keyword (str "org.prop/" (name k))) vals])))
            (into {}))
       {})))
+
+(comment
+  (binding [*multi-prop-keys* #{:repo-ids}]
+    (->properties
+      {:type :section
+       :content
+       [{:line-type :metadata
+         :text      "DEADLINE: <2019-04-01 Mon>"}
+        {:type :drawer
+         :content
+         [{:line-type :property-drawer-item :text ":ARCHIVE_TIME: 2019-04-07 Sun 10:23"}
+          {:line-type :property-drawer-item :text ":ARCHIVE_FILE: ~/Dropbox/todo/todo.org"}
+          {:line-type :property-drawer-item :text ":ARCHIVE_OLPATH: 2019-04-01"}
+          {:line-type :property-drawer-item :text ":ARCHIVE_CATEGORY: todo"}
+          {:line-type :property-drawer-item :text ":ARCHIVE_TODO: [X]"}
+          {:line-type :property-drawer-item :text ":repo_ids: my/repo"}
+          {:line-type :property-drawer-item :text ":repo_ids+: my/other-repo"}]}]
+       :name "[X] create cards"}))
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; headline parsers
@@ -110,7 +128,7 @@
   )
 
 (defn ->id [hl]
-  (-> hl ->properties :id))
+  (-> hl ->properties :org.prop/id))
 
 (defn ->name [{:keys [name type]}]
   (cond
@@ -234,26 +252,26 @@
 (defn ->item [raw source-file]
   (-> (cond
         (= :section (:type raw))
-        {:org/level       (->level raw)
-         :org/source-file (-> source-file fs/absolute str)
-         :org/id          (->id raw)
-         :org/name        (->name raw)
-         :org/headline    (->raw-headline raw)
-         :org/tags        (->tags raw)
-         :org/body        (->body raw)
-         :org/body-string (->body-string raw)
-         :org/status      (->todo-status raw)
-         :props           (->properties raw)}
+        (merge {:org/level       (->level raw)
+                :org/source-file (-> source-file fs/absolute str)
+                :org/id          (->id raw)
+                :org/name        (->name raw)
+                :org/headline    (->raw-headline raw)
+                :org/tags        (->tags raw)
+                :org/body        (->body raw)
+                :org/body-string (->body-string raw)
+                :org/status      (->todo-status raw)}
+               (->properties raw))
 
         (= :root (:type raw))
         (let [props (->properties raw)]
-          {:org/level       (->level raw)
-           :org/source-file (-> source-file fs/absolute str)
-           :org/name        (:title props)
-           :org/tags        (->tags raw)
-           :org/body        (->body raw)
-           :props           props
-           :org/id          (:id props)}))
+          (merge {:org/level       (->level raw)
+                  :org/source-file (-> source-file fs/absolute str)
+                  :org/name        (:org.prop/title props)
+                  :org/tags        (->tags raw)
+                  :org/body        (->body raw)
+                  :org/id          (:org.prop/id props)}
+                 props)))
       ((fn [item]
          (when item
            (-> item

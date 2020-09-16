@@ -88,7 +88,7 @@
 (deftest ->properties-test-multi-value
   (testing "parses property buckets into lists when applicable"
     (let [hl (sut/->properties example-headline)]
-      (is (set/subset? #{"my/repo" "my/other-repo"} (set (:repo-ids hl)))))))
+      (is (set/subset? #{"my/repo" "my/other-repo"} (set (:org.prop/repo-ids hl)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL parsing
@@ -118,3 +118,4 @@
   (let [item (parsed-org-file "core-test.org")]
     (is (set/subset? #{"roam" "tags" "like" "this"}
                      (set (:org/tags item))))))
+

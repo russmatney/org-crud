@@ -5,7 +5,6 @@
    [me.raynes.fs :as fs]
    [org-crud.headline :as headline]
    [org-crud.core :as org]
-   [clojure.string :as string]
    [org-crud.util :as util]))
 
 (def some-path
@@ -62,10 +61,11 @@
 (deftest create-new-headline-props
   (testing "sets props"
     (is (= nil (->new-headline)))
-    (add-new-headline {:org/name new-headline-name
-                       :org/tags "hi"
-                       :props    {:hi "bye"}})
-    (is (= "bye" (:hi (:props (->new-headline)))))))
+    (add-new-headline {:org/name    new-headline-name
+                       :org/tags    "hi"
+                       :org.prop/hi "bye"})
+    (is (= "bye" (:org.prop/hi (->new-headline))))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; creating new nested headline
@@ -95,13 +95,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def some-item
-  {:org/name        "your org headline"
-   :org/source-file "sometodos.org"
-   :org/id          "your-uuid"
-   :org/tags        #{"my" "tags" "are" "good"}
-   :props           {:hello   "world"
-                     :goodbye "blue monday"}
-   :org/body        []})
+  {:org/name         "your org headline"
+   :org/source-file  "sometodos.org"
+   :org/id           "your-uuid"
+   :org/tags         #{"my" "tags" "are" "good"}
+   :org.prop/hello   "world"
+   :org.prop/goodbye "blue monday"
+   :org/body         []})
 
 (defn add-new-file [item]
   (sut/add-to-file! some-path item :level/root))
@@ -116,9 +116,6 @@
     (let [fetched (item-from-file some-path)]
       (is (= (:org/name fetched) (:org/name some-item)))
       (is (= (:org/id fetched) (:org/id some-item)))
-      (is (= (:props fetched) (assoc (:props some-item)
-                                     :id (:org/id some-item)
-                                     :roam-tags
-                                     (string/join " " (:org/tags some-item))
-                                     :title (:org/name some-item))))
+      (is (= (:org.prop/hello fetched) (:org.prop/hello some-item)))
+      (is (= (:org.prop/goodbye fetched) (:org.prop/goodbye some-item)))
       (is (= (:org/tags fetched) (:org/tags some-item))))))
