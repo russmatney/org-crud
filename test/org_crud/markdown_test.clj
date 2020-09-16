@@ -58,25 +58,25 @@
       (is (= () (->> lines (filter #(string/starts-with? % "#+"))))))))
 
 (def example-item
-  {:level :root,
-   :name  "Example Org File",
-   :body  [{:line-type :comment, :text "#+TITLE: Example Org File"}
-           {:line-type :blank, :text ""}
-           {:line-type :table-row, :text "Some org content."}
-           {:line-type :blank, :text ""}],
-   :items
-   [{:name  "An org header",
-     :level 1,
-     :items
-     [{:level 2,
-       :name  "A nested org header",
-       :body
+  {:org/level :level/root,
+   :org/name  "Example Org File",
+   :org/body  [{:line-type :comment, :text "#+TITLE: Example Org File"}
+               {:line-type :blank, :text ""}
+               {:line-type :table-row, :text "Some org content."}
+               {:line-type :blank, :text ""}],
+   :org/items
+   [{:org/name  "An org header",
+     :org/level 1,
+     :org/items
+     [{:org/level 2,
+       :org/name  "A nested org header",
+       :org/body
        [{:line-type :table-row,
          :text      "Content therein."}],}]
-     :body  []}
-    {:level 1,
-     :name  "Conclusion",
-     :body  []}]})
+     :org/body  []}
+    {:org/level 1,
+     :org/name  "Conclusion",
+     :org/body  []}]})
 
 (deftest markdown-body-test
   (let [example-org example-item
@@ -106,14 +106,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def example-item-src-block
-  {:level :root,
-   :name  "Example Org File",
-   :body  [{:line-type :comment, :text "#+TITLE: Example Org File"}
-           {:line-type :blank, :text ""}]
-   :items
-   [{:name  "A src-block org header",
-     :level 1,
-     :body
+  {:org/level :level/root,
+   :org/name  "Example Org File",
+   :org/body  [{:line-type :comment, :text "#+TITLE: Example Org File"}
+               {:line-type :blank, :text ""}]
+   :org/items
+   [{:org/name  "A src-block org header",
+     :org/level 1,
+     :org/body
      [{:type       :block,
        :content
        [{:line-type :table-row, :text "(-> \"hello\""}
@@ -138,13 +138,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def example-org-with-list
-  {:level :root,
-   :name  "Example Org File",
-   :body  [{:line-type :comment, :text "#+TITLE: Example Org File"}]
-   :items
-   [{:level 1,
-     :name  "content without a link",
-     :body
+  {:org/level :level/root,
+   :org/name  "Example Org File",
+   :org/body  [{:line-type :comment, :text "#+TITLE: Example Org File"}]
+   :org/items
+   [{:org/level 1,
+     :org/name  "content without a link",
+     :org/body
      [{:line-type :table-row, :text "It's focuses are:"}
       {:line-type :unordered-list, :text "- inbox processing"}
       {:line-type :unordered-list, :text "- daily planning"}],}]})
@@ -164,13 +164,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def example-item-with-link
-  {:level :root,
-   :name  "Example Org File",
-   :body  [{:line-type :comment, :text "#+TITLE: Example Org File"}]
-   :items
-   [{:level 1,
-     :name  "content with an internal link",
-     :body
+  {:org/level :level/root,
+   :org/name  "Example Org File",
+   :org/body  [{:line-type :comment, :text "#+TITLE: Example Org File"}]
+   :org/items
+   [{:org/level 1,
+     :org/name  "content with an internal link",
+     :org/body
      [{:line-type :unordered-list,
        :text
        "- Wide net for [[file:20200609220548-capture_should_be_easy.org][easy capture]]"}]}]})
@@ -194,13 +194,13 @@
              (first links))))))
 
 (def example-item-with-line-broken-link
-  {:level :root,
-   :name  "Example Org File",
-   :body  [{:line-type :comment, :text "#+TITLE: Example Org File"}]
-   :items
-   [{:level 1,
-     :name  "content with a link",
-     :body
+  {:org/level :level/root,
+   :org/name  "Example Org File",
+   :org/body  [{:line-type :comment, :text "#+TITLE: Example Org File"}]
+   :org/items
+   [{:org/level 1,
+     :org/name  "content with a link",
+     :org/body
      [{:line-type :unordered-list,
        :text
        "- Wide net for [[file:20200609220548-capture_should_be_easy.org][easy"}
@@ -216,13 +216,13 @@
              (->> lines (drop 1)))))))
 
 (def example-header-link
-  {:level :root,
-   :name  "yodo, the pitch and demo outline",
-   :body
+  {:org/level :level/root,
+   :org/name  "yodo, the pitch and demo outline",
+   :org/body
    [{:line-type :comment, :text "#+TITLE: yodo, the pitch and demo outline"}]
-   :items
-   [{:level 1,
-     :name
+   :org/items
+   [{:org/level 1,
+     :org/name
      "[[file:link-name.org][text name]] blah"}]})
 
 (deftest markdown-with-link-in-header-test
@@ -244,13 +244,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def example-item-with-external-link
-  {:level :root,
-   :name  "Example Org File",
-   :body  [{:line-type :comment, :text "#+TITLE: Example Org File"}]
-   :items
-   [{:level 1,
-     :name  "content with an external link",
-     :body
+  {:org/level :root,
+   :org/name  "Example Org File",
+   :org/body  [{:line-type :comment, :text "#+TITLE: Example Org File"}]
+   :org/items
+   [{:org/level 1,
+     :org/name  "content with an external link",
+     :org/body
      [{:line-type :unordered-list,
        :text
        "- Repo for [[https://github.com/russmatney/org-crud][org-crud for clojure]]"}]}]})

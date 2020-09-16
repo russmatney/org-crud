@@ -117,5 +117,4 @@
 (deftest roam-tags-test
   (let [item (parsed-org-file "core-test.org")]
     (is (set/subset? #{"roam" "tags" "like" "this"}
-                     (set (:tags item))))))
-
+                     (set (:org/tags item))))))

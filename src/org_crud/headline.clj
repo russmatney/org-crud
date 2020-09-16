@@ -21,6 +21,10 @@
        (filter #(= (:line-type %) :table-row))
        (map :text)))
 
+(defn ->body-string [raw]
+  (->> (->body-as-strings raw)
+       (string/join "\n")))
+
 (defn ->body
   "Produces a somewhat structured body,
   with support for source blocks.
@@ -97,7 +101,13 @@
 ;; headline parsers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn ->level [{:keys [level]}] (or level :root))
+(defn ->level [{:keys [level]}]
+  (or level :level/root))
+
+(comment
+  (keyword (str "level/" 1))
+  (keyword (str "level/" :root))
+  )
 
 (defn ->id [hl]
   (-> hl ->properties :id))
@@ -159,7 +169,6 @@
     :else (-> tags (set))))
 
 (defn ->todo-status
-  "Returns either :not-started, :in-progress, or :done"
   [{:keys [name]}]
   (when name
     (cond
@@ -208,7 +217,7 @@
   )
 
 (defn ->word-count [item raw]
-  (+ (or (some-> item :name str->count) 0)
+  (+ (or (some-> item :org/name str->count) 0)
      (or (some->> raw
                   ->body-as-strings
                   (map str->count)
@@ -225,27 +234,28 @@
 (defn ->item [raw source-file]
   (-> (cond
         (= :section (:type raw))
-        {:level        (->level raw)
-         :source-file  (-> source-file fs/absolute str)
-         :id           (->id raw)
-         :name         (->name raw)
-         :raw-headline (->raw-headline raw)
-         :tags         (->tags raw)
-         :body         (->body raw)
-         :status       (->todo-status raw)
-         :props        (->properties raw)}
+        {:org/level       (->level raw)
+         :org/source-file (-> source-file fs/absolute str)
+         :org/id          (->id raw)
+         :org/name        (->name raw)
+         :org/headline    (->raw-headline raw)
+         :org/tags        (->tags raw)
+         :org/body        (->body raw)
+         :org/body-string (->body-string raw)
+         :org/status      (->todo-status raw)
+         :props           (->properties raw)}
 
         (= :root (:type raw))
         (let [props (->properties raw)]
-          {:level       (->level raw)
-           :source-file (-> source-file fs/absolute str)
-           :name        (:title props)
-           :tags        (->tags raw)
-           :body        (->body raw)
-           :props       props
-           :id          (:id props)}))
+          {:org/level       (->level raw)
+           :org/source-file (-> source-file fs/absolute str)
+           :org/name        (:title props)
+           :org/tags        (->tags raw)
+           :org/body        (->body raw)
+           :props           props
+           :org/id          (:id props)}))
       ((fn [item]
          (when item
            (-> item
-               (assoc :word-count (->word-count item raw))
-               (assoc :urls (-> raw ->urls set))))))))
+               (assoc :org/word-count (->word-count item raw))
+               (assoc :org/urls (-> raw ->urls set))))))))

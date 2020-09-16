@@ -6,11 +6,12 @@
             [org-crud.util :as util]
             [org-crud.core :as org]))
 
+
 (defn test-fixtures
   [f]
   (fs/copy
-    (str fs/*cwd* "/test/org_crud/create-test-before.org")
-    (str fs/*cwd* "/test/org_crud/create-test.org"))
+    (str fs/*cwd* "/test/org_crud/refile-test-before.org")
+    (str fs/*cwd* "/test/org_crud/refile-test.org"))
   (binding [headline/*multi-prop-keys* #{:repo-ids}]
     (f)))
 
@@ -21,7 +22,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def org-filepath
-  (str (str fs/*cwd*) "/test/org_crud/create-test.org"))
+  (str (str fs/*cwd*) "/test/org_crud/refile-test.org"))
 
 (defn ->items []
   (org/path->flattened-items org-filepath))
@@ -40,22 +41,22 @@
 
 (deftest refile-headline
   (testing "refiles a headline to the top level"
-    (is (= to-refile (:name (get-headline {:name to-refile}))))
-    (do-refile (get-headline {:name to-refile}) :org/level-1)
-    (is (= 1 (:level (get-headline {:name to-refile}))))))
+    (is (= to-refile (:org/name (get-headline {:org/name to-refile}))))
+    (do-refile (get-headline {:org/name to-refile}) :level/level-1)
+    (is (= 1 (:org/level (get-headline {:org/name to-refile}))))))
 
 (deftest refile-headline-nested
   (testing "refiles a headline under the passed context"
-    (is (= to-refile (:name (get-headline {:name to-refile}))))
-    (do-refile (get-headline {:name to-refile})
-               (get-headline {:name "target todo"}))
-    (is (= 4 (:level (get-headline {:name to-refile}))))))
+    (is (= to-refile (:org/name (get-headline {:org/name to-refile}))))
+    (do-refile (get-headline {:org/name to-refile})
+               (get-headline {:org/name "target todo"}))
+    (is (= 2 (:org/level (get-headline {:org/name to-refile}))))))
 
 (deftest refile-headline-include-body
   (testing "refiles a headline, including it's body content"
-    (is (= to-refile (:name (get-headline {:name to-refile}))))
-    (let [body-count (count (:body (get-headline {:name to-refile})))]
-      (do-refile (get-headline {:name to-refile})
-                 (get-headline {:name "target todo"}))
+    (is (= to-refile (:org/name (get-headline {:org/name to-refile}))))
+    (let [body-count (count (:org/body (get-headline {:org/name to-refile})))]
+      (do-refile (get-headline {:org/name to-refile})
+                 (get-headline {:org/name "target todo"}))
       (is (not (nil? body-count)))
-      (is (= body-count (count (:body (get-headline {:name to-refile}))))))))
+      (is (= body-count (count (:org/body (get-headline {:org/name to-refile}))))))))

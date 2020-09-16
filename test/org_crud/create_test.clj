@@ -41,30 +41,30 @@
 (def new-headline-name "" "new headline")
 
 (defn ->new-headline []
-  (->item {:name new-headline-name}))
+  (->item {:org/name new-headline-name}))
 
 (defn add-new-headline [item]
-  (sut/add-to-file! org-filepath item :org/level-1))
+  (sut/add-to-file! org-filepath item :level/level-1))
 
 (deftest create-new-headline
   (testing "a new, top-level headline is created"
     (is (= nil (->new-headline)))
-    (add-new-headline {:name new-headline-name})
-    (is (= new-headline-name (:name (->new-headline))))))
+    (add-new-headline {:org/name new-headline-name})
+    (is (= new-headline-name (:org/name (->new-headline))))))
 
 (deftest create-new-headline-tags
   (testing "sets tags"
     (is (= nil (->new-headline)))
-    (add-new-headline {:name new-headline-name
-                       :tags "hi"})
-    (is (= #{"hi"} (:tags (->new-headline))))))
+    (add-new-headline {:org/name new-headline-name
+                       :org/tags "hi"})
+    (is (= #{"hi"} (:org/tags (->new-headline))))))
 
 (deftest create-new-headline-props
   (testing "sets props"
     (is (= nil (->new-headline)))
-    (add-new-headline {:name  new-headline-name
-                       :tags  "hi"
-                       :props {:hi "bye"}})
+    (add-new-headline {:org/name new-headline-name
+                       :org/tags "hi"
+                       :props    {:hi "bye"}})
     (is (= "bye" (:hi (:props (->new-headline)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -77,34 +77,34 @@
 (deftest create-new-headline-nested
   (testing "a new, nested headline is created"
     (is (= nil (->new-headline)))
-    (add-new-nested-headline {:name new-headline-name}
-                             (->item {:name "parent headline"}))
-    (is (= new-headline-name (:name (->new-headline))))
-    (is (= 2 (:level (->new-headline))))))
+    (add-new-nested-headline {:org/name new-headline-name}
+                             (->item {:org/name "parent headline"}))
+    (is (= new-headline-name (:org/name (->new-headline))))
+    (is (= 2 (:org/level (->new-headline))))))
 
 (deftest create-new-headline-nested-newlines
   (testing "a new, nested headline is placed in the right spot"
     (is (= nil (->new-headline)))
-    (add-new-nested-headline {:name new-headline-name}
-                             (->item {:name "parent with mid-line asterisk"}))
-    (is (= new-headline-name (:name (->new-headline))))
-    (is (= 2 (:level (->new-headline))))))
+    (add-new-nested-headline {:org/name new-headline-name}
+                             (->item {:org/name "parent with mid-line asterisk"}))
+    (is (= new-headline-name (:org/name (->new-headline))))
+    (is (= 2 (:org/level (->new-headline))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Create new root-level items
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def some-item
-  {:name        "your org headline"
-   :source-file "sometodos.org"
-   :id          "your-uuid"
-   :tags        #{"my" "tags" "are" "good"}
-   :props       {:hello   "world"
-                 :goodbye "blue monday"}
-   :body        []})
+  {:org/name        "your org headline"
+   :org/source-file "sometodos.org"
+   :org/id          "your-uuid"
+   :org/tags        #{"my" "tags" "are" "good"}
+   :props           {:hello   "world"
+                     :goodbye "blue monday"}
+   :org/body        []})
 
 (defn add-new-file [item]
-  (sut/add-to-file! some-path item :org/root))
+  (sut/add-to-file! some-path item :level/root))
 
 (defn item-from-file [path]
   (org/path->nested-item path))
@@ -114,12 +114,11 @@
     (is (not (fs/exists? some-path)))
     (add-new-file some-item)
     (let [fetched (item-from-file some-path)]
-      (is (= (:name fetched) (:name some-item)))
-      (is (= (:id fetched) (:id some-item)))
+      (is (= (:org/name fetched) (:org/name some-item)))
+      (is (= (:org/id fetched) (:org/id some-item)))
       (is (= (:props fetched) (assoc (:props some-item)
-                                     :id (:id some-item)
+                                     :id (:org/id some-item)
                                      :roam-tags
-                                     (string/join " " (:tags some-item))
-                                     :title (:name some-item))))
-      (is (= (:tags fetched) (:tags some-item))))))
-
+                                     (string/join " " (:org/tags some-item))
+                                     :title (:org/name some-item))))
+      (is (= (:org/tags fetched) (:org/tags some-item))))))

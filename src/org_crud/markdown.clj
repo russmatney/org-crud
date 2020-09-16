@@ -13,7 +13,7 @@
 
 (defn item->link [item]
   (-> item
-      :source-file
+      :org/source-file
       fs/base-name
       fs/split-ext
       first))
@@ -30,14 +30,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn item->frontmatter [item]
-  (let [name     (:name item)
+  (let [name     (:org/name item)
         basename (some-> item
-                         :source-file
+                         :org/source-file
                          fs/base-name
                          fs/split-ext
                          first)
         name     (or name (str "Daily Note for " basename))
-        tags     (conj (or (:tags item) #{}) "note")
+        tags     (conj (or (:org/tags item) #{}) "note")
         date-str (if (re-seq #"^\d{8}" basename)
                    (some->> basename
                             (take 8)
@@ -114,16 +114,16 @@
               "```"])))
 
 (defn item->md-body [item]
-  (let [child-lines (mapcat item->md-body (:items item))
+  (let [child-lines (mapcat item->md-body (:org/items item))
         header-line
-        (if (int? (:level item))
-          (str (apply str (repeat (:level item) "#")) " "
+        (if (int? (:org/level item))
+          (str (apply str (repeat (:org/level item) "#")) " "
                (-> item
-                   :name
+                   :org/name
                    org-line->md-line))
           "")
         body-lines  (->> item
-                         :body
+                         :org/body
                          (remove #(= (:line-type %) :comment))
                          (mapcat body-line->md-lines)
                          (remove nil?))
@@ -140,15 +140,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn item->strs [item]
-  (let [name      (:name item)
-        body-strs (->> (:body item)
+  (let [name      (:org/name item)
+        body-strs (->> (:org/body item)
                        (map :text))]
     (concat [name] body-strs)))
 
 (defn all-body-strs [item]
   (loop [items    [item]
          all-strs []]
-    (let [children (->> items (mapcat :items))
+    (let [children (->> items (mapcat :org/items))
           strs     (->> items (mapcat item->strs))
           all-strs (concat all-strs strs)]
       (if (seq children)
@@ -227,7 +227,7 @@ Two [[file:2020-06-10.org][in]] [[file:2020-06-11.org][one]]."))
 (defn item->md-item [item]
   {:filename  (item->md-filename item)
    :body      (item->md-lines item)
-   :name      (:name item)
+   :name      (:org/name item)
    :self-link (item->link item)
    :links     (item->links item)})
 
@@ -237,7 +237,7 @@ Two [[file:2020-06-10.org][in]] [[file:2020-06-11.org][one]]."))
 
 ;; TODO patch 'excluded' links so we don't have dead links when published
 (defn exclude-item? [item]
-  (contains? (-> item :tags set) "private"))
+  (contains? (-> item :org/tags set) "private"))
 
 (defn org-dir->md-dir [source-dir target-dir]
   (->> (org/dir->nested-items source-dir)

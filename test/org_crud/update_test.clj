@@ -44,10 +44,10 @@
 ;; for now, just the [ ] or [X].
 (deftest update-status-test
   (testing "updates a todo's status"
-    (let [pred-map {:name "mark me status"}
+    (let [pred-map {:org/name "mark me status"}
           orig     :status/not-started
           new      :status/done
-          k        :status]
+          k        :org/status]
       (sut/update! org-filepath (get-headline pred-map) {k new})
       (let [headline (get-headline pred-map)]
         (is (= new (get headline k))))
@@ -70,11 +70,11 @@
 
 (deftest update-tags-test
   (testing "updates a headline's tags"
-    (let [pred-map    {:name "add/remove tags"}
+    (let [pred-map    {:org/name "add/remove tags"}
           tags        #{"test" "yother"}
           another-tag "anothertag"
           empty       #{}
-          k           :tags]
+          k           :org/tags]
       (let [headline (get-headline pred-map)]
         (is (= (get headline k) empty)))
 
@@ -96,21 +96,21 @@
         (is (set/subset? tags (get headline k)))))))
 
 (deftest remove-tags-test
-  (let [pred-map {:name "add/remove tags"}]
+  (let [pred-map {:org/name "add/remove tags"}]
     (testing "initially clear"
-      (is (= (:tags (get-headline pred-map)) #{})))
+      (is (= (:org/tags (get-headline pred-map)) #{})))
 
     (testing "adds two tags"
-      (sut/update! org-filepath (get-headline pred-map) {:tags "newtag"})
-      (sut/update! org-filepath (get-headline pred-map) {:tags "othertag"})
-      (is (= (:tags (get-headline pred-map)) #{"newtag" "othertag"})))
+      (sut/update! org-filepath (get-headline pred-map) {:org/tags "newtag"})
+      (sut/update! org-filepath (get-headline pred-map) {:org/tags "othertag"})
+      (is (= (:org/tags (get-headline pred-map)) #{"newtag" "othertag"})))
 
     (testing "removes one"
-      (sut/update! org-filepath (get-headline pred-map) {:tags "newtag"})
-      (sut/update! org-filepath (get-headline pred-map) {:tags "othertag"})
+      (sut/update! org-filepath (get-headline pred-map) {:org/tags "newtag"})
+      (sut/update! org-filepath (get-headline pred-map) {:org/tags "othertag"})
       (sut/update! org-filepath (get-headline pred-map)
-                   {:tags [:remove "othertag"]})
-      (is (= (:tags (get-headline pred-map)) #{"newtag"})))
+                   {:org/tags [:remove "othertag"]})
+      (is (= (:org/tags (get-headline pred-map)) #{"newtag"})))
     ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -119,7 +119,7 @@
 
 (deftest update-properties-test
   (testing "updates a headline's properties"
-    (let [pred-map {:name "basic properties"}
+    (let [pred-map {:org/name "basic properties"}
           ->props  (fn []
                      (-> pred-map
                          get-headline
@@ -151,7 +151,7 @@
 (defn same-xs? [x y]
   (= (set x) (set y)))
 
-(def multi-prop-pred-map {:name "add/remove multi-properties"})
+(def multi-prop-pred-map {:org/name "add/remove multi-properties"})
 
 (defn ->multi-test-repo-ids []
   (-> (get-headline multi-prop-pred-map)
@@ -197,7 +197,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ->prop-order-headline []
-  (get-headline {:name "consistent prop order"}))
+  (get-headline {:org/name "consistent prop order"}))
 
 (defn prop-order-update [up]
   (sut/update! org-filepath (->prop-order-headline) up))
@@ -221,14 +221,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def same-name-1-id "c3a82f7c-ecff-4e4c-8047-bc4e11861bb0")
-(defn same-name-1 [] (get-headline {:id same-name-1-id}))
+(defn same-name-1 [] (get-headline {:org/id same-name-1-id}))
 
 (def same-name-2-id  "bcdf8060-e158-4f8c-9c4a-a9f5d58bd890")
-(defn same-name-2 [] (get-headline {:id same-name-2-id}))
+(defn same-name-2 [] (get-headline {:org/id same-name-2-id}))
 
 (deftest ensure-same-name-with-diff-ids
   (testing "ensures the two items used to test this have the same name"
-    (is (= (:name (same-name-1)) (:name (same-name-2))))))
+    (is (= (:org/name (same-name-1)) (:org/name (same-name-2))))))
 
 (deftest update-same-name-props
   (testing "updates each item's props and ensures they got the right value"
@@ -243,12 +243,12 @@
   (testing "updates each item's tags"
     (let [v1 (str (rand-int 100))
           v2 (str (rand-int 100))]
-      (sut/update! org-filepath (same-name-1) {:tags #{v1}})
-      (sut/update! org-filepath (same-name-2) {:tags #{v2}})
-      (is (contains? (-> (same-name-1) :tags) v1))
-      (is (not (contains? (-> (same-name-1) :tags) v2)))
-      (is (contains? (-> (same-name-2) :tags) v2))
-      (is (not (contains? (-> (same-name-2) :tags) v1))))))
+      (sut/update! org-filepath (same-name-1) {:org/tags #{v1}})
+      (sut/update! org-filepath (same-name-2) {:org/tags #{v2}})
+      (is (contains? (-> (same-name-1) :org/tags) v1))
+      (is (not (contains? (-> (same-name-1) :org/tags) v2)))
+      (is (contains? (-> (same-name-2) :org/tags) v2))
+      (is (not (contains? (-> (same-name-2) :org/tags) v1))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; writing parsed org back to disk
@@ -275,9 +275,9 @@
 
 (deftest update-root-item
   (testing "root-level tags are updated as expected"
-    (sut/update! root-item-filepath (parse-item) {:tags "newtag"})
-    (is (contains? (-> (parse-item) :tags) "newtag"))
-    (is (contains? (-> (parse-item) :tags) "existing")))
+    (sut/update! root-item-filepath (parse-item) {:org/tags "newtag"})
+    (is (contains? (-> (parse-item) :org/tags) "newtag"))
+    (is (contains? (-> (parse-item) :org/tags) "existing")))
 
   (testing "root-level props are updated as expected"
     (is (= nil (-> (parse-item) :props :new-prop)))

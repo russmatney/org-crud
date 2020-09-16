@@ -64,15 +64,15 @@
         prop-bucket
         (->>
           (concat
-            [[:title (:name item)]
-             [:id (or (:id item) (-> item :props :id))]
-             (when (->> item :tags (map string/trim) (remove empty?) seq)
-               [:roam_tags (string/join " " (:tags item))])
+            [[:title (:org/name item)]
+             [:id (or (:org/id item) (-> item :props :id))]
+             (when (->> item :org/tags (map string/trim) (remove empty?) seq)
+               [:roam_tags (string/join " " (:org/tags item))])
              (when-let [k (some->> item :props :roam-key)]
                [:roam_key k])
              ]
             (some-> item :props
-                    (dissoc :title :id :tags :roam_tags :roam-tags :roam-key)))
+                    (dissoc :title :org/id :org/tags :roam_tags :roam-tags :roam-key)))
           (remove nil?)
           (remove (comp nil? second))
           (map prop->new-root-property)
@@ -82,19 +82,19 @@
 
 (comment
   (new-root-property-bucket
-    {:level :root
-     :name  "hi"
-     :tags  #{" "}
-     :props '([:title "2020-08-02"]
-              [:id "e79bec75-6e54-4ccb-b753-3ec359291355"])
-     :id    nil})
+    {:org/level :root
+     :org/name  "hi"
+     :org/tags  #{" "}
+     :props     '([:title "2020-08-02"]
+                  [:id "e79bec75-6e54-4ccb-b753-3ec359291355"])
+     :org/id    nil})
   (new-root-property-bucket
-    {:name  "item name"
-     :tags  #{"hello" "world"}
-     :id    nil
-     :props {:some "value"
-             :id   "and such"
-             :urls ["blah" "other blah.com"]}}))
+    {:org/name "item name"
+     :org/tags #{"hello" "world"}
+     :org/id   nil
+     :props    {:some "value"
+                :id   "and such"
+                :urls ["blah" "other blah.com"]}}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; body text
@@ -149,7 +149,7 @@
       "")))
 
 (defn headline-name
-  [{:keys [status tags name]} level]
+  [{:keys [org/status org/tags org/name]} level]
   (let [level     (or level 1)
         level-str (apply str (repeat level "*"))
         headline  (str level-str
@@ -165,9 +165,9 @@
 (declare item->root-lines)
 
 (defn item->lines
-  ([item] (item->lines item (:level item)))
-  ([{:keys [props body items] :as item} level]
-   (if (= :root level)
+  ([item] (item->lines item (:org/level item)))
+  ([{:keys [props org/body org/items] :as item} level]
+   (if (= :level/root level)
      (item->root-lines item)
      (let [headline       (headline-name item level)
            prop-lines     (new-property-bucket props)
@@ -180,8 +180,8 @@
          children-lines)))))
 
 (comment
-  (item->lines {:name "hi" :tags ["next"] :props {:hi :bye}} :root)
-  (item->lines {:name "hi" :tags ["next"] :props {:hi :bye}} 3))
+  (item->lines {:org/name "hi" :org/tags ["next"] :props {:hi :bye}} :level/root)
+  (item->lines {:org/name "hi" :org/tags ["next"] :props {:hi :bye}} 3))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item->root-lines as full file
@@ -189,7 +189,7 @@
 
 ;; TODO elevate to exposed api temp-buffer support
 (defn item->root-lines
-  [{:keys [body items] :as item}]
+  [{:keys [org/body org/items] :as item}]
   (let [root-prop-lines (new-root-property-bucket item)
         body-lines      (root-body->lines body)
         children-lines  (->> items (mapcat item->lines))]
@@ -199,4 +199,4 @@
       children-lines)))
 
 (comment
-  (item->root-lines {:name "hi" :tags ["next" "day"] :props {:hi :bye}}))
+  (item->root-lines {:org/name "hi" :org/tags ["next" "day"] :props {:hi :bye}}))

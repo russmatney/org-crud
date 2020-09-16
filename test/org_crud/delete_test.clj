@@ -9,8 +9,8 @@
 (defn test-fixtures
   [f]
   (fs/copy
-    (str fs/*cwd* "/test/org_crud/create-test-before.org")
-    (str fs/*cwd* "/test/org_crud/create-test.org"))
+    (str fs/*cwd* "/test/org_crud/delete-test-before.org")
+    (str fs/*cwd* "/test/org_crud/delete-test.org"))
   (binding [headline/*multi-prop-keys* #{:repo-ids}]
     (f)))
 
@@ -21,7 +21,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def org-filepath
-  (str (str fs/*cwd*) "/test/org_crud/create-test.org"))
+  (str (str fs/*cwd*) "/test/org_crud/delete-test.org"))
 
 (defn ->items []
   (org/path->flattened-items org-filepath))
@@ -40,25 +40,24 @@
   "delete nested headline")
 
 (defn ->deleted-headline []
-  (get-headline {:name deleted-headline-name}))
+  (get-headline {:org/name deleted-headline-name}))
 
 (defn ->deleted-nested-headline []
-  (get-headline {:name deleted-nested-headline-name}))
+  (get-headline {:org/name deleted-nested-headline-name}))
 
 (defn do-delete-headline [item]
   (sut/delete-from-file! org-filepath item))
 
 (deftest delete-headline
   (testing "deletes a headline"
-    (is (= deleted-headline-name (:name (->deleted-headline))))
+    (is (= deleted-headline-name (:org/name (->deleted-headline))))
     (do-delete-headline (->deleted-headline))
     (is (= nil (->deleted-headline)))
-    (is (= nil (get-headline {:name "deleted more content"})))))
-
+    (is (= nil (get-headline {:org/name "other content"})))))
 
 (deftest delete-nested-headline
   (testing "deletes a nested headline"
-    (is (= deleted-nested-headline-name (:name (->deleted-nested-headline))))
+    (is (= deleted-nested-headline-name (:org/name (->deleted-nested-headline))))
     (do-delete-headline (->deleted-nested-headline))
     (is (= nil (->deleted-nested-headline)))
-    (is (not= nil (get-headline {:name "deleted more content"})))))
+    (is (not= nil (get-headline {:org/name "other content"})))))

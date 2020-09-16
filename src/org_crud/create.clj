@@ -11,13 +11,7 @@
 
 (defn append-top-level
   [path item]
-  (let [lines (lines/item->lines
-                (update item :props
-                        (fn [props]
-                          (merge
-                            ;; TODO support via adapter/dynamism?
-                            ;; {:added-at (util/now)}
-                            props))) 1)]
+  (let [lines (lines/item->lines item 1)]
     (up/append-to-file! path (concat ["\n\n"] lines))))
 
 (defn add-to-context
@@ -51,7 +45,7 @@
 
 (defn slugify [item]
   (-> item
-      :name
+      :org/name
       (string/replace #"\s" "_")
       (string/replace #"[^A-Za-z0-9]" "_")
       (string/replace #"__*" "_")
@@ -60,7 +54,7 @@
       string/lower-case))
 
 (comment
-  (slugify {:name "This wasn't ____ a tasknam&*e8989"}))
+  (slugify {:org/name "This wasn't ____ a tasknam&*e8989"}))
 
 (defn create-roam-file
   "Creates a new roam file in the passed `dir`.
@@ -68,7 +62,7 @@
   "
   [dir-path item]
   (when (and (fs/exists? dir-path)
-             (seq (:name item)))
+             (seq (:org/name item)))
     (let [slug     (slugify item)
           dir-name (str dir-path "/" slug ".org")]
       (create-root-file dir-name item))))
@@ -81,11 +75,14 @@
   "
   [path item context]
   (cond
-    (= :org/root context)
+    (or
+      (= :org/root context)
+      (= :level/root context))
     (create-root-file path item)
 
     (or
       (= :org/level-1 context)
+      (= :level/level-1 context)
       (= :top-level context))
     (append-top-level path item)
 

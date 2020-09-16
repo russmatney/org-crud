@@ -25,7 +25,7 @@
     (let [items (->items)]
       (is (seq items))
       (doseq [item items]
-        (is (not (nil? (:name item))))))))
+        (is (not (nil? (:org/name item))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; parsing into a nested, heirarchical structure
@@ -34,8 +34,8 @@
 (deftest path->nested-item-test
   (testing "parsed items include their children"
     (let [item  (->nested-item)
-          level (-> item :level)]
-      (is (= level :root)))))
+          level (-> item :org/level)]
+      (is (= level :level/root)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; flattned->nested
@@ -45,26 +45,26 @@
   (testing "groups a sequence of passed items using their :level"
     (let [items (sut/flattened->nested
                   (fn [parent item]
-                    (update parent :items conj item))
-                  [{:level 1 :name "b"}
-                   {:level 1 :name "a"}
-                   {:level 2 :name "c"}
-                   {:level 3 :name "d"}
-                   {:level 4 :name "e"}
-                   {:level 3 :name "f"}
-                   {:level 1 :name "g"}])]
+                    (update parent :org/items conj item))
+                  [{:org/level 1 :org/name "b"}
+                   {:org/level 1 :org/name "a"}
+                   {:org/level 2 :org/name "c"}
+                   {:org/level 3 :org/name "d"}
+                   {:org/level 4 :org/name "e"}
+                   {:org/level 3 :org/name "f"}
+                   {:org/level 1 :org/name "g"}])]
       (is (seq items))
       (is (= 3 (count items)))
       (doseq [item items]
-        (let [level (-> item :level)]
+        (let [level (-> item :org/level)]
           (is (= level 1))))
       (let [c (-> (nth items 1)
-                  :items first)]
-        (is (= 2 (count (:items c))))
-        (is (->> c :items
-                 (filter (fn [{:keys [name]}]
+                  :org/items first)]
+        (is (= 2 (count (:org/items c))))
+        (is (->> c :org/items
+                 (filter (fn [{:keys [org/name]}]
                            (= name "d")))
-                 first :items first :name (= "e")))))))
+                 first :org/items first :org/name (= "e")))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; word count test
@@ -73,8 +73,8 @@
 (deftest word-count-test
   (testing "nested word-count is calced and set on items"
     (let [nested (->nested-item)]
-      (is (= 5 (:word-count nested)))))
+      (is (= 5 (:org/word-count nested)))))
 
   (testing "flattened word-count is calced and set on items"
     (let [items (->items)]
-      (is (= 49 (reduce + 0 (map :word-count items)))))))
+      (is (= 49 (reduce + 0 (map :org/word-count items)))))))

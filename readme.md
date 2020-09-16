@@ -68,8 +68,9 @@ An example item looks something like:
  :org/source-file "" ;; the file this item was parsed from
  :org/id #uuid "" ;; a unique id for the headline (parsed from the item's property bucket)
  :org/tags #{"some" "tags"}
- :org/level :level/2 ;; :level/1-6 and :level/root TODO impl this
- :org/body '() ;; a list of parsed lines, straight from organum TODO document this
+ :org/level 2 ;; 1-6 or :level/root
+ :org/body-string ;; raw body string
+ :org/body '() ;; a list of parsed lines, straight from organum TODO document this structure
  :org/status :status/not-started ;; parsed based on the
  ;; also supports :status/in-progress, :status/done, :status/cancelled
 

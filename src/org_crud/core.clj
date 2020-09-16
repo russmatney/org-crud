@@ -59,7 +59,7 @@
   (->> p
        parse-org-file
        (parsed->flattened-items p)
-       (remove (comp nil? :name))))
+       (remove (comp nil? :org/name))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Parsing nested items
@@ -70,15 +70,16 @@
   ([xs]
    (flattened->nested
      (fn [parent item]
-       (update parent :items conj item)) xs))
+       (update parent :org/items conj item)) xs))
   ([update-parent xs]
    (loop [remaining  xs
           items      []
           ctx-stack  []
           last-level 0]
-     (let [{:keys [level] :as current} (some-> remaining first)
-           level                       (if (= :root level) 0 level)
-           level-diff                  (when current (- level last-level))]
+     (let [{:keys [org/level] :as current}
+           (some-> remaining first)
+           level      (if (= :level/root level) 0 level)
+           level-diff (when current (- level last-level))]
 
        (if (and current (> level-diff 0))
          ;; recur with updated
@@ -122,15 +123,15 @@
   (->
     (flattened->nested
       (fn [parent item]
-        (update parent :items conj
-                (-> item (update :items reverse))))
-      [{:level 1 :name "b"}
-       {:level 1 :name "a"}
-       {:level 2 :name "c"}
-       {:level 3 :name "d"}
-       {:level 4 :name "e"}
-       {:level 2 :name "f"}
-       {:level 1 :name "g"}])
+        (update parent :org/items conj
+                (-> item (update :org/items reverse))))
+      [{:org/level 1 :org/name "b"}
+       {:org/level 1 :org/name "a"}
+       {:org/level 2 :org/name "c"}
+       {:org/level 3 :org/name "d"}
+       {:org/level 4 :org/name "e"}
+       {:org/level 2 :org/name "f"}
+       {:org/level 1 :org/name "g"}])
     println)
 
   (walk/postwalk (fn [x]
@@ -153,11 +154,11 @@
        ;; (filter #(= :section (:type %)))
        (map (fn [raw] (headline/->item raw source-file)))
        (flattened->nested
-         (fn [parent item] (update parent :items conj item)))
+         (fn [parent item] (update parent :org/items conj item)))
        (walk/postwalk (fn [x]
                         (if (and (map? x)
-                                 (seq (:items x)))
-                          (update x :items reverse)
+                                 (seq (:org/items x)))
+                          (update x :org/items reverse)
                           x)))))
 
 (defn path->nested-item

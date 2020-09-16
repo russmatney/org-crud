@@ -82,35 +82,35 @@
   "Updates the passed item based on the `up`date passed"
   [item up]
   (cond-> item
-    (:status up)
-    (assoc :status (:status up))
+    (:org/status up)
+    (assoc :org/status (:org/status up))
 
-    (seq (:tags up))
-    (update :tags update-tags (:tags up))
+    (seq (:org/tags up))
+    (update :org/tags update-tags (:org/tags up))
 
     (:add-item up)
-    (update :items (fn [items]
-                     (conj items (-> (:add-item up)
-                                     (assoc :level
-                                            (+ 1 (:level item)))))))
+    (update :org/items (fn [items]
+                         (conj items (-> (:add-item up)
+                                         (assoc :org/level
+                                                (+ 1 (:org/level item)))))))
 
-    (:name up)
-    (assoc :name (:name up))
+    (:org/name up)
+    (assoc :org/name (:org/name up))
 
     (seq (:props up))
     (update :props updated-props (:props up))))
 
 (defn matching-items? [it item]
   (or
-    (and (:id it)
-         (= (:id it) (:id item)))
+    (and (:org/id it)
+         (= (:org/id it) (:org/id item)))
     ;; try to match on name if no id
     (and
       ;; temp! allowing one to not have the id, so that ids can be set without some other treatment
-      (or (not (:id it))
-          (not (:id item)))
-      (:name it)
-      (= (:name it) (:name item)))))
+      (or (not (:org/id it))
+          (not (:org/id item)))
+      (:org/name it)
+      (= (:org/name it) (:org/name item)))))
 
 (defn update-items
   "Traverses the `parsed` org structure, applying `update` to a child that
@@ -124,8 +124,8 @@
                (if (matching-items? it item)
                  (assoc agg :deleting? true)
                  (if (and (:deleting? agg)
-                          (> (:level it)
-                             (:level item)))
+                          (> (:org/level it)
+                             (:org/level item)))
                    ;; don't conj when :deleting? to remove nested items
                    agg
                    ;; remove deleting?, appending the rest
@@ -147,8 +147,9 @@
   Clears whatever was in the file before writing."
   [path items]
   (when path
-    (let [lines  (reduce (fn [acc item]
-                           (concat acc (lines/item->lines item))) [] items)
+    (let [lines
+          (reduce (fn [acc item]
+                    (concat acc (lines/item->lines item))) [] items)
           as-str (string/join "\n" lines)]
       (spit path as-str))))
 
@@ -162,9 +163,8 @@
   ([path item up]
    (println "Updating item"
             {:path             path
-             :item-source-file (:source-file item)
-             :item-name        (:name item)
-             :item-type        (:type item)
+             :item-source-file (:org/source-file item)
+             :item-name        (:org/name item)
              :update           up})
    (let [parsed-items (org/path->flattened-items path)
          updated      (update-items parsed-items item up)]
@@ -203,6 +203,6 @@
     (->> root-items
          (map (fn [it]
                 (when-let [up (item->up it)]
-                  (println (:source-file it))
-                  (update! (:source-file it) it up))))
+                  (println (:org/source-file it))
+                  (update! (:org/source-file it) it up))))
          doall)))
