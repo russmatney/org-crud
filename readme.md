@@ -8,8 +8,11 @@ org to markdown.
 
 ## Status
 
-Brand new. Used internally for a few months, freshly broken into its own
-library. The public api still needs to be proven.
+Very alpha. I've recently namespaced the keys and flattened the props a bit.
+Still waiting for things to settle.
+
+I've used it internally for a few months, but the public api still needs to be
+proven.
 
 It works for my current use-cases, and there are unit tests! Feel free to take
 it for a spin.
@@ -53,7 +56,110 @@ namespace](https://github.com/russmatney/ralphie/blob/f6432e433e7e447aa1c0784e62
 - Delete org items
 - Convert org files to markdown files
 
-## Relevant tools
+## Org Item Model
+
+This library parses org "items" from a given `.org` file.
+
+An example item looks something like:
+
+```clojure
+{:org/name "My org headline" ;; the name without the bullets/todo block
+ :org/headline "** [ ] My org headline" ;; a raw headline
+ :org/source-file "" ;; the file this item was parsed from
+ :org/id #uuid "" ;; a unique id for the headline (parsed from the item's property bucket)
+ :org/tags #{"some" "tags"}
+ :org/level :level/2 ;; :level/1-6 and :level/root TODO impl this
+ :org/body '() ;; a list of parsed lines, straight from organum TODO document this
+ :org/status :status/not-started ;; parsed based on the
+ ;; also supports :status/in-progress, :status/done, :status/cancelled
+
+ :org.prop/some-prop "some prop value" ;; props are lower-and-kebab-cased
+ :org.prop/some-other-prop "some other prop value"
+ :org.prop/created-at "2020-07-21T09:25:50-04:00[America/New_York]" ;; to be parsed by consumer
+
+ :org/items '() ;; nested org-items (if parsed with the 'nested' helpers)
+
+ ;; misc helper attrs
+ :org/word-count 3 ;; a basic count of words in the name and body
+ :org/urls '() ;; parsed urls from the body - helpful for some use-cases
+}
+```
+
+Items were originally implemented to support individual org headlines, but have
+been adapted to work with single org files as well (to fit org-roam tooling
+use-cases).
+
+## Usage
+
+TODO do some work on this section!
+
+You can see the test files for example usage.
+
+I'm attempting to hold a public api at `org-crud.api`, but that is a WIP.
+
+### Parsing
+
+```clojure
+(ns your.ns
+ (:require [org-crud.api :as org-crud]))
+
+;; a nested item represents an entire file, with items as children
+(let [item (org-crud/path->nested-item "/path/to/file.org")]
+  (println item))
+
+;; parses every '.org' file in a directory into a list of nested items
+(let [items (org-crud/dir->nested-items "/path/to/org/dir")]
+  (println (first items)
+
+;; 'flattened' items have no children - just a list of every headline
+;; (starting with the root itself)
+(let [items (org-crud/path->flattened-items "/path/to/file.org")]
+  (println (first items)))
+```
+
+### Updating
+
+Updates are performed with a passed item and an update map that resembles the
+org-item itself. It will use the passed item's id and source-file to find the
+item to be updated, merge the updates in memory, then rewrite it.
+
+```clojure
+(ns your.ns
+ (:require [org-crud.api :as org-crud]))
+
+(-> (org-crud/path->flattened-items "/path/to/file.org")
+    second ;; grabbing some item
+    (org-crud/update!
+      {:org/name "new item name" ;; changing the item name
+       :org/tags "newtag" ;; adding a new tag
+       :org.prop/some-prop "some-prop-value"
+      }))
+```
+
+TODO document props-as-lists features
+TODO document refile!, add-item!, delete-item!
+
+## Notes
+
+### Item IDs (UUIDs)
+
+Item IDs are more or less required for updating. Things will fallback to
+matching on name if there are no ids, but this approach has a few issues,
+because names are not necessarily unique throughout files.
+
+I've updated my personal org templates/snippets in places to include IDs when
+creating new items, and org-mode provides helpers that can be used to add them
+without too much trouble. (Ex: `org-id-get-create`).
+
+TODO share links to templates/snippets that create uuids
+
+If this is a problem, let me know, there are other workarounds. Using IDs allows
+for cases with repeated headlines in the same file - otherwise you might get
+into tracking line numbers or parents, which did not seem worth it, especially
+as my usage benefitted from the IDs elsewhere.
+
+## Relevant/Related tools
 
 - [ox-hugo](https://github.com/kaushalmodi/ox-hugo)
 - [organum](https://github.com/gmorpheme/organum)
+- [org-roam](https://github.com/org-roam/org-roam)
