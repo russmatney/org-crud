@@ -69,7 +69,7 @@ An example item looks something like:
  :org/id #uuid "" ;; a unique id for the headline (parsed from the item's property bucket)
  :org/tags #{"some" "tags"}
  :org/level 2 ;; 1-6 or :level/root
- :org/body-string ;; raw body string
+ :org/body-string "raw body string\nwith lines\nof content"
  :org/body '() ;; a list of parsed lines, straight from organum TODO document this structure
  :org/status :status/not-started ;; parsed based on the
  ;; also supports :status/in-progress, :status/done, :status/cancelled
