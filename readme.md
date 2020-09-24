@@ -162,5 +162,5 @@ as my usage benefitted from the IDs elsewhere.
 ## Relevant/Related tools
 
 - [ox-hugo](https://github.com/kaushalmodi/ox-hugo)
-- [organum](https://github.com/gmorpheme/organum)
+- [organum](https://github.com/seylerius/organum)
 - [org-roam](https://github.com/org-roam/org-roam)
