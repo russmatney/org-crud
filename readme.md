@@ -56,6 +56,8 @@ namespace](https://github.com/russmatney/ralphie/blob/f6432e433e7e447aa1c0784e62
 - Delete org items
 - Convert org files to markdown files
 
+- TODO create bb-based cli access for org->markdown conversion
+
 ## Org Item Model
 
 This library parses org "items" from a given `.org` file.
