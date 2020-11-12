@@ -47,7 +47,7 @@ namespace](https://github.com/russmatney/ralphie/blob/f6432e433e7e447aa1c0784e62
 
 ## Features
 
-- Babashka compatible!
+- [Babashka](https://github.com/borkdude/babashka) compatible!
 - List nested or flattened org items
 - Update existing org items
   - Updates by :ID:
@@ -145,8 +145,9 @@ TODO document refile!, add-item!, delete-item!
 Org-crud provides a namespace for converting org files to markdown, and a
 babashka-based cli tool for running this conversion on the command line.
 
-In order for this to work, you'll need to have Babashka (and clojure)
-installed and available on the command line as `bb` and `clojure`.
+In order for this to work, you'll need to have
+[Babashka](https://github.com/borkdude/babashka#quickstart) (and [clojure](https://clojure.org/guides/getting_started)) installed and
+available on the command line as `bb` and `clojure`.
 
 ```
 bb org-crud.jar org-to-markdown ~/Dropbox/notes tmp-out
