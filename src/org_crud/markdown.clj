@@ -240,9 +240,17 @@ Two [[file:2020-06-10.org][in]] [[file:2020-06-11.org][one]]."))
   (contains? (-> item :org/tags set) "private"))
 
 (defn org-dir->md-dir [source-dir target-dir]
-  (->> (org/dir->nested-items source-dir)
-       (remove exclude-item?)
-       (map item->md-item)
-       process-backlinks
-       (map append-backlink-body)
-       (map (partial write-md-item target-dir))))
+  (cond
+    (not (fs/exists? source-dir))
+    (println "Error: dir does not exist" source-dir)
+
+    (not (fs/exists? target-dir))
+    (println "Error: dir does not exist" target-dir)
+
+    :else
+    (->> (org/dir->nested-items source-dir)
+         (remove exclude-item?)
+         (map item->md-item)
+         process-backlinks
+         (map append-backlink-body)
+         (map (partial write-md-item target-dir)))))
