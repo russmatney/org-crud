@@ -1,6 +1,5 @@
 *-init.clj
 *.class
-*.jar
 *.log
 .DS_Store
 .cljs_node_repl/

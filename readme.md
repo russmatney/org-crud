@@ -148,11 +148,8 @@ babashka-based cli tool for running this conversion on the command line.
 In order for this to work, you'll need to have Babashka (and clojure)
 installed and available on the command line as `bb` and `clojure`.
 
-From a local clone of this repo, you can run the conversion as follows:
-
 ```
-# from this repo's root
-bb -cp $(clojure -Spath) -m org-crud.cli org-to-markdown ~/Dropbox/notes tmp-out
+bb org-crud.jar org-to-markdown ~/Dropbox/notes tmp-out
 ```
 
 Note that this support targets a use-case for publishing an
@@ -242,6 +239,15 @@ as my usage benefitted from the IDs elsewhere.
 - [org-roam](https://github.com/org-roam/org-roam)
 
 ## Development
+
+### Running the cli using the source
+
+Rather than the built uberjar:
+
+```
+# from this repo's root
+bb -cp $(clojure -Spath) -m org-crud.cli org-to-markdown ~/Dropbox/notes tmp-out
+```
 
 ### Rebuild the uberjar
 
