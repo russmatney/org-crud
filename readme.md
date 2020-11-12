@@ -23,11 +23,9 @@ This library was pulled out of another tool, a productivity app built on top of
 org-mode. That tool needed to be able to treat org files like a database of
 items.
 
-It was pulled out to make it easy to convert org files to markdown, and
-targetted a use-case for publishing my
-[org-roam](https://github.com/org-roam/org-roam/) directory. Emacs/Org supports
-export like this as well, but because I already had most of this, it wasn't too
-much more to write the `org-crud.markdown` namespace.
+It was pulled out of that tool to allow a few other libraries to use it
+independently (russmatney/ralphie), and also to add support for converting org
+files to markdown. See [markdown](#markdown).
 
 Org-crud aims to provide simple interactions with org files to clojure code.
 
@@ -55,8 +53,6 @@ namespace](https://github.com/russmatney/ralphie/blob/f6432e433e7e447aa1c0784e62
   - Change an item's name
 - Delete org items
 - Convert org files to markdown files
-
-- TODO create bb-based cli access for org->markdown conversion
 
 ## Org Item Model
 
@@ -141,6 +137,30 @@ item to be updated, merge the updates in memory, then rewrite it.
 
 TODO document props-as-lists features
 TODO document refile!, add-item!, delete-item!
+
+### Markdown
+
+Org-crud provides a namespace for converting org files to markdown, and a
+babashka-based cli tool for running this conversion on the command line.
+
+In order for this to work, you'll need to have Babashka (and clojure)
+installed and available on the command line as `bb` and `clojure`.
+
+From a local clone of this repo, you can run the conversion as follows:
+
+```
+# from this repo's root
+bb -cp $(clojure -Spath) -m org-crud.cli org-to-markdown ~/Dropbox/notes tmp-out
+```
+
+Note that this support targets a use-case for publishing an
+[org-roam](https://github.com/org-roam/org-roam/) directory as markdown, but
+otherwise is probably not a complete org->markdown conversion solution. If you
+have more use-cases that you'd like to see supported, please open an issue
+describing the use-case, and I'd be happy to take a shot at it.
+
+Note that Emacs/Org supports export that is fairly similar as well - I enjoyed
+putting this together and not needing to leave the joy of clojure-land.
 
 ## Notes
 
