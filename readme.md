@@ -8,11 +8,12 @@ org to markdown.
 
 ## Status
 
-Very alpha. I've recently namespaced the keys and flattened the props a bit.
+Alpha. I've recently namespaced the keys and flattened the props a bit.
 Still waiting for things to settle.
 
-I've used it internally for a few months, but the public api still needs to be
-proven.
+I've used it internally for months, but the public api still needs to be
+proven. In particular, I'd like to iron out some things I'm doing with dynamic
+vars that no user should need to figure out/configure.
 
 It works for my current use-cases, and there are unit tests! Feel free to take
 it for a spin.
@@ -23,11 +24,12 @@ This library was pulled out of another tool, a productivity app built on top of
 org-mode. That tool needed to be able to treat org files like a database of
 items.
 
-It was pulled out of that tool to allow a few other libraries to use it
-independently (russmatney/ralphie), and also to add support for converting org
-files to markdown. See [markdown](#markdown).
+It was pulled out to allow a few other libraries to use it independently
+([russmatney/ralphie](https://github.com/russmatney/ralphie)), and also to add
+support for converting org files to markdown. See [Markdown](#markdown).
 
-Org-crud aims to provide simple interactions with org files to clojure code.
+Org-crud aims to provide simple interactions with org files to clojure
+environments.
 
 ## Background
 
@@ -162,6 +164,58 @@ describing the use-case, and I'd be happy to take a shot at it.
 Note that Emacs/Org supports export that is fairly similar as well - I enjoyed
 putting this together and not needing to leave the joy of clojure-land.
 
+An org file like `20200618104339-dated-example.org`:
+
+```org
+#+TITLE: Dated Example
+#+ROAM_TAGS: dated
+
+Another org file, now with a link!
+
+- [[file:example.org][example link]]
+
+Dated to match the org-roam default style.
+```
+
+Will be converted to:
+
+```markdown
+---
+title: "Dated Example"
+date: 2020-06-18
+tags:
+  - dated
+  - note
+---
+
+
+Another org file, now with a link!
+
+- [example link](/notes/example)
+
+Dated to match the org-roam default style.
+```
+
+- The frontmatter pulls tags from `#+ROAM_TAGS`.
+  - TODO prevent `note` from being added every time.
+- The date is parsed from the filename.
+  - TODO support alternate sources for the date, if users don't have timestamps
+    in filenames.
+- The links to other notes are prepended with `/notes/<filename>`
+  - TODO support custom link handling options, not just this hardcoded /notes/ prefix.
+
+#### Appended `Backlinks` section
+
+When run over a directory, a `Backlinks` section is built up as a basic markdown
+list.
+
+```
+<... rest of file>
+# Backlinks
+
+- [Index](/notes/20200704184516-index)
+```
+
 ## Notes
 
 ### Item IDs (UUIDs)
@@ -186,3 +240,19 @@ as my usage benefitted from the IDs elsewhere.
 - [ox-hugo](https://github.com/kaushalmodi/ox-hugo)
 - [organum](https://github.com/gmorpheme/organum)
 - [org-roam](https://github.com/org-roam/org-roam)
+
+## Development
+
+### Rebuild the uberjar
+
+To rebuild the cli-based uberjar via babashka:
+
+```
+bb -cp $(clojure -Spath) -m org-crud.cli --uberjar org-crud.jar
+```
+
+### Running tests
+
+```
+./bin/kaocha
+```

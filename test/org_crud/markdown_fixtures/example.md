@@ -1,5 +1,5 @@
 ---
-title: Example Org File
+title: "Example Org File"
 date: example
 tags:
   - note
@@ -27,4 +27,5 @@ It's focuses are:
 
 # Backlinks
 
+- [Dated Example](/notes/20200618104339-dated-example)
 - [Linked Org File](/notes/linked-org-file)

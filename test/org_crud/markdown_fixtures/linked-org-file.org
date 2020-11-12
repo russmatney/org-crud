@@ -1,4 +1,5 @@
 #+TITLE: Linked Org File
+#+ROAM_TAGS: mytag
 
 Another org file, now with a link!
 

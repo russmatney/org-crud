@@ -1,3 +1,8 @@
 #+TITLE: Dated Example
+#+ROAM_TAGS: dated
+
+Another org file, now with a link!
+
+- [[file:example.org][example link]]
 
 Dated to match the org-roam default style.
