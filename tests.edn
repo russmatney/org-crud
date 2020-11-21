@@ -1,7 +1,3 @@
 ;; tests.edn
 #kaocha/v1
-{:tests [{:id         :unit-clj
-          :test-paths ["test"]
-          }]
-
- :plugins [:kaocha.plugin/notifier]}
+{:plugins [:kaocha.plugin/notifier]}
