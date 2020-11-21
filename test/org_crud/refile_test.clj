@@ -50,7 +50,7 @@
     (is (= to-refile (:org/name (get-headline {:org/name to-refile}))))
     (do-refile (get-headline {:org/name to-refile})
                (get-headline {:org/name "target todo"}))
-    (is (= 2 (:org/level (get-headline {:org/name to-refile}))))))
+    (is (= 4 (:org/level (get-headline {:org/name to-refile}))))))
 
 (deftest refile-headline-include-body
   (testing "refiles a headline, including it's body content"

@@ -53,11 +53,11 @@
     (is (= deleted-headline-name (:org/name (->deleted-headline))))
     (do-delete-headline (->deleted-headline))
     (is (= nil (->deleted-headline)))
-    (is (= nil (get-headline {:org/name "other content"})))))
+    (is (= nil (get-headline {:org/name "deleted more content"})))))
 
 (deftest delete-nested-headline
   (testing "deletes a nested headline"
     (is (= deleted-nested-headline-name (:org/name (->deleted-nested-headline))))
     (do-delete-headline (->deleted-nested-headline))
     (is (= nil (->deleted-nested-headline)))
-    (is (not= nil (get-headline {:org/name "other content"})))))
+    (is (not= nil (get-headline {:org/name "deleted more content"})))))

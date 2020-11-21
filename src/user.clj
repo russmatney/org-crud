@@ -1,6 +1,7 @@
 (ns user
   (:require [org-crud.update :as upd]
             [org-crud.core :as org]
+            [wing.repl :as w.repl]
             ))
 
 
@@ -14,6 +15,8 @@
         (assoc-in [:props :id] id))))
 
 (comment
+  (w.repl/sync-libs! :dev)
+
   (def --roam-dir "/home/russ/Dropbox/notes")
 
   (org/dir->nested-items --roam-dir)
