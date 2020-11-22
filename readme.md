@@ -90,6 +90,19 @@ Items were originally implemented to support individual org headlines, but have
 been adapted to work with single org files as well (to fit org-roam tooling
 use-cases).
 
+## Install
+
+Currently, install requires referencing the git repo.
+
+``` clojure
+;; deps.edn
+{:deps
+ {russmatney/org-crud {:git/url "https://github.com/russmatney/org-crud.git"
+                       :sha     "a4b44022c690e1c8fb34512f1aad85bc49569d19"}}}
+```
+
+TODO add to clojars
+
 ## Usage
 
 TODO do some work on this section!
