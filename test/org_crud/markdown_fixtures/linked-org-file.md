@@ -1,6 +1,5 @@
 ---
 title: "Linked Org File"
-date: linked-org-file
 tags:
   - mytag
 ---

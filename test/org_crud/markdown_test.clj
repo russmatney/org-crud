@@ -48,6 +48,27 @@
       (test-fn))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; item->md-filename
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest markdown#md-filename
+  (testing "default to gatsby style filenames"
+    (let [example-org (parsed-org-file "20200618104339-dated-example.org")
+          fname       (-> example-org sut/item->md-filename)]
+      (is fname)
+      (is (= fname "20200618104339-dated-example.md"))))
+  (testing "and if gatsby is specified"
+    (let [example-org (parsed-org-file "20200618104339-dated-example.org")
+          fname       (-> example-org (sut/item->md-filename {:blog-type "gatsby"}))]
+      (is fname)
+      (is (= fname "20200618104339-dated-example.md"))))
+  (testing "sets a jekyll filename format"
+    (let [example-org (parsed-org-file "20200618104339-dated-example.org")
+          fname       (-> example-org (sut/item->md-filename {:blog-type "jekyll"}))]
+      (is fname)
+      (is (= fname "2020-06-18-dated-example.md")))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item->frontmatter
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

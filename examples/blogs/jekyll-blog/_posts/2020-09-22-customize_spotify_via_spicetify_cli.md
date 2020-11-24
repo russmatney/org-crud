@@ -1,8 +1,6 @@
 ---
 title: "Customize Spotify via spicetify-cli"
 date: 2020-09-22
-tags:
-  - note
 ---
 
 

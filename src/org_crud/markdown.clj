@@ -6,18 +6,50 @@
    [org-crud.util :as util]
    [clojure.set :as set]))
 
+;; TODO non-existent local links still get through
+;; TODO handle custom local link formats (jekyll example is broken)
+;; TODO more passed frontmatter key/vals (no styling in jekyll example)
+;; TODO handle custom post date source (not just org-roam filename style)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; item -> date-str
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn item->file-basename
+  ([item] (item->file-basename item {}))
+  ([item {:keys [drop-datetime]}]
+   (let [full-basename
+         (some-> item
+                 :org/source-file
+                 fs/base-name
+                 fs/split-ext
+                 first)]
+     (if (and drop-datetime (re-seq #"^\d{14}-" full-basename))
+       (->> full-basename (drop 15) (apply str))
+       full-basename))))
+
+(defn item->date-str
+  ([item] (item->date-str item {}))
+  ([item opts]
+   (let [basename (-> item (item->file-basename opts))]
+     (when (re-seq #"^\d{8}" basename)
+       (some->> basename
+                (take 8)
+                (apply str)
+                ((fn [s]
+                   (string/replace
+                     s #"(\d\d\d\d)(\d\d)(\d\d)"
+                     "$1-$2-$3"))))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item -> link, filename
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn item->link
   ([item] (item->link item {}))
-  ([item _opts]
-   (-> item
-       :org/source-file
-       fs/base-name
-       fs/split-ext
-       first)))
+  ([item opts]
+   ;; TODO build jekyll-style or templated link
+   (-> item (item->file-basename opts))))
 
 (defn markdown-link
   [{:keys [name link]}]
@@ -25,8 +57,17 @@
 
 (defn item->md-filename
   ([item] (item->md-filename item {}))
-  ([item opts]
-   (-> item (#(item->link % opts)) (str ".md"))))
+  ([item {:as opts :keys [blog-type]}]
+   (cond
+     (= "jekyll" blog-type)
+     (let [date-str (item->date-str item opts)
+           basename (item->file-basename item (assoc opts :drop-datetime true))]
+       (str date-str "-" basename ".md"))
+
+     ;; default
+     (or true (= "gatsby" blog-type))
+     (-> item (#(item->link % opts)) (str ".md"))
+     )))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Frontmatter
@@ -34,27 +75,17 @@
 
 (defn item->frontmatter
   ([item] (item->frontmatter item {}))
-  ([item {:keys [tags]}]
+  ([item {:keys [tags] :as opts}]
    (let [name     (:org/name item)
-         basename (some-> item
-                          :org/source-file
-                          fs/base-name
-                          fs/split-ext
-                          first)
+         basename (item->file-basename item opts)
          name     (or name (str "Daily Note for " basename))
          tags     (set/union tags (or (:org/tags item) #{}))
-         date-str (if (re-seq #"^\d{8}" basename)
-                    (some->> basename
-                             (take 8)
-                             (apply str)
-                             ((fn [s]
-                                (string/replace
-                                  s #"(\d\d\d\d)(\d\d)(\d\d)"
-                                  "$1-$2-$3"))))
-                    basename)]
+         date-str (item->date-str item opts)]
      (cond-> ["---"
-              (str "title: \"" name "\"")
-              (str "date: " date-str)]
+              (str "title: \"" name "\"")]
+
+       (seq date-str)
+       (concat [(str "date: " date-str)])
 
        (> (count tags) 0)
        (concat
@@ -103,11 +134,11 @@
              (markdown-link {:name link-text :link file-path}))))))))
 
 (comment
-(org-links->md-links
-  "[[https://github.com/russmatney/org-crud][link to external repo]] for accumulating a design or an approach")
-(org-links->md-links
-  "[[file:20200627150518-spaced_repetition_in_decision_making.org][Spaced-repetition]] for accumulating a design or an approach")
-)
+  (org-links->md-links
+    "[[https://github.com/russmatney/org-crud][link to external repo]] for accumulating a design or an approach")
+  (org-links->md-links
+    "[[file:20200627150518-spaced_repetition_in_decision_making.org][Spaced-repetition]] for accumulating a design or an approach")
+  )
 
 (defn org-line->md-line
   ([s] (org-line->md-line s {}))

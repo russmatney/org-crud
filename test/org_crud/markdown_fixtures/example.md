@@ -1,6 +1,5 @@
 ---
 title: "Example Org File"
-date: example
 ---
 
 

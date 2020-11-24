@@ -1,8 +1,6 @@
 ---
 title: "Getting started with AwesomeWM via Fennel"
 date: 2020-07-24
-tags:
-  - note
 ---
 
 

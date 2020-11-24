@@ -1,8 +1,6 @@
 ---
 title: "Test awesomeWM config changes with Xephyr"
 date: 2020-07-25
-tags:
-  - note
 ---
 
 
