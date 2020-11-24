@@ -1,0 +1,55 @@
+#+title: Getting started with AwesomeWM via Fennel
+#+id: bfc9637a-8903-4acc-b0d5-ea6e88a9c3ac
+
+I found a few guides that were very helpful tho slightly behind, due to some
+recent Fennel repo updates. Nice to see a repo getting lots of work, isn't it?
+
+This guide: https://gist.github.com/christoph-frick/d3949076ffc8d23e9350d3ea3b6e00cb
+was kind enough to tell me to drop fennel.lua into ~/.config/awesome/., but I
+couldn't find it. After some digging, I finally found this commit message, which
+reports the fennel.lua is now a generated file. At that point I realized it was
+already on my machine.
+
+Fennel installation/setup guide is here: https://github.com/bakpakin/Fennel/blob/master/setup.md
+
+I'd installed fennel via `yay -Sy fennel`, and learned that I can see the files
+installed via pacman/yay with `yay -Qi <pkgname>`, which revealed fennel.lua and
+friends in `/usr/lib/lua/<version>/.` - this is already part of lua's require
+path, so if you've installed fennel this way, you should be able to `require("fennel")`
+at the top of your ~/.config/awesome/rc.lua.
+
+After that, there's some path additions for fennel.path, after which you can
+require any blah.fnl via require("blah").
+
+I ended up with the following at the top of my rc.lua:
+
+#+BEGIN_SRC lua
+local fennel = require("fennel")
+fennel.path = fennel.path .. ";.config/awesome/?.fnl"
+table.insert(package.loaders or package.searchers, fennel.searcher)
+
+local cfg = require("cfg")
+#+END_SRC
+
+where cfg.fnl is in ~/.config/awesome/cfg.fnl.
+
+
+Next was getting luafun, which I installed via lua's package manager, luarocks.
+
+`yay -Sy luarocks`
+
+`sudo luarocks install fun`
+
+profit.
+
+
+Awesome's docs site: https://awesomewm.org/doc/api/
+
+--
+2020-07-26 13:37
+
+Using this test my fnl before restarting now:
+
+#+BEGIN_SRC sh
+fennel --compile ~/.config/awesome/cfg.fnl
+#+END_SRC

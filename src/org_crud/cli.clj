@@ -1,12 +1,29 @@
 (ns org-crud.cli
-  (:require [org-crud.markdown :as markdown]))
+  (:require
+   [clojure.string :as string]
+   [clojure.tools.cli :refer [parse-opts]]
+   [org-crud.markdown :as markdown]))
+
+(def org-to-markdown-cli-opts
+  [["-b" "--blog-type TYPE" "Blog Type (jekyll or gatsby)"
+    :default "jekyll"
+    :validate [(fn [t]
+                 (#{"jekyll" "gatsby"} t)) "Must be either 'jekyll' or 'gatsby'"]]
+   ["-t" "--tags TAGS" "Comma-seped tags to include in all posts. ('-t note,roam')"
+    :default nil
+    :parse-fn (fn [s] (->> (string/split s #",") (into #{})))]
+   ])
 
 (defn org-to-markdown [& args]
-  (if-not (= (count args) 2)
-    (println "Expected call format: `org-to-markdown <src-dir> <out-dir>`")
-    (let [src-dir (first args)
-          out-dir (second args)]
-      (markdown/org-dir->md-dir src-dir out-dir))))
+  (let [{:keys [arguments options summary errors]}
+        (parse-opts args org-to-markdown-cli-opts)]
+    (if (or errors (not (= (count arguments) 2)))
+      (do
+        (println "Expected call format: `bb org-crud.jar org-to-markdown <src-dir> <out-dir> (options)`")
+        (println (str "\n" summary "\n\n" errors)))
+      (let [src-dir (first arguments)
+            out-dir (second arguments)]
+        (markdown/org-dir->md-dir src-dir out-dir options)))))
 
 (def commands {"org-to-markdown" org-to-markdown})
 

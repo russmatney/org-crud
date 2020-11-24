@@ -11,48 +11,54 @@
 ;; item -> link, filename
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn item->link [item]
-  (-> item
-      :org/source-file
-      fs/base-name
-      fs/split-ext
-      first))
+(defn item->link
+  ([item] (item->link item {}))
+  ([item _opts]
+   (-> item
+       :org/source-file
+       fs/base-name
+       fs/split-ext
+       first)))
 
 (defn markdown-link
   [{:keys [name link]}]
   (str "[" name "](" link ")"))
 
-(defn item->md-filename [item]
-  (-> item item->link (str ".md")))
+(defn item->md-filename
+  ([item] (item->md-filename item {}))
+  ([item opts]
+   (-> item (#(item->link % opts)) (str ".md"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Frontmatter
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn item->frontmatter [item]
-  (let [name     (:org/name item)
-        basename (some-> item
-                         :org/source-file
-                         fs/base-name
-                         fs/split-ext
-                         first)
-        name     (or name (str "Daily Note for " basename))
-        tags     (conj (or (:org/tags item) #{}) "note")
-        date-str (if (re-seq #"^\d{8}" basename)
-                   (some->> basename
-                            (take 8)
-                            (apply str)
-                            ((fn [s]
-                               (string/replace
-                                 s #"(\d\d\d\d)(\d\d)(\d\d)"
-                                 "$1-$2-$3"))))
-                   basename)]
-    (flatten ["---"
-              (str "title: \"" name "\"")
-              (str "date: " date-str)
-              (str "tags:")
-              (->> tags (map (fn [tag] (str "  - " tag))))
-              "---"])))
+(defn item->frontmatter
+  ([item] (item->frontmatter item {}))
+  ([item _opts]
+   (let [name     (:org/name item)
+         basename (some-> item
+                          :org/source-file
+                          fs/base-name
+                          fs/split-ext
+                          first)
+         name     (or name (str "Daily Note for " basename))
+         tags     (conj (or (:org/tags item) #{}) "note")
+         date-str (if (re-seq #"^\d{8}" basename)
+                    (some->> basename
+                             (take 8)
+                             (apply str)
+                             ((fn [s]
+                                (string/replace
+                                  s #"(\d\d\d\d)(\d\d)(\d\d)"
+                                  "$1-$2-$3"))))
+                    basename)]
+     (flatten ["---"
+               (str "title: \"" name "\"")
+               (str "date: " date-str)
+               (str "tags:")
+               (->> tags (map (fn [tag] (str "  - " tag))))
+               "---"]))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item -> markdown body
@@ -113,27 +119,29 @@
               (map body-line->md-lines (:content line))
               "```"])))
 
-(defn item->md-body [item]
-  (let [child-lines (mapcat item->md-body (:org/items item))
-        header-line
-        (if (int? (:org/level item))
-          (str (apply str (repeat (:org/level item) "#")) " "
-               (-> item
-                   :org/name
-                   org-line->md-line))
-          "")
-        body-lines  (->> item
-                         :org/body
-                         (remove #(= (:line-type %) :comment))
-                         (mapcat body-line->md-lines)
-                         (remove nil?))
-        body-lines  (when (seq body-lines)
-                      (->> body-lines
-                           (string/join "\n")
-                           org-links->md-links
-                           ((fn [s] (string/split s #"\n")))
-                           ))]
-    (concat [header-line] body-lines child-lines)))
+(defn item->md-body
+  ([item] (item->md-body item {}))
+  ([item opts]
+   (let [child-lines (mapcat #(item->md-body % opts) (:org/items item))
+         header-line
+         (if (int? (:org/level item))
+           (str (apply str (repeat (:org/level item) "#")) " "
+                (-> item
+                    :org/name
+                    org-line->md-line))
+           "")
+         body-lines  (->> item
+                          :org/body
+                          (remove #(= (:line-type %) :comment))
+                          (mapcat body-line->md-lines)
+                          (remove nil?))
+         body-lines  (when (seq body-lines)
+                       (->> body-lines
+                            (string/join "\n")
+                            org-links->md-links
+                            ((fn [s] (string/split s #"\n")))
+                            ))]
+     (concat [header-line] body-lines child-lines))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; backlinks
@@ -170,15 +178,17 @@
     "Written the same day as [[file:2020-06-10.org][this today file]].
 Two [[file:2020-06-10.org][in]] [[file:2020-06-11.org][one]]."))
 
-(defn item->links [item]
-  (->> item
-       all-body-strs
-       (string/join "\n")
-       str->file-refs
-       (map (fn [[link text]]
-              {:name text
-               :link (-> link
-                         (string/replace #"\n" ""))}))))
+(defn item->links
+  ([item] (item->links item {}))
+  ([item _opts]
+   (->> item
+        all-body-strs
+        (string/join "\n")
+        str->file-refs
+        (map (fn [[link text]]
+               {:name text
+                :link (-> link
+                          (string/replace #"\n" ""))})))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Building backlinks
@@ -219,38 +229,44 @@ Two [[file:2020-06-10.org][in]] [[file:2020-06-11.org][one]]."))
 ;; Public: converting to and writing a markdown file
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn item->md-lines [item]
-  (concat
-    (item->frontmatter item)
-    (item->md-body item)))
+(defn item->md-lines
+  ([item] (item->md-lines item {}))
+  ([item opts]
+   (concat
+     (item->frontmatter item opts)
+     (item->md-body item opts))))
 
-(defn item->md-item [item]
-  {:filename  (item->md-filename item)
-   :body      (item->md-lines item)
-   :name      (:org/name item)
-   :self-link (item->link item)
-   :links     (item->links item)})
+(defn item->md-item
+  ([item] (item->md-item item {}))
+  ([item opts]
+   {:filename  (item->md-filename item opts)
+    :body      (item->md-lines item opts)
+    :name      (:org/name item)
+    :self-link (item->link item opts)
+    :links     (item->links item opts)}))
 
 (defn write-md-item [target-dir md-item]
   (spit (str target-dir "/" (:filename md-item))
         (->> md-item :body (string/join "\n"))))
 
-;; TODO patch 'excluded' links so we don't have dead links when published
 (defn exclude-item? [item]
   (contains? (-> item :org/tags set) "private"))
 
-(defn org-dir->md-dir [source-dir target-dir]
-  (cond
-    (not (fs/exists? source-dir))
-    (println "Error: dir does not exist" source-dir)
+(defn org-dir->md-dir
+  ([source-dir target-dir]
+   (org-dir->md-dir source-dir target-dir {}))
+  ([source-dir target-dir opts]
+   (cond
+     (not (fs/exists? source-dir))
+     (println "Error: dir does not exist" source-dir)
 
-    (not (fs/exists? target-dir))
-    (println "Error: dir does not exist" target-dir)
+     (not (fs/exists? target-dir))
+     (println "Error: dir does not exist" target-dir)
 
-    :else
-    (->> (org/dir->nested-items source-dir)
-         (remove exclude-item?)
-         (map item->md-item)
-         process-backlinks
-         (map append-backlink-body)
-         (map (partial write-md-item target-dir)))))
+     :else
+     (->> (org/dir->nested-items source-dir)
+          (remove exclude-item?)
+          (map #(item->md-item % opts))
+          process-backlinks
+          (map append-backlink-body)
+          (map (partial write-md-item target-dir))))))

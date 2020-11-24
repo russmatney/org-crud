@@ -1,0 +1,33 @@
+#+TITLE: Org Dir -> Markdown Blogs examples
+
+Org-crud features a markdown namespace and Babashka-based cli tool that can be
+used to convert org files to markdown. This is essentially 'exporting' files
+from wherever you want to write and maintain them directly into your blog's
+'posts' directory.
+
+Below are instructions for accomplishing this for a few blogging technologies.
+Note that you'll need clojure and babashka installed along with whatever prereqs
+exist for the blog engine you're using.
+
+At the time of writing, this feature works for my current use-cases - if you
+have any more features you'd like, feel free to open an issue or a PR.
+
+The ~org-source~ directory is an example source, and should be replaced with
+your own org dir.
+
+* ToDos
+** [ ] Support sub-dirs
+** [ ] Support tags based on sub-dirs
+
+* Examples
+** Jekyll
+
+#+begin_src sh
+# from the <org-crud-root> dir
+bb org-crud.jar org-to-markdown examples/org-source example/blogs/jekyll-blog/_posts --blog-type jekyll
+#+end_src
+
+#+RESULTS:
+
+** Gatsby
+TODO
