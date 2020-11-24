@@ -1,0 +1,4 @@
+#+TITLE: With Roam Tags Example
+#+ROAM_TAGS: dated someothertag
+
+An example org file with roam_tags

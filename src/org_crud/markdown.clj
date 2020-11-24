@@ -3,9 +3,8 @@
    [clojure.string :as string]
    [org-crud.fs :as fs]
    [org-crud.core :as org]
-   [org-crud.util :as util]))
-
-;; TODO refactor hardcoded '/notes/' into something configurable.
+   [org-crud.util :as util]
+   [clojure.set :as set]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item -> link, filename
@@ -35,7 +34,7 @@
 
 (defn item->frontmatter
   ([item] (item->frontmatter item {}))
-  ([item _opts]
+  ([item {:keys [tags]}]
    (let [name     (:org/name item)
          basename (some-> item
                           :org/source-file
@@ -43,7 +42,7 @@
                           fs/split-ext
                           first)
          name     (or name (str "Daily Note for " basename))
-         tags     (conj (or (:org/tags item) #{}) "note")
+         tags     (set/union tags (or (:org/tags item) #{}))
          date-str (if (re-seq #"^\d{8}" basename)
                     (some->> basename
                              (take 8)
@@ -53,21 +52,26 @@
                                   s #"(\d\d\d\d)(\d\d)(\d\d)"
                                   "$1-$2-$3"))))
                     basename)]
-     (flatten ["---"
-               (str "title: \"" name "\"")
-               (str "date: " date-str)
-               (str "tags:")
-               (->> tags (map (fn [tag] (str "  - " tag))))
-               "---"]))))
+     (cond-> ["---"
+              (str "title: \"" name "\"")
+              (str "date: " date-str)]
+
+       (> (count tags) 0)
+       (concat
+         (flatten [(str "tags:")
+                   (->> tags (map (fn [tag] (str "  - " tag))))]))
+
+       true
+       (concat ["---"])))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item -> markdown body
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn body-str->file-refs [s]
-  (some->> s
-           (re-seq #"\[\[file:([^\]]*)\]\[[^\]]*\]\]")
-           (map second)))
+(some->> s
+         (re-seq #"\[\[file:([^\]]*)\]\[[^\]]*\]\]")
+         (map second)))
 
 (defn org-links->md-links
   "Rearranges org-links found in the string with the md style.
@@ -75,49 +79,55 @@
   plugin.
 
   Works across line breaks within the string."
-  [s]
-  (when s
-    (string/replace
-      s
-      #"\[\[([^\]]*)\]\[([^\]]*)\]\]"
-      (fn [res]
-        (let [file-path (some->> res (drop 1) first
-                                 ((fn [raw-link]
-                                    (println raw-link)
-                                    (cond
-                                      (string/starts-with? raw-link "file:")
-                                      (some-> raw-link
-                                              fs/base-name fs/split-ext first
-                                              (string/replace "file:" "")
-                                              (#(str "/notes/" %)))
+  ([s] (org-links->md-links s {}))
+  ([s opts]
+   (when s
+     (string/replace
+       s
+       #"\[\[([^\]]*)\]\[([^\]]*)\]\]"
+       (fn [res]
+         (let [file-path (some->> res (drop 1) first
+                                  ((fn [raw-link]
+                                     (println raw-link)
+                                     (cond
+                                       (string/starts-with? raw-link "file:")
+                                       (let [link-prefix (or (:link-prefix opts) "")]
+                                         (some-> raw-link
+                                                 fs/base-name fs/split-ext first
+                                                 (string/replace "file:" "")
+                                                 (#(str link-prefix "/" %))))
 
-                                      :else raw-link))))
-              link-text (some->> res (drop 2) first)]
-          (when (and file-path link-text)
-            (markdown-link {:name link-text :link file-path})))))))
+                                       :else raw-link))))
+               link-text (some->> res (drop 2) first)]
+           (when (and file-path link-text)
+             (markdown-link {:name link-text :link file-path}))))))))
 
 (comment
-  (org-links->md-links
-    "[[https://github.com/russmatney/org-crud][link to external repo]] for accumulating a design or an approach")
-  (org-links->md-links
-    "[[file:20200627150518-spaced_repetition_in_decision_making.org][Spaced-repetition]] for accumulating a design or an approach")
-  )
+(org-links->md-links
+  "[[https://github.com/russmatney/org-crud][link to external repo]] for accumulating a design or an approach")
+(org-links->md-links
+  "[[file:20200627150518-spaced_repetition_in_decision_making.org][Spaced-repetition]] for accumulating a design or an approach")
+)
 
-(defn org-line->md-line [s]
-  (-> s
-      (string/replace #"~([^~]*)~" "`$1`")
-      org-links->md-links))
+(defn org-line->md-line
+  ([s] (org-line->md-line s {}))
+  ([s opts]
+   (-> s
+       (string/replace #"~([^~]*)~" "`$1`")
+       (org-links->md-links opts))))
 
-(defn body-line->md-lines [line]
-  (cond
-    (contains? #{:blank :table-row :unordered-list} (:line-type line))
-    [(-> (:text line) org-line->md-line)]
+(defn body-line->md-lines
+  ([line] (body-line->md-lines line {}))
+  ([line opts]
+   (cond
+     (contains? #{:blank :table-row :unordered-list} (:line-type line))
+     [(-> (:text line) (org-line->md-line opts))]
 
-    (and (= :block (:type line))
-         (= "SRC" (:block-type line)))
-    (flatten [(str "``` " (:qualifier line))
-              (map body-line->md-lines (:content line))
-              "```"])))
+     (and (= :block (:type line))
+          (= "SRC" (:block-type line)))
+     (flatten [(str "``` " (:qualifier line))
+               (map #(body-line->md-lines % opts) (:content line))
+               "```"]))))
 
 (defn item->md-body
   ([item] (item->md-body item {}))
@@ -128,12 +138,12 @@
            (str (apply str (repeat (:org/level item) "#")) " "
                 (-> item
                     :org/name
-                    org-line->md-line))
+                    (org-line->md-line opts)))
            "")
          body-lines  (->> item
                           :org/body
                           (remove #(= (:line-type %) :comment))
-                          (mapcat body-line->md-lines)
+                          (mapcat #(body-line->md-lines % opts))
                           (remove nil?))
          body-lines  (when (seq body-lines)
                        (->> body-lines
@@ -194,26 +204,29 @@ Two [[file:2020-06-10.org][in]] [[file:2020-06-11.org][one]]."))
 ;; Building backlinks
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn process-backlinks [md-items]
-  (let [link->md-items (->> md-items
-                            (map (fn [md-it]
-                                   (update md-it :links
-                                           (fn [links]
-                                             (map :link links)))))
-                            (util/multi-group-by :links))]
-    (->> md-items
-         (map
-           (fn [md-item]
-             (assoc md-item :backlinks
-                    (let [linked-md-items
-                          (-> md-item :self-link link->md-items)]
-                      (->> linked-md-items
-                           (map
-                             (fn [linked-md-item]
-                               {:name (:name linked-md-item)
-                                :link
-                                (str "/notes/"
-                                     (:self-link linked-md-item))}))))))))))
+(defn process-backlinks
+  ([md-items] (process-backlinks {} md-items))
+  ([{:keys [link-prefix]} md-items]
+   (let [link->md-items (->> md-items
+                             (map (fn [md-it]
+                                    (update md-it :links
+                                            (fn [links]
+                                              (map :link links)))))
+                             (util/multi-group-by :links))]
+     (->> md-items
+          (map
+            (fn [md-item]
+              (assoc md-item :backlinks
+                     (let [linked-md-items
+                           (-> md-item :self-link link->md-items)]
+                       (->> linked-md-items
+                            (map
+                              (fn [linked-md-item]
+                                {:name (:name linked-md-item)
+                                 :link
+                                 ;; TODO safety/dedupe around extra "/"
+                                 (str link-prefix "/"
+                                      (:self-link linked-md-item))})))))))))))
 
 (defn backlink->line [link]
   (str "- " (markdown-link link)))
@@ -255,7 +268,7 @@ Two [[file:2020-06-10.org][in]] [[file:2020-06-11.org][one]]."))
 (defn org-dir->md-dir
   ([source-dir target-dir]
    (org-dir->md-dir source-dir target-dir {}))
-  ([source-dir target-dir opts]
+  ([source-dir target-dir {:as opts :keys [dry-run]}]
    (cond
      (not (fs/exists? source-dir))
      (println "Error: dir does not exist" source-dir)
@@ -264,9 +277,12 @@ Two [[file:2020-06-10.org][in]] [[file:2020-06-11.org][one]]."))
      (println "Error: dir does not exist" target-dir)
 
      :else
-     (->> (org/dir->nested-items source-dir)
-          (remove exclude-item?)
-          (map #(item->md-item % opts))
-          process-backlinks
-          (map append-backlink-body)
-          (map (partial write-md-item target-dir))))))
+     (doall
+       (->> (org/dir->nested-items source-dir)
+            (remove exclude-item?)
+            (map #(item->md-item % opts))
+            (process-backlinks opts)
+            (map append-backlink-body)
+            (#(cond->> %
+                (not dry-run)
+                (map (partial write-md-item target-dir)))))))))

@@ -3,10 +3,17 @@
    [org-crud.markdown :as sut]
    [clojure.test :refer [deftest testing is]]
    [org-crud.core :as org]
-   [org-crud.fs :as fs]
+   [me.raynes.fs :as fs]
    [clojure.string :as string]))
 
 (def fixture-dir (str fs/*cwd* "/test/org_crud/markdown_fixtures"))
+
+(defn reset-fixture-dir []
+  (let [files (fs/list-dir fixture-dir)]
+    (doall
+      (->> files
+           (filter #(= (fs/extension %) ".md"))
+           (map fs/delete)))))
 
 (defn parsed-org-files []
   (org/dir->nested-items fixture-dir))
@@ -14,17 +21,31 @@
 (defn parsed-org-file [fname]
   (org/path->nested-item (str fixture-dir "/" fname)))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; general
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (deftest build-and-write-count-test
-  (doall (sut/org-dir->md-dir fixture-dir fixture-dir))
-  (let [files (fs/list-dir fixture-dir)]
+  (let [
+        test-fn
+        (fn []
+          (let [files (fs/list-dir fixture-dir)]
+            (is (> (->> files (filter #(= (fs/extension %) ".org")) count) 0))
+            (is (= (->> files (filter #(= (fs/extension %) ".org")) count)
+                   (->> files (filter #(= (fs/extension %) ".md")) count)))))]
     (testing "same number of org and md files"
-      (is (> (->> files (filter #(= (fs/extension %) ".org")) count) 0))
-      (is (= (->> files (filter #(= (fs/extension %) ".org")) count)
-             (->> files (filter #(= (fs/extension %) ".md")) count))))))
+      (reset-fixture-dir)
+      (sut/org-dir->md-dir fixture-dir fixture-dir)
+      (test-fn))
+    (testing "overall success for gatsby blog type"
+      (reset-fixture-dir)
+      (sut/org-dir->md-dir fixture-dir fixture-dir {:blog-type "gatsby"})
+      (test-fn))
+    (testing "overall success for jekyll blog type"
+      (reset-fixture-dir)
+      (sut/org-dir->md-dir fixture-dir fixture-dir {:blog-type "jekyll"})
+      (test-fn))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item->frontmatter
@@ -36,15 +57,45 @@
     (testing "org items convert to a proper frontmatter"
       (is (= "---" (first lines)))
       (is (= "---" (last lines)))
-      (is (contains? (set lines) "title: \"Example Org File\""))
-      (is (contains? (set lines) "tags:"))
-      )))
+      (is (contains? (set lines) "title: \"Example Org File\"")))))
 
 (deftest frontmatter-test-dates
   (let [example-org (parsed-org-file "20200618104339-dated-example.org")
         lines       (-> example-org sut/item->frontmatter)]
     (testing "org items convert to a proper frontmatter"
       (is (contains? (set lines) "date: 2020-06-18")))))
+
+(deftest frontmatter-test-tags
+  (testing "no default tags"
+    (let [example-org (parsed-org-file "example.org")
+          lines       (-> example-org
+                          (sut/item->frontmatter)
+                          (->> (map string/trim)))]
+      (is (not (contains? (set lines) "tags:")))))
+
+  (testing "set passed tags"
+    (let [example-org (parsed-org-file "example.org")
+          lines       (-> example-org
+                          (sut/item->frontmatter {:tags #{"note"
+                                                          "sometag"}})
+                          (->> (map string/trim)))]
+      (testing "org items convert to a proper frontmatter"
+        (is (contains? (set lines) "tags:"))
+        (is (contains? (set lines) "- note"))
+        (is (contains? (set lines) "- sometag")))))
+
+  (testing "include passed and roam_tags"
+    (let [example-org (parsed-org-file "20200618104339-with-roam-tags.org")
+          lines       (-> example-org
+                          (sut/item->frontmatter {:tags #{"note" "sometag"}})
+                          (->> (map string/trim)))]
+      (testing "org items convert to a proper frontmatter"
+        (is (contains? (set lines) "tags:"))
+        (is (contains? (set lines) "- dated"))
+        (is (contains? (set lines) "- someothertag"))
+        (is (contains? (set lines) "- note"))
+        (is (contains? (set lines) "- sometag"))
+        ))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item->md-body
@@ -175,14 +226,26 @@
        "- Wide net for [[file:20200609220548-capture_should_be_easy.org][easy capture]]"}]}]})
 
 (deftest markdown-with-link-test-conversion
-  (let [example-org example-item-with-link
-        lines       (->> example-org sut/item->md-body
-                         (remove empty?))]
-    (testing "includes markdown-style links"
+  (testing "includes markdown-style links"
+    (let [example-org example-item-with-link
+          lines       (->> example-org
+                           (#(sut/item->md-body % {:link-prefix "/notes"}))
+                           (remove empty?))
+          line        (->> lines
+                           (filter #(string/starts-with? % "- Wide"))
+                           first)]
       (is (= "- Wide net for [easy capture](/notes/20200609220548-capture_should_be_easy)"
-             (->> lines
-                  (filter #(string/starts-with? % "- Wide"))
-                  first))))))
+             line))))
+  (testing "no link prefix by default"
+    (let [example-org example-item-with-link
+          lines       (->> example-org
+                           sut/item->md-body
+                           (remove empty?))
+          line        (->> lines
+                           (filter #(string/starts-with? % "- Wide"))
+                           first)]
+      (is (= "- Wide net for [easy capture](/20200609220548-capture_should_be_easy)"
+             line)))))
 
 (deftest markdown-with-link-test-links-func
   (let [example-org example-item-with-link
@@ -211,7 +274,7 @@
                          (remove empty?))]
     (testing "includes markdown-style links"
       (is (= ["- Wide net for [easy"
-              "  capture](/notes/20200609220548-capture_should_be_easy)"]
+              "  capture](/20200609220548-capture_should_be_easy)"]
              (->> lines (drop 1)))))))
 
 (def example-header-link
@@ -230,13 +293,50 @@
                          (remove empty?))]
     (testing "includes markdown-style links"
       (is (contains? (set lines)
-                     "# [text name](/notes/link-name) blah")))))
+                     "# [text name](/link-name) blah")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; backlinks
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; test rn by example - check that they show up in fixture-dir/example.md
+(deftest markdown#backlinks-test
+  (testing "backlinks are added as expected"
+    (let [md-items
+          (sut/org-dir->md-dir fixture-dir fixture-dir {:dry-run true})
+          example-md (some->> md-items
+                              (filter (comp #{"Example Org File"} :name))
+                              first)
+          body-lines (some-> example-md
+                             :body
+                             (->> (map string/trim)
+                                  (into #{})))
+          ]
+      (is md-items)
+      (is example-md)
+      (println body-lines)
+      (is (contains? body-lines "# Backlinks"))
+      (is (contains? body-lines "- [Dated Example](/20200618104339-dated-example)"))
+      (is (contains? body-lines "- [Linked Org File](/linked-org-file)")))))
+
+(deftest markdown#backlinks-link-prefix
+  (testing "backlinks honor link-prefixes as well"
+    (let [md-items
+          (sut/org-dir->md-dir fixture-dir fixture-dir {:dry-run     true
+                                                        :link-prefix "/notes"})
+          example-md (some->> md-items
+                              (filter (comp #{"Example Org File"} :name))
+                              first)
+          body-lines (some-> example-md
+                             :body
+                             (->> (map string/trim)
+                                  (into #{})))]
+      (is md-items)
+      (is example-md)
+      (println body-lines)
+      (is (contains? body-lines "# Backlinks"))
+      (is (contains? body-lines "- [Dated Example](/notes/20200618104339-dated-example)"))
+      (is (contains? body-lines "- [Linked Org File](/notes/linked-org-file)")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; external links
