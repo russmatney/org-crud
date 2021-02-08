@@ -2,7 +2,10 @@
   (:require
    [clojure.string :as string]
    [clojure.tools.cli :refer [parse-opts]]
-   [org-crud.markdown :as markdown]))
+   [org-crud.markdown :as markdown]
+   [org-crud.agenda :as agenda]
+   [org-crud.counts :as counts]
+   ))
 
 (def org-to-markdown-cli-opts
   [["-b" "--blog-type TYPE" "Blog Type (jekyll or gatsby)"
@@ -25,7 +28,9 @@
             out-dir (second arguments)]
         (markdown/org-dir->md-dir src-dir out-dir options)))))
 
-(def commands {"org-to-markdown" org-to-markdown})
+(def commands {"org-to-markdown" org-to-markdown
+               "counts" counts/print-report
+               "agenda" agenda/print-agenda})
 
 (defn print-expectations []
   (println "Expected one of:" (keys commands)))
