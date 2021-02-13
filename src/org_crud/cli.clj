@@ -5,6 +5,7 @@
    [org-crud.markdown :as markdown]
    [org-crud.agenda :as agenda]
    [org-crud.counts :as counts]
+   [org-crud.doctor :as doctor]
    ))
 
 (def org-to-markdown-cli-opts
@@ -30,7 +31,9 @@
 
 (def commands {"org-to-markdown" org-to-markdown
                "counts" counts/print-report
-               "agenda" agenda/print-agenda})
+               "agenda" agenda/print-agenda
+               "doctor" doctor/print-report
+               })
 
 (defn print-expectations []
   (println "Expected one of:" (keys commands)))
