@@ -24,37 +24,9 @@
 (comment
   (count (org-files)))
 
-(defn file->ids [f]
-  (->> f
-       core/path->flattened-items
-       (map :org/id)))
-
-(comment
-  (file->ids "/home/russ/todo/prompts.org")
-  )
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; duplicate ids
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn single-file-uuid-duplicate [file]
-  (let [items (core/path->flattened-items file)]
-    (loop [remaining-items items
-           checked-ids     #{}]
-      (let [item (first remaining-items)
-            id   (:org/id item)]
-        (when (checked-ids id)
-          (println "duplicate uuid found in file " file ".")
-          ;; (println "item: " item)
-          (println "id: " id)
-          (println "name: " (:org/name item)))
-        (when (seq remaining-items)
-          (recur (rest remaining-items) (conj checked-ids id)))))
-    (println (count items) " items checked in file " file)))
-
-(comment
-  (single-file-uuid-duplicate "/home/russ/todo/prompts.org"))
 
 (defn global-uuid-duplicates [fs]
   (let [items (->> fs (mapcat core/path->flattened-items))]
@@ -82,8 +54,6 @@
   (println "Running org-crud doctor!")
 
   (let [file-paths (org-files)]
-    ;; (println "Checking for duplicate uuids across " (count file-paths) " files.")
-    ;; (map single-file-uuid-duplicate file-paths)
     (println "checking for global uuid duplicates")
     (global-uuid-duplicates file-paths)
 
