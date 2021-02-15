@@ -1,0 +1,25 @@
+#+TITLE: Todo
+
+* project-wide
+** [ ] add to clojars
+** [ ] improve test coverage
+** [ ] write a larger usage guide
+** [ ] readme refresh
+It's been a few months!
+* parsing
+** [ ] support tables
+** [ ] support scheduled/deadline
+** [ ] support logbook
+* analyzing/manipulating org items
+** [ ] write walk api for reducing over the nested structure
+* agenda
+** [ ] provide first class agenda CRUD support
+maybe via clomacs?
+* cli features
+** [ ] doctor task: uuid duplication resolution helper
+for help dealing with roam duplicate uuid errors
+(the errors are definitely my fault, but still annoying)
+** [ ] doctor task: clean up broken org-links after refiling/moving docs
+:LOGBOOK:
+CLOCK: [2021-02-14 Sun 19:09]
+:END:
