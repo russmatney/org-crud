@@ -16,10 +16,11 @@ It's been a few months!
 ** [ ] provide first class agenda CRUD support
 maybe via clomacs?
 * cli features
-** [ ] doctor task: uuid duplication resolution helper
-for help dealing with roam duplicate uuid errors
-(the errors are definitely my fault, but still annoying)
-** [ ] doctor task: clean up broken org-links after refiling/moving docs
+** [X] doctor task: uuid duplication resolution helper
+CLOSED: [2021-02-14 Sun 19:56]
 :LOGBOOK:
 CLOCK: [2021-02-14 Sun 19:09]
 :END:
+for help dealing with roam duplicate uuid errors
+(the errors are definitely my fault, but still annoying)
+** [ ] doctor task: clean up broken org-links after refiling/moving docs
