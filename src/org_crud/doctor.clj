@@ -30,6 +30,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn global-uuid-duplicates
+  "
+  Interactive mode is not quite ready from prime time.
+
+  The update style currently drops src-blocks and items with logbooks.
+  It also does not match tag spacing or property bucket order,
+  which leads to annoying large file diffs
+
+  Still useful for getting a list of the duplicated uuids.
+  "
   ([fs] (global-uuid-duplicates {} fs))
   ([opts fs]
    (let [interactive? (:interactive? opts)
@@ -49,7 +58,7 @@
              (let [input (read-line)]
                (case input
                  ;; NOTE some interactions might necessitate a re-parse of the file
-                 ;; if lines are deleted, and line-nums are relied on for updating
+                 ;; ex: if lines are deleted and line-nums are relied on for updating
                  "D" (println "saw D, do magic (not impled)")
                  "d" (println "saw d, do magic (not impled)")
                  "n" (do

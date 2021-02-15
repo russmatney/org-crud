@@ -9,10 +9,22 @@ It's been a few months!
 * parsing/writing
 ** [ ] support tables
 ** [ ] support scheduled/deadline
-** [ ] support logbook
+** [ ] [#A] support logbooks
 right now it seems to just throw out items with logbooks
-** [ ] don't add empty property buckets to every item
+** [X] don't add empty property buckets to every item
+CLOSED: [2021-02-15 Mon 14:05]
 ** [ ] handle round-tripping items/item-lists better
+multi-items/lists in property buckets have long been a complex issue for me.
+I'm not sure how common they are in general.
+
+The current solution uses dynamic bindings for white listing properties to treat
+as lists, but I really don't like that as a solution.
+
+Lately I'm wondering if it can be treated as a single elem when there's one, or
+many if there are already many - just react to the data. then have an explicit
+update list command when you don't want to overwrite the value. Could even be
+passed in as a list to imply a concat.
+** [ ] [#A] don't clear source blocks
 * analyzing/manipulating org items
 ** [ ] write walk api for reducing over the nested structure
 * agenda
@@ -27,7 +39,8 @@ CLOCK: [2021-02-14 Sun 19:09]
 for help dealing with roam duplicate uuid errors
 (the errors are definitely my fault, but still annoying)
 ** [ ] doctor task: uuid duplication auto-magic fixer
-:LOGBOOK:
-CLOCK: [2021-02-15 Mon 10:39]
-:END:
+Work has begun here, and works in interactive mode.
+Sadly this is blocked by the update function mishandling some org cases -
+in it's current state it can wipe data from files that get updated.
+More info is in the parsing/writing todos above.
 ** [ ] doctor task: clean up broken org-links after refiling/moving docs
