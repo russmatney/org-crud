@@ -6,7 +6,8 @@
    [clojure.set :as set]
    [org-crud.headline :as headline]
    [org-crud.util :as util]
-   [org-crud.core :as org]))
+   [org-crud.core :as org]
+   [clojure.string :as string]))
 
 (defn test-fixtures
   [f]
@@ -217,6 +218,31 @@
     (prop-order-update #:org.prop{:c "hi"})
     (is (= (prop-order-props) #:org.prop{:a "1" :b "2" :c "hi"}))
     ))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; don't add property-buckets if there are none
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest update-path-with-fn!-empty-props
+  (testing "does not add property buckets to every item"
+    (sut/update-path-with-fn! org-filepath (fn [_it] nil))
+    (testing "reads an empty map from no/empty property bucket"
+      (is
+        (->> (slurp org-filepath)
+             string/split-lines
+             (drop-while (fn [line] (not (= line "* no props on me!"))))
+             rest
+             ((fn [lines]
+                (not (= ":PROPERTIES:" (first lines))))))))))
+
+(comment
+  (->>
+    (slurp org-filepath)
+    (string/split-lines)
+    (drop-while (fn [line]
+                  (not (= line "* no props on me!"))))
+    next)
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; update using id prop
