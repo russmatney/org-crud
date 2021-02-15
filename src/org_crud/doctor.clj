@@ -1,6 +1,7 @@
 (ns org-crud.doctor
   (:require [org-crud.fs :as fs]
-            [org-crud.core :as core]))
+            [org-crud.core :as core]
+            [org-crud.update :as update]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; org helpers
@@ -28,23 +29,47 @@
 ;; duplicate ids
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn global-uuid-duplicates [fs]
-  (let [items (->> fs (mapcat core/path->flattened-items))]
-    (println "Checking for global uuids over " (count fs) " files and " (count items) " items.")
-    (loop [remaining-items items
-           checked-ids     #{}]
-      (let [item (first remaining-items)
-            id   (:org/id item)]
-        (when (checked-ids id)
-          (println "duplicate uuid found in file " (:org/source-file item) ".")
-          ;; (println "item: " item)
-          (println "id: " id)
-          (println "name: " (:org/name item)))
-        (when (seq remaining-items)
-          (recur (rest remaining-items) (conj checked-ids id)))))))
+(defn global-uuid-duplicates
+  ([fs] (global-uuid-duplicates {} fs))
+  ([opts fs]
+   (let [interactive? (:interactive? opts)
+         items (->> fs (mapcat core/path->flattened-items))]
+     (println "Checking for global uuids over " (count fs) " files and " (count items) " items.")
+     (loop [remaining-items items
+            checked-ids     #{}]
+       (let [item (first remaining-items)
+             id   (:org/id item)]
+         (when (checked-ids id)
+           (println "duplicate uuid found in file " (:org/source-file item) ".")
+           ;; (println "item: " item)
+           (println "id: " id)
+           (println "name: " (:org/name item))
+           (when interactive?
+             (println "What to do? 'd'elete - delete UUID, 'D'ELETE - delete item, 'n'ew - gen new uuid for this item.")
+             (let [input (read-line)]
+               (case input
+                 ;; NOTE some interactions might necessitate a re-parse of the file
+                 ;; if lines are deleted, and line-nums are relied on for updating
+                 "D" (println "saw D, do magic (not impled)")
+                 "d" (println "saw d, do magic (not impled)")
+                 "n" (do
+                       (println "Updating items with this id in the file: "
+                         (:org/source-file item))
+                       ;; here we use a function, not the simpler update!, to avoid
+                       ;; setting the same uuid to all the new found ones.
+                       (update/update-path-with-fn!
+                         (:org/source-file item)
+                         (fn [it]
+                           (when (= (:org/id it) id)
+                             {:org/id (str (java.util.UUID/randomUUID))}))))))))
+         (when (seq remaining-items)
+           (recur (rest remaining-items) (conj checked-ids id))))))))
 
 (comment
-  (global-uuid-duplicates ["/home/russ/todo/prompts.org"]))
+  (global-uuid-duplicates ["/home/russ/todo/prompts.org"])
+  (global-uuid-duplicates
+    {:interactive? true}
+    ["/home/russ/todo/prompts.org"]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; cli interface

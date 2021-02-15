@@ -6,10 +6,13 @@
 ** [ ] write a larger usage guide
 ** [ ] readme refresh
 It's been a few months!
-* parsing
+* parsing/writing
 ** [ ] support tables
 ** [ ] support scheduled/deadline
 ** [ ] support logbook
+right now it seems to just throw out items with logbooks
+** [ ] don't add empty property buckets to every item
+** [ ] handle round-tripping items/item-lists better
 * analyzing/manipulating org items
 ** [ ] write walk api for reducing over the nested structure
 * agenda
@@ -23,4 +26,8 @@ CLOCK: [2021-02-14 Sun 19:09]
 :END:
 for help dealing with roam duplicate uuid errors
 (the errors are definitely my fault, but still annoying)
+** [ ] doctor task: uuid duplication auto-magic fixer
+:LOGBOOK:
+CLOCK: [2021-02-15 Mon 10:39]
+:END:
 ** [ ] doctor task: clean up broken org-links after refiling/moving docs

@@ -110,6 +110,9 @@
     (:org/name up)
     (assoc :org/name (:org/name up))
 
+    (:org/id up)
+    (assoc :org/id (:org/id up))
+
     (seq (util/ns-select-keys "org.prop" up))
     ((fn [item]
        (let [new-props (updated-props
@@ -176,7 +179,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn update!
-  ;; TODO refactor - handle as passed path or ->path fn
+  "`item` is a previously fetched org-item to update.
+
+  `up` is a map describing a minimal update to make to the item.
+  ex: `{:org/name \"My New Item Name\"}`
+  "
   ([item up] (update! (*item->source-file* item) item up))
   ([path item up]
    (println "Updating item"
