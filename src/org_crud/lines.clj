@@ -41,16 +41,15 @@
     (new-property-text k val)))
 
 (defn new-property-bucket [item]
-  (let [res
-        (flatten
-          (seq [":PROPERTIES:"
-                (->> item
-                     (util/ns-select-keys "org.prop")
-                     (map prop->new-property)
-                     flatten
-                     sort)
-                ":END:"]))]
-    res))
+  (let [props (util/ns-select-keys "org.prop" item)]
+    (when (seq props)
+      (flatten
+        (seq [":PROPERTIES:"
+              (->> props
+                   (map prop->new-property)
+                   flatten
+                   sort)
+              ":END:"])))))
 
 
 (comment
@@ -66,7 +65,12 @@
      :org/id        nil
      :org.prop/some "value"
      :org.prop/id   "and such"
-     :org.prop/urls ["blah" "other blah.com"]}))
+     :org.prop/urls ["blah" "other blah.com"]})
+  (new-property-bucket
+    {:org/name      "item name"
+     :org/tags      #{"hello" "world"}
+     :org/id        nil})
+    )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; root comment/properties
@@ -207,7 +211,7 @@
            children-lines (->> items (mapcat item->lines))]
        (concat
          (conj
-           (concat prop-lines body-lines)
+           (concat (or prop-lines []) (or body-lines []))
            headline)
          children-lines)))))
 

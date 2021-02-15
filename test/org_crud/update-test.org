@@ -126,5 +126,3 @@ goes above me???
 :END:
 
 * no props on me!
-:PROPERTIES:
-:END:
