@@ -1,7 +1,11 @@
 {:path ["src"]
 
  :deps
- {org.clojars.gmorpheme/organum {:mvn/version "0.1.1"}}
+ {org.clojars.gmorpheme/organum {:mvn/version "0.1.1"}
+  clomacs/clomacs               {:mvn/version "0.0.4-SNAPSHOT"}
+  babashka/fs                   {:mvn/version "0.0.5"}
+  babashka/process              {:mvn/version "0.0.2"}
+  }
 
  :aliases
  {:dev {:jvm-opts    ["-XX:-OmitStackTraceInFastThrow"]

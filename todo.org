@@ -34,7 +34,7 @@ maybe via clomacs?
 ** [X] doctor task: uuid duplication resolution helper
 CLOSED: [2021-02-14 Sun 19:56]
 :LOGBOOK:
-CLOCK: [2021-02-14 Sun 19:09]
+CLOCK: [2021-02-14 Sun 19:09]--[2021-03-28 Sun 14:47] => 1002:38
 :END:
 for help dealing with roam duplicate uuid errors
 (the errors are definitely my fault, but still annoying)
