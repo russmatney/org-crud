@@ -12,9 +12,14 @@
 
 (defn parse-org-file
   [path]
-  (-> path
-      fs/absolute
-      org/parse-file))
+  (try
+    (-> path
+        fs/absolute
+        org/parse-file)
+    (catch Exception ex
+      (println "org-crud.core/parse-org-file exception" path)
+      (println ex)
+      nil)))
 
 (comment
   (parse-org-file "repos.org"))
@@ -41,13 +46,14 @@
   This means deeper org headlines will not be contained within parents.
   "
   [source-file parsed]
-  (reduce
-    (fn [items next]
-      (conj items (merge
-                    ;; {:org-section next}
-                    (headline/->item next source-file))))
-    []
-    parsed))
+  (when (and parsed source-file)
+    (reduce
+      (fn [items next]
+        (conj items (merge
+                      ;; {:org-section next}
+                      (headline/->item next source-file))))
+      []
+      parsed)))
 
 (defn path->flattened-items
   "Returns a flattened list of org items in the passed file.
@@ -59,6 +65,7 @@
   (->> p
        parse-org-file
        (parsed->flattened-items p)
+       (remove nil?)
        (remove (comp nil? :org/name))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -150,16 +157,17 @@
 (defn parsed->nested-items
   "Parses level-1 items with sub-sections as children"
   [source-file parsed]
-  (->> parsed
-       ;; (filter #(= :section (:type %)))
-       (map (fn [raw] (headline/->item raw source-file)))
-       (flattened->nested
-         (fn [parent item] (update parent :org/items conj item)))
-       (walk/postwalk (fn [x]
-                        (if (and (map? x)
-                                 (seq (:org/items x)))
-                          (update x :org/items reverse)
-                          x)))))
+  (when (and source-file parsed)
+    (->> parsed
+         ;; (filter #(= :section (:type %)))
+         (map (fn [raw] (headline/->item raw source-file)))
+         (flattened->nested
+           (fn [parent item] (update parent :org/items conj item)))
+         (walk/postwalk (fn [x]
+                          (if (and (map? x)
+                                   (seq (:org/items x)))
+                            (update x :org/items reverse)
+                            x))))))
 
 (defn path->nested-item
   "Produces a single item, the :root of the org file.
@@ -181,7 +189,8 @@
   TODO impl with loop to recur properly."
   ([dir] (dir->nested-items {} dir))
   ([opts dir]
-   (->> (fs/list-dir dir)
+   (->> dir
+        fs/list-dir
         (map (fn [f]
                (if (and (:recursive? opts)
                         (not (string/includes? f ".git"))
@@ -190,7 +199,8 @@
                  [f])))
         (apply concat)
         (filter #(contains? #{".org"} (fs/extension %)))
-        (map path->nested-item))))
+        (map path->nested-item)
+        (remove nil?))))
 
 (comment
   (-> (dir->nested-items "/home/russ/Dropbox/notes")
