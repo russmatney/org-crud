@@ -136,7 +136,8 @@
     (and name (= type :section))
     (->> name
          (re-find
-           #"\*?\*?\*?\*? ?(?:TODO|DONE|CANCELLED)? ?(.*)")
+           ;; TODO pull these out - depends on the config
+           #"\*?\*?\*?\*? ?(?:TODO|DONE|CANCELLED|SKIP)? ?(.*)")
          second
          ((fn [s] (string/replace s #"\[[ X-]\] " ""))))))
 
@@ -203,11 +204,59 @@
       (re-seq #"CANCELLED" name)
       :status/cancelled
 
+      (re-seq #"SKIP" name)
+      :status/skipped
+
       :else nil)))
 
 (comment
   (->todo-status
     {:name "[X] parse/pull TODOs from repo files"}))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; dates
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn safe-find [pat s]
+  (let [res (re-find pat s)]
+    (when (and res (< 0 (count res)))
+      (second res))))
+
+(def org-date-regex
+  "Somewhat hard-coded to examples like:
+  - [2022-04-30 Sat 17:42]
+  - <2022-04-30 Sat>
+
+  # TODO incorporate more date formats
+  "
+  #": [<|\[](.{14,20})[>|\]]")
+
+(defn ->date-pattern [label s]
+  (let [pattern (re-pattern (str label org-date-regex))]
+    (safe-find pattern s)))
+
+(defn ->date-for-label [label s]
+  (some->
+    (->date-pattern label s)))
+
+(defn ->deadline [s] (->date-for-label "DEADLINE" s))
+(defn ->scheduled [s] (->date-for-label "SCHEDULED" s))
+(defn ->closed [s] (->date-for-label "CLOSED" s))
+
+(defn metadata->date-map [s]
+  (->>
+    {:org/scheduled (->scheduled s)
+     :org/deadline  (->deadline s)
+     :org/closed    (->closed s)}
+    (filter second)
+    (into {})))
+
+(defn ->dates [x]
+  (let [metadata (->metadata x)]
+    (if (seq metadata)
+      (metadata->date-map (first metadata))
+      {})))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; url parsing
@@ -232,8 +281,7 @@
   (when str
     (some->
       (string/split str #" ")
-      count))
-  )
+      count)))
 
 (defn ->word-count [item raw]
   (+ (or (some-> item :org/name str->count) 0)
@@ -243,8 +291,7 @@
                   (reduce + 0)) 0)))
 
 (comment
-  (->word-count nil nil)
-  )
+  (->word-count nil nil))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item - parsed org-items
@@ -262,7 +309,8 @@
                 :org/body        (->body raw)
                 :org/body-string (->body-string raw)
                 :org/status      (->todo-status raw)}
-               (->properties raw))
+               (->properties raw)
+               (->dates raw))
 
         (#{:root} (:type raw))
         (let [props (->properties raw)]
@@ -272,7 +320,9 @@
                   :org/tags        (->tags raw)
                   :org/body        (->body raw)
                   :org/id          (:org.prop/id props)}
-                 props)))
+                 props
+                 (->dates raw))))
+
       ((fn [item]
          (when item
            (-> item

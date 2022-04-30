@@ -1,0 +1,10 @@
+#+title: Headline Test
+
+
+* some org item
+** [X] my completed todo
+CLOSED: [2022-04-30 Sat 17:43] SCHEDULED: <2022-04-30 Sat>
+** [ ] my scheduled todo
+SCHEDULED: <2022-04-30 Sat>
+** [X] my scheduled, deadlined, completed todo
+CLOSED: [2022-04-30 Sat 17:42] DEADLINE: <2022-04-30 Sat> SCHEDULED: <2022-04-30 Sat>

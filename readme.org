@@ -76,6 +76,11 @@ An example item looks something like:
  :org/status :status/not-started ;; parsed based on the
  ;; also supports :status/in-progress, :status/done, :status/cancelled
 
+ ;; these dates are pulled through as strings
+ :org/closed "2022-04-30 Sat 17:42"
+ :org/deadline "2022-04-30 Sat"
+ :org/scheduled "2022-04-30 Sat"
+
  :org.prop/some-prop "some prop value" ;; props are lower-and-kebab-cased
  :org.prop/some-other-prop "some other prop value"
  :org.prop/created-at "2020-07-21T09:25:50-04:00[America/New_York]" ;; to be parsed by consumer

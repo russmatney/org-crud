@@ -33,23 +33,28 @@
 ;; date parsers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; TODO restore date features (and mind the bb compatibility)
-;; (deftest ->dates-test
-;;   (let [d (util/date->ny-zdt (t/date "2020-03-13"))]
-;;     (testing "date parsing"
-;;       (testing "scheduled"
-;;         (is (= d
-;;                (:scheduled
-;;                 (sut/metadata->date-map "SCHEDULED: <2020-03-13 Fri>")))))
-;;       (testing "deadline"
-;;         (is (= d
-;;                (:deadline
-;;                 (sut/metadata->date-map "DEADLINE: <2020-03-13 Fri>")))))
-;;       (testing "scheduled AND deadline"
-;;         (is (= {:scheduled d :deadline d}
-;;                (sut/metadata->date-map "SCHEDULED: <2020-03-13 Fri> DEADLINE: <2020-03-13 Fri>")))
-;;         (is (= {:scheduled d :deadline d}
-;;                (sut/metadata->date-map "DEADLINE: <2020-03-13 Fri> SCHEDULED: <2020-03-13 Fri>")))))))
+(deftest ->dates-test
+  (let [d "2020-03-13 Fri"]
+    (testing "date parsing"
+      (testing "scheduled"
+        (is (= {:org/scheduled d} (sut/metadata->date-map "SCHEDULED: <2020-03-13 Fri>"))))
+      (testing "deadline"
+        (is (= {:org/deadline d} (sut/metadata->date-map "DEADLINE: <2020-03-13 Fri>"))))
+      (testing "scheduled AND deadline"
+        (is (= {:org/scheduled d :org/deadline d}
+               (sut/metadata->date-map "SCHEDULED: <2020-03-13 Fri> DEADLINE: <2020-03-13 Fri>")))
+        (is (= {:org/scheduled d :org/deadline d}
+               (sut/metadata->date-map "DEADLINE: <2020-03-13 Fri> SCHEDULED: <2020-03-13 Fri>"))))
+      (testing "closed"
+        (is (= {:org/closed d} (sut/metadata->date-map "CLOSED: <2020-03-13 Fri>"))))
+
+      (testing "all uh dem"
+        (is (= {:org/closed    "2022-04-30 Sat 17:42"
+                :org/deadline  "2022-04-30 Sat"
+                :org/scheduled "2022-04-30 Sat"
+                }
+               (sut/metadata->date-map
+                 "CLOSED: [2022-04-30 Sat 17:42] DEADLINE: <2022-04-30 Sat> SCHEDULED: <2022-04-30 Sat>")))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Property drawers

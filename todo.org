@@ -11,12 +11,8 @@ CLOSED: [2022-04-30 Sat 17:08]
 It's been a few months!
 * parsing/writing
 ** [ ] support tables
-** [ ] support scheduled/deadline
-** [ ] support 'closed'
 ** [ ] support logbooks
 right now it seems to just throw out items with logbooks
-** [X] don't add empty property buckets to every item
-CLOSED: [2021-02-15 Mon 14:05]
 ** [ ] handle round-tripping items/item-lists better
 multi-items/lists in property buckets have long been a complex issue for me.
 I'm not sure how common they are in general.
@@ -29,6 +25,12 @@ many if there are already many - just react to the data. then have an explicit
 update list command when you don't want to overwrite the value. Could even be
 passed in as a list to imply a concat.
 ** [ ] don't clear source blocks
+** [X] support scheduled/deadline
+CLOSED: [2022-04-30 Sat 18:05]
+** [X] support 'closed'
+CLOSED: [2022-04-30 Sat 18:05]
+** [X] don't add empty property buckets to every item
+CLOSED: [2021-02-15 Mon 14:05]
 * analyzing/manipulating org items
 ** [ ] write walk api for reducing over the nested structure
 * agenda
