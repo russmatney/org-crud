@@ -1,0 +1,5 @@
+{:paths ["src"]
+ :tasks
+ {test (shell "./bin/kaocha")
+  uberjar
+  (shell "bb   -cp $ (clojure -Spath) -m org-crud.cli --uberjar org-crud.jar")}}

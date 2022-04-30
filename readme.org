@@ -255,7 +255,6 @@ as my usage benefitted from the IDs elsewhere.
 - [org-roam](https://github.com/org-roam/org-roam)
 
 ** Development
-
 *** Running the cli using the source
 
 Rather than the built uberjar:
