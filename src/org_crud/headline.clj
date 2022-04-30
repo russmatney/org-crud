@@ -4,6 +4,7 @@
    [clojure.string :as string]
    [org-crud.fs :as fs]))
 
+;; TODO get rid of these dynamics
 (def ^:dynamic *multi-prop-keys* #{})
 (def ^:dynamic *prop-parser*
   "Contains some types with known parses.
@@ -246,12 +247,12 @@
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; item - a general headline
+;; item - parsed org-items
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ->item [raw source-file]
   (-> (cond
-        (= :section (:type raw))
+        (#{:section} (:type raw))
         (merge {:org/level       (->level raw)
                 :org/source-file (-> source-file fs/absolute str)
                 :org/id          (->id raw)
@@ -263,7 +264,7 @@
                 :org/status      (->todo-status raw)}
                (->properties raw))
 
-        (= :root (:type raw))
+        (#{:root} (:type raw))
         (let [props (->properties raw)]
           (merge {:org/level       (->level raw)
                   :org/source-file (-> source-file fs/absolute str)
