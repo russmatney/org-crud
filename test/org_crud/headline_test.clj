@@ -4,7 +4,8 @@
    [clojure.test :refer [deftest testing is use-fixtures]]
    [org-crud.core :as org]
    [org-crud.fs :as fs]
-   [clojure.set :as set]))
+   [clojure.set :as set]
+   [clojure.string :as string]))
 
 (def fixture-dir (str fs/*cwd* "/test/org_crud"))
 
@@ -124,3 +125,33 @@
     (is (set/subset? #{"roam" "tags" "like" "this"}
                      (set (:org/tags item))))))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; priority
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest priority-test
+  (let [item        (parsed-org-file "headline-test.org")
+        prioritized (->> item :org/items (filter (comp #(string/includes? % "prioritized")
+                                                       :org/name)))
+        sorted      (->> prioritized (sort-by :org/priority))]
+    (is (= 4 (count sorted)))
+    (let [[one two three four] (map :org/priority sorted)]
+      (is (= "A" one))
+      (is (= "B" two))
+      (is (= "C" three))
+      (is (= "C" four)))
+
+    (let [names (map :org/name sorted)]
+      (is (= 0 (->> names
+                    (filter
+                      (fn [n]
+                        (or
+                          (string/includes? n "#A")
+                          (string/includes? n "#B")
+                          (string/includes? n "#C"))))
+                    count))))))
+
+(comment
+  (count nil)
+  )

@@ -137,7 +137,7 @@
     (->> name
          (re-find
            ;; TODO pull these out - depends on the config
-           #"\*?\*?\*?\*? ?(?:TODO|DONE|CANCELLED|SKIP)? ?(.*)")
+           #"\*?\*?\*?\*? ?(?:TODO|DONE|CANCELLED|SKIP)? ?(?:\[#[ABC]{1}\])? ?(.*)")
          second
          ((fn [s] (string/replace s #"\[[ X-]\] " ""))))))
 
@@ -149,7 +149,9 @@
   (->name {:name "* CANCELLED Reduce baggage" :type :section})
   (->name {:name "* TODO Reduce baggage" :type :section})
   (->name {:name "* [X] Reduce baggage" :type :section})
+  (->name {:name "* Reduce baggage" :type :section})
   (->name {:name "* Reduce baggage"})
+  (->name {:name "* TODO [#A] Reduce baggage" :type :section})
   (let [raw
         {:type    :root,
          :content [{:line-type :comment, :text "#+TITLE: finally, a wiki!" }
@@ -163,6 +165,10 @@
 (defn ->raw-headline [{:keys [name level]}]
   (when level
     (str (apply str (repeat level "*")) " " name)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; tags
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ->tags [{:keys [type content tags]}]
   (cond
@@ -188,6 +194,10 @@
 
     :else (-> tags (set))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; todo status
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn ->todo-status
   [{:keys [name]}]
   (when name
@@ -212,6 +222,21 @@
 (comment
   (->todo-status
     {:name "[X] parse/pull TODOs from repo files"}))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; priority
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn ->priority
+  [{:keys [name]}]
+  (when name
+    (when-let [match (re-seq #"\[#([ABC])\]" name)]
+      (some-> match first second))))
+
+(comment
+  (->priority {:name "* TODO [#A] parse/pull TODOs from repo files"})
+  (->priority {:name "* [X] [#A] parse/pull TODOs from repo files"})
+  (->priority {:name "* parse/pull TODOs from repo files"}))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -306,6 +331,7 @@
                 :org/name        (->name raw)
                 :org/headline    (->raw-headline raw)
                 :org/tags        (->tags raw)
+                :org/priority    (->priority raw)
                 :org/body        (->body raw)
                 :org/body-string (->body-string raw)
                 :org/status      (->todo-status raw)}

@@ -8,3 +8,7 @@ CLOSED: [2022-04-30 Sat 17:43] SCHEDULED: <2022-04-30 Sat>
 SCHEDULED: <2022-04-30 Sat>
 ** [X] my scheduled, deadlined, completed todo
 CLOSED: [2022-04-30 Sat 17:42] DEADLINE: <2022-04-30 Sat> SCHEDULED: <2022-04-30 Sat>
+* TODO [#A] prioritized org item
+* [#C] another prioritized org item
+* [#C] a third prioritized org item
+* [#B] a fourth prioritized org item

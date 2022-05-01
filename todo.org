@@ -25,6 +25,8 @@ many if there are already many - just react to the data. then have an explicit
 update list command when you don't want to overwrite the value. Could even be
 passed in as a list to imply a concat.
 ** [ ] don't clear source blocks
+** [X] parse proper org-priority
+CLOSED: [2022-05-01 Sun 09:21]
 ** [X] support scheduled/deadline
 CLOSED: [2022-04-30 Sat 18:05]
 ** [X] support 'closed'
