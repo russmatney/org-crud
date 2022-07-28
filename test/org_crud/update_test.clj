@@ -341,4 +341,6 @@
            (-> (parse-item) :org/tags)))))
 
 (deftest update-root-with-drawer-id
-  (is false))
+  (let [{:org/keys [id]} (parse-item)]
+    (update-item {:org.prop/my-prop "val"})
+    (is (= id (-> (parse-item) :org/id)))))

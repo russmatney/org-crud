@@ -1,3 +1,6 @@
+:PROPERTIES:
+:id: 619ead87-b124-4461-8ee2-128c3841d560
+:END:
 #+title: Update Test Root Item
 #+filetags: :sometag:existing:post:newtag:
 #+new-prop: newprop

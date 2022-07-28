@@ -207,7 +207,7 @@
         (org-crud.update/update-all-with-fn!
           (fn [item]
             (when-not (-> item :props :id)
-              {:props {:id (.toString (java.util.UUID/randomUUID))}})))))
+              {:props {:id (java.util.UUID/randomUUID))}})))))
   "
   [path item->up]
   (println "Updating items at path with f" {:path path})
