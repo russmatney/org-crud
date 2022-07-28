@@ -99,6 +99,13 @@
                                               ((fn [parent]
                                                  ;; update the item with the parent/stack context
                                                  (let [item (-> top-of-stack
+                                                                ;; set any parent ids
+                                                                (assoc :org/parent-ids
+                                                                       (->> ctx-stack
+                                                                            (map :org/id)
+                                                                            (remove nil?)
+                                                                            (into #{})))
+                                                                ;; set a nested parent name
                                                                 (assoc :org/parent-name
                                                                        (->> ctx-stack
                                                                             (map :org/name)
