@@ -131,6 +131,8 @@
     ;; try to match on name if no id
     (and
       ;; temp! allowing one to not have the id, so that ids can be set without some other treatment
+      ;; TODO move to fallback-id style, consider attaching :org/fallback-id ourselves
+      ;; name + parent-name + relative-index
       (or (not (:org/id it))
           (not (:org/id item)))
       (:org/name it)
