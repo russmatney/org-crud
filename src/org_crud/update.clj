@@ -47,8 +47,10 @@
 (defn is-remove?
   "Returns true if the passed map-val is a remove signal."
   [[_k v]]
-  (when (and v (coll? v))
-    (some-> v first (= :remove))))
+  (or
+    (#{:remove} v)
+    (when (and v (coll? v))
+      (some-> v first (= :remove)))))
 
 (defn remove-key-ns [[k v]]
   [(keyword (name k)) v])
@@ -59,23 +61,29 @@
   (let [old-props    (->> old-props (map remove-key-ns) (into {}))
         props-update (->> props-update (map remove-key-ns) (into {}))
 
-        remove-props  (->> props-update
-                           (filter is-remove?)
-                           (into {}))
-        props-update  (remove is-remove? props-update)
+        remove-props (->> props-update
+                          (filter is-remove?)
+                          (into {}))
+        props-update (remove is-remove? props-update)
         ;; NOTE this merge combines matching keys into a collection
-        merged-props  (util/merge-maps old-props props-update)
-        merged-props  (map (fn [[k vs]]
-                             (if-let [remove-signal (get remove-props k)]
-                               [k (let [to-remove (second remove-signal)]
-                                    (remove #(= to-remove %) vs))]
-                               [k vs])) merged-props)
+        merged-props (util/merge-maps old-props props-update)
+        merged-props (map (fn [[k vs]]
+                            (if-let [remove-signal (get remove-props k)]
+                              [k (if (#{:remove} remove-signal)
+                                   ;; :remove scalar
+                                   nil
+                                   ;; remove match from coll
+                                   (let [to-remove (second remove-signal)]
+                                     (remove #{to-remove} vs)))]
+                              [k vs])) merged-props)
         merged-props  (map
                         (fn [[k v]]
                           (if (coll? v)
-                            [k (sort (set v))]
+                            ;; remove nil from collections
+                            [k (->> v (remove nil?) set sort)]
                             [k v]))
                         merged-props)
+        ;; remove nil key-vals completely
         merged-props  (remove (comp nil? second) merged-props)
         updated-props (->> merged-props
                            (map (partial add-key-ns "org.prop"))

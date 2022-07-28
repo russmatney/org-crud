@@ -137,18 +137,33 @@
         (update! {:org.prop/hello "world"})
         (is (= (->props) {:org.prop/hello "world"})))
 
-      (testing "overwrites a basic key-value"
+      (testing "additional key-values move to a unique list"
         (update! {:org.prop/hello "world"})
         (is (= (->props) {:org.prop/hello "world"}))
         (update! {:org.prop/hello "duty"})
-        (is (= (->props) {:org.prop/hello "duty"}))
+        (is (= (->props) {:org.prop/hello ["duty" "world"]}))
         (update! {:org.prop/hello "world"})
-        (is (= (->props) {:org.prop/hello "world"})))
+        (is (= (->props) {:org.prop/hello ["duty" "world"]})))
 
-      (testing "clears a basic key-value"
-        (update! {:org.prop/hello "world"})
-        (update! {:org.prop/hello nil})
-        (is (= (->props) {}))))))
+      (testing "vals can be removed with :remove"
+        (update! {:org.prop/some-val "world"})
+        (is (= (-> (->props) :org.prop/some-val) "world"))
+        (update! {:org.prop/some-val :remove})
+        (is (= (-> (->props) :org.prop/some-val) nil)))
+
+      (testing "lists can be cleared with :remove"
+        (update! {:org.prop/some-vals ["hey" "world"]})
+        (is (= (-> (->props) :org.prop/some-vals) ["hey" "world"]))
+        (update! {:org.prop/some-vals :remove})
+        (is (= (-> (->props) :org.prop/some-vals) nil)))
+
+      (testing "vals can be removed from lists with [:remove val]"
+        (update! {:org.prop/some-list-val "world"})
+        (is (= (-> (->props) :org.prop/some-list-val) "world"))
+        (update! {:org.prop/some-list-val "hello"})
+        (is (= (-> (->props) :org.prop/some-list-val) ["hello" "world"]))
+        (update! {:org.prop/some-list-val [:remove "world"]})
+        (is (= (-> (->props) :org.prop/some-list-val) "hello"))))))
 
 (defn same-xs? [x y]
   (= (set x) (set y)))
@@ -167,17 +182,17 @@
 (deftest update-properties-multiple-values-test-add
   (testing "adds new repo-ids"
     (multi-test-update "my/new-repo")
-    (is (same-xs? (->multi-test-repo-ids) ["my/new-repo"]))
+    (is (= (->multi-test-repo-ids) "my/new-repo"))
 
     (multi-test-update ["my/other-repo" "my/new-repo"])
-    (is (same-xs? (->multi-test-repo-ids) ["my/other-repo" "my/new-repo"]))))
+    (is (= (->multi-test-repo-ids) ["my/new-repo" "my/other-repo"]))))
 
 (deftest update-properties-multiple-values-test-remove
   (testing "removes an existing repo-id"
     (multi-test-update ["my/other-repo" "my/new-repo"])
     (is (same-xs? (->multi-test-repo-ids) ["my/other-repo" "my/new-repo"]))
     (multi-test-update [:remove "my/other-repo"])
-    (is (same-xs? (->multi-test-repo-ids) ["my/new-repo"]))))
+    (is (= (->multi-test-repo-ids) "my/new-repo"))))
 
 (deftest update-properties-multiple-values-test-add-existing
   (testing "does not add an existing repo-id"
