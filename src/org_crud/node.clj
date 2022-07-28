@@ -288,6 +288,31 @@
   (util/->url "read http://github.com"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; links-to
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; parsing roam `[id:<uuid>]` links
+
+(defn body-str->links-to
+  "Parse roam links out of a node body."
+  [s]
+  (some->> s
+           (re-seq #"\[\[id:([^\]]*)\]\[([^\]]*)\]\]")
+           (map rest)
+           (remove nil?)
+           (map (fn [[id text]]
+                  {:link/id   (java.util.UUID/fromString id)
+                   :link/text (-> text
+                                  string/trim
+                                  (string/split #"\s")
+                                  (->> (string/join " ")))}))
+           (into #{})))
+
+(defn ->links-to [x]
+  (-> x ->body-string body-str->links-to))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; word count
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -323,6 +348,7 @@
                 :org/priority    (->priority raw)
                 :org/body        (->body raw)
                 :org/body-string (->body-string raw)
+                :org/links-to    (->links-to raw)
                 :org/status      (->todo-status raw)}
                (->properties raw)
                (->dates raw))
@@ -334,6 +360,8 @@
                   :org/name        (:org.prop/title props)
                   :org/tags        (->tags raw props)
                   :org/body        (->body raw)
+                  :org/body-string (->body-string raw)
+                  :org/links-to    (->links-to raw)
                   :org/id          (if-let [id (->id raw)]
                                      id (:org.prop/id props))}
                  props

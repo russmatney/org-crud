@@ -104,14 +104,6 @@
            (re-seq #"\[\[file:([^\]]*)\]\[[^\]]*\]\]")
            (map second)))
 
-(defn body-str->id-refs [s]
-  ;; does this handle across lines?
-  ;; TODO be fun to collect the text used to reference the link too
-  ;; link-texts as a list?
-  (some->> s
-           (re-seq #"\[\[id:([^\]]*)\]\[[^\]]*\]\]")
-           (map second)))
-
 (defn org-links->md-links
   "Rearranges org-links found in the string with the md style.
   The structure is a supported relative link usable with the gatsby-catch-links

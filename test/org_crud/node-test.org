@@ -4,6 +4,11 @@
 #+title: Node Test
 #+filetags: :post:somefiletag:
 
+This is my test node, sometimes with [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]].
+
+Sometimes these links break across lines likeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][across
+lines]].
+
 
 * some org item
 ** [X] my completed todo
@@ -24,3 +29,8 @@ CLOSED: [2022-04-30 Sat 17:42] DEADLINE: <2022-04-30 Sat> SCHEDULED: <2022-04-30
   :PROPERTIES:
   :ID:       86af07dc-4cc2-47b4-8113-2cd2b4c9c9ba
   :END:
+* child with links
+
+children nodes have [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]] too
+
+they can link to the same, [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][sometimes multiple times]]

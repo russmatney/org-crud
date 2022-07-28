@@ -7,13 +7,11 @@ CLOSED: [2022-04-30 Sat 17:08]
 ** [ ] add to clojars
 ** [ ] improve test coverage
 ** [ ] write a larger usage guide
-** [ ] readme refresh
-It's been a few months!
+** [ ] readme refresh, and in org
+It's been a few years!
 * parsing/writing
-** [ ] support tables
-** [ ] support logbooks
-right now it seems to just throw out items with logbooks
-** [ ] handle round-tripping items/item-lists better
+** [X] handle round-tripping items/item-lists better
+CLOSED: [2022-07-28 Thu 13:27]
 multi-items/lists in property buckets have long been a complex issue for me.
 I'm not sure how common they are in general.
 
@@ -24,7 +22,6 @@ Lately I'm wondering if it can be treated as a single elem when there's one, or
 many if there are already many - just react to the data. then have an explicit
 update list command when you don't want to overwrite the value. Could even be
 passed in as a list to imply a concat.
-** [ ] don't clear source blocks
 ** [X] parse proper org-priority
 CLOSED: [2022-05-01 Sun 09:21]
 ** [X] support scheduled/deadline
@@ -33,8 +30,13 @@ CLOSED: [2022-04-30 Sat 18:05]
 CLOSED: [2022-04-30 Sat 18:05]
 ** [X] don't add empty property buckets to every item
 CLOSED: [2021-02-15 Mon 14:05]
+** [ ] support source blocks
+** [ ] support images with files/names/captions
+** [ ] support tables
+** [ ] support logbooks
+right now it seems to just throw out items with logbooks
 * analyzing/manipulating org items
-** [ ] write walk api for reducing over the nested structure
+** [ ] expose walk api for reducing over the nested structure
 * agenda
 ** [ ] provide first class agenda CRUD support
 maybe via clomacs?

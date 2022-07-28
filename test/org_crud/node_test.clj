@@ -123,9 +123,6 @@
   (let [item (parsed-org-file "node-test.org")]
     (is (= #{"somefiletag" "post"} (:org/tags item)))))
 
-;; TODO support roam aliases
-;; TODO support all these on the same node?
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; priority
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -176,3 +173,26 @@
             (matches-id item "86af07dc-4cc2-47b4-8113-2cd2b4c9c9ba")
 
             :else nil))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; links
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest node-links-to
+  (let [item           (parsed-org-file "node-test.org")
+        item-with-name (fn [n]
+                         (some->> item :org/items (filter (comp #{n} :org/name)) first))]
+
+    (testing "root node roam links"
+      (is (= #{{:link/id   #uuid "910e0d6e-759d-4a9b-809c-78a6a0b6538b"
+                :link/text "links"}
+               {:link/id   #uuid "910e0d6e-759d-4a9b-809c-78a6a0b6538b"
+                :link/text "across lines"}}
+             (:org/links-to item))))
+
+    (testing "child node roam links"
+      (is (= #{{:link/id   #uuid "910e0d6e-759d-4a9b-809c-78a6a0b6538b"
+                :link/text "links"}
+               {:link/id   #uuid "910e0d6e-759d-4a9b-809c-78a6a0b6538b"
+                :link/text "sometimes multiple times"}}
+             (-> "child with links" item-with-name :org/links-to))))))
