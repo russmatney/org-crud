@@ -42,15 +42,6 @@ some detail
 :id: cff2d8b3-2e4c-4c51-a43d-85a7c9bdd6a6
 :END:
 
-* delete headline
-:PROPERTIES:
-:id: f579c11f-7cab-4e3e-a909-8ecdf8c22820
-:END:
-
-** deleted more content
-:PROPERTIES:
-:id: bfe34518-6f3c-47b4-9648-de3a4eb871c3
-:END:
 * more content
 :PROPERTIES:
 :id: 361c3363-d857-4790-a9db-368bee9f3112

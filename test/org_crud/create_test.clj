@@ -13,9 +13,11 @@
   [f]
   (fs/copy
     (str (fs/cwd) "/test/org_crud/create-test-before.org")
-    (str (fs/cwd) "/test/org_crud/create-test.org"))
+    (str (fs/cwd) "/test/org_crud/create-test.org")
+    {:replace-existing true})
 
-  (fs/delete some-path)
+  (when (fs/exists? some-path)
+    (fs/delete some-path))
 
   (f))
 

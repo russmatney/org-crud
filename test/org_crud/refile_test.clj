@@ -10,7 +10,8 @@
   [f]
   (fs/copy
     (str (fs/cwd) "/test/org_crud/refile-test-before.org")
-    (str (fs/cwd) "/test/org_crud/refile-test.org"))
+    (str (fs/cwd) "/test/org_crud/refile-test.org")
+    {:replace-existing true})
   (f))
 
 (use-fixtures :each test-fixtures)

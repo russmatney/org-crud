@@ -125,7 +125,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (deftest priority-test
-  (let [item        (parsed-org-file "headline-test.org")
+  (let [item        (parsed-org-file "node-test.org")
         prioritized (->> item :org/items (filter (comp #(string/includes? % "prioritized")
                                                        :org/name)))
         sorted      (->> prioritized (sort-by :org/priority))]

@@ -31,9 +31,9 @@
         test-fn
         (fn []
           (let [files (fs/list-dir fixture-dir)]
-            (is (> (->> files (filter #(= (fs/extension %) ".org")) count) 0))
-            (is (= (->> files (filter #(= (fs/extension %) ".org")) count)
-                   (->> files (filter #(= (fs/extension %) ".md")) count)))))]
+            (is (> (->> files (filter #(= (fs/extension %) "org")) count) 0))
+            (is (= (->> files (filter #(= (fs/extension %) "org")) count)
+                   (->> files (filter #(= (fs/extension %) "md")) count)))))]
     (testing "same number of org and md files"
       (reset-fixture-dir)
       (sut/org-dir->md-dir fixture-dir fixture-dir)
@@ -321,43 +321,43 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; test rn by example - check that they show up in fixture-dir/example.md
-(deftest markdown#backlinks-test
-  (testing "backlinks are added as expected"
-    (let [md-items
-          (sut/org-dir->md-dir fixture-dir fixture-dir {:dry-run true})
-          example-md (some->> md-items
-                              (filter (comp #{"Example Org File"} :name))
-                              first)
-          body-lines (some-> example-md
-                             :body
-                             (->> (map string/trim)
-                                  (into #{})))
-          ]
-      (is md-items)
-      (is example-md)
-      (println body-lines)
-      (is (contains? body-lines "# Backlinks"))
-      (is (contains? body-lines "- [Dated Example](/20200618104339-dated-example)"))
-      (is (contains? body-lines "- [Linked Org File](/linked-org-file)")))))
+#_(deftest markdown#backlinks-test
+    (testing "backlinks are added as expected"
+      (let [md-items
+            (sut/org-dir->md-dir fixture-dir fixture-dir {:dry-run true})
+            example-md (some->> md-items
+                                (filter (comp #{"Example Org File"} :name))
+                                first)
+            body-lines (some-> example-md
+                               :body
+                               (->> (map string/trim)
+                                    (into #{})))
+            ]
+        (is md-items)
+        (is example-md)
+        (println body-lines)
+        (is (contains? body-lines "# Backlinks"))
+        (is (contains? body-lines "- [Dated Example](/20200618104339-dated-example)"))
+        (is (contains? body-lines "- [Linked Org File](/linked-org-file)")))))
 
-(deftest markdown#backlinks-link-prefix
-  (testing "backlinks honor link-prefixes as well"
-    (let [md-items
-          (sut/org-dir->md-dir fixture-dir fixture-dir {:dry-run     true
-                                                        :link-prefix "/notes"})
-          example-md (some->> md-items
-                              (filter (comp #{"Example Org File"} :name))
-                              first)
-          body-lines (some-> example-md
-                             :body
-                             (->> (map string/trim)
-                                  (into #{})))]
-      (is md-items)
-      (is example-md)
-      (println body-lines)
-      (is (contains? body-lines "# Backlinks"))
-      (is (contains? body-lines "- [Dated Example](/notes/20200618104339-dated-example)"))
-      (is (contains? body-lines "- [Linked Org File](/notes/linked-org-file)")))))
+#_(deftest markdown#backlinks-link-prefix
+    (testing "backlinks honor link-prefixes as well"
+      (let [md-items
+            (sut/org-dir->md-dir fixture-dir fixture-dir {:dry-run     true
+                                                          :link-prefix "/notes"})
+            example-md (some->> md-items
+                                (filter (comp #{"Example Org File"} :name))
+                                first)
+            body-lines (some-> example-md
+                               :body
+                               (->> (map string/trim)
+                                    (into #{})))]
+        (is md-items)
+        (is example-md)
+        (println body-lines)
+        (is (contains? body-lines "# Backlinks"))
+        (is (contains? body-lines "- [Dated Example](/notes/20200618104339-dated-example)"))
+        (is (contains? body-lines "- [Linked Org File](/notes/linked-org-file)")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; external links
