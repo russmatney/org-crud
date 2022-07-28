@@ -67,30 +67,29 @@
     count
     )
 
-  (binding [upd/*item->source-file* :org/source-file]
-    (->>
-      (org/dir->nested-items --dir)
-      (filter org->starts-with-datetime?)
-      ;; (take 2)
-      (map (fn [org]
-             (let [
-                   {:keys [new-filename created-at]} ((comp fname->data fs/file-name :org/source-file) org)
-                   file-dir                          (-> org :org/source-file (#(string/replace % (fs/file-name %) "")))
-                   new-filepath                      (str file-dir new-filename)]
-               ;; (println "new-filename" new-filename)
-               ;; (println "filedir" file-dir)
-               ;; (println "new-filepath" new-filepath)
+  (->>
+    (org/dir->nested-items --dir)
+    (filter org->starts-with-datetime?)
+    ;; (take 2)
+    (map (fn [org]
+           (let [
+                 {:keys [new-filename created-at]} ((comp fname->data fs/file-name :org/source-file) org)
+                 file-dir                          (-> org :org/source-file (#(string/replace % (fs/file-name %) "")))
+                 new-filepath                      (str file-dir new-filename)]
+             ;; (println "new-filename" new-filename)
+             ;; (println "filedir" file-dir)
+             ;; (println "new-filepath" new-filepath)
 
-               ;; update props
-               (upd/update! (:org/source-file org) org {:org.prop/created-at created-at})
+             ;; update props
+             (upd/update! (:org/source-file org) org {:org.prop/created-at created-at})
 
-               ;; move file
-               (->
-                 ^{:out :string
-                   :dir file-dir}
-                 (process/$ mv ~(-> org :org/source-file) ~new-filepath)
-                 process/check
-                 :out))))))
+             ;; move file
+             (->
+               ^{:out :string
+                 :dir file-dir}
+               (process/$ mv ~(-> org :org/source-file) ~new-filepath)
+               process/check
+               :out)))))
   )
 
 

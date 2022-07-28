@@ -1,7 +1,7 @@
 (ns org-crud.headline-test
   (:require
    [org-crud.headline :as sut]
-   [clojure.test :refer [deftest testing is use-fixtures]]
+   [clojure.test :refer [deftest testing is]]
    [org-crud.core :as org]
    [org-crud.fs :as fs]
    [clojure.set :as set]
@@ -11,13 +11,6 @@
 
 (defn parsed-org-file [fname]
   (org/path->nested-item (str fixture-dir "/" fname)))
-
-(defn test-fixtures
-  [f]
-  (binding [sut/*multi-prop-keys* #{:repo-ids}]
-    (f)))
-
-(use-fixtures :each test-fixtures)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; parse, headline helper unit tests

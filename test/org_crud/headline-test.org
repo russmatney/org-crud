@@ -12,3 +12,11 @@ CLOSED: [2022-04-30 Sat 17:42] DEADLINE: <2022-04-30 Sat> SCHEDULED: <2022-04-30
 * [#C] another prioritized org item
 * [#C] a third prioritized org item
 * [#B] a fourth prioritized org item
+* with an id
+:PROPERTIES:
+:ID:       2c96a967-7b44-4e4c-8577-947640c03ae8
+:END:
+* with a spaced out property bucket
+  :PROPERTIES:
+  :ID:       86af07dc-4cc2-47b4-8113-2cd2b4c9c9ba
+  :END:

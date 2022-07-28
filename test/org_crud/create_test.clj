@@ -3,7 +3,6 @@
    [org-crud.create :as sut]
    [clojure.test :refer [deftest testing is use-fixtures]]
    [me.raynes.fs :as fs]
-   [org-crud.headline :as headline]
    [org-crud.core :as org]
    [org-crud.util :as util]))
 
@@ -18,8 +17,7 @@
 
   (fs/delete some-path)
 
-  (binding [headline/*multi-prop-keys* #{:repo-ids}]
-    (f)))
+  (f))
 
 (use-fixtures :each test-fixtures)
 

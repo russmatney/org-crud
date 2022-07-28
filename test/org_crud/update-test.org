@@ -119,10 +119,12 @@ goes above me???
 * same name, different id
 :PROPERTIES:
 :id: c3a82f7c-ecff-4e4c-8047-bc4e11861bb0
+:rand: 25
 :END:
 * same name, different id
 :PROPERTIES:
 :id: bcdf8060-e158-4f8c-9c4a-a9f5d58bd890
+:rand: 44
 :END:
 
 * no props on me!

@@ -2,7 +2,6 @@
   (:require [org-crud.refile :as sut]
             [clojure.test :refer [deftest testing is use-fixtures]]
             [me.raynes.fs :as fs]
-            [org-crud.headline :as headline]
             [org-crud.util :as util]
             [org-crud.core :as org]))
 
@@ -12,8 +11,7 @@
   (fs/copy
     (str fs/*cwd* "/test/org_crud/refile-test-before.org")
     (str fs/*cwd* "/test/org_crud/refile-test.org"))
-  (binding [headline/*multi-prop-keys* #{:repo-ids}]
-    (f)))
+  (f))
 
 (use-fixtures :each test-fixtures)
 

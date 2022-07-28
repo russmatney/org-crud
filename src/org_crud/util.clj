@@ -114,29 +114,8 @@
     x
     (recur (merge-maps* x y) maps)))
 
-(defn merge-maps-with-multi
-  "Merges two maps. multi-keys is a set of keys that should be grouped with
-  merge-maps. All other keys left to a typical merge operation.
-  "
-  [multi-keys & maps]
-  (when maps
-    (let [->map-multis  (fn [f m]
-                          (into {}
-                                (f (fn [[k _v]]
-                                     (contains? multi-keys k))
-                                   m)))
-          multis-merged (apply merge-maps
-                               (or (map (partial ->map-multis filter) maps) {}))
-          merged        (apply merge
-                               (map (partial ->map-multis remove) maps))]
-      (merge merged multis-merged))))
-
 (comment
-  (merge-maps-with-multi #{})
-  (->> [{:hello "world"} {:hello "sonny"}]
-       (apply (partial merge-maps-with-multi #{})))
-  (->> [{:hello "world"} {:hello "sonny"}]
-       (apply (partial merge-maps-with-multi #{:hello}))))
+  (merge-maps {:hi "bye"} {:hello "sir" :hi "not-bye"}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; multi-group-by

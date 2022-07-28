@@ -14,7 +14,7 @@
 (defn delete-item!
   "Deletes the item passed, if a match is found in the path"
   [item]
-  (let [org-path (up/*item->source-file* item)]
+  (let [org-path (:org/source-path item)]
     (if org-path
       (delete-from-file! org-path item)
       (do

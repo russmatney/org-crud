@@ -4,14 +4,8 @@
    [clojure.string :as string]
    [org-crud.fs :as fs]))
 
-;; TODO get rid of these dynamics
-(def ^:dynamic *multi-prop-keys* #{})
-(def ^:dynamic *prop-parser*
-  "Contains some types with known parses.
-  For now supports a few string->dates parses." {})
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; headline helpers
+;; parsing an org-node helpers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ->body-as-strings
@@ -69,8 +63,7 @@
   (when-let [k (->prop-key text)]
     (let [[_k val] (string/split text #" " 2)]
       (when val
-        (let [val (string/trim val)]
-          (if-let [parser (*prop-parser* k)] (parser val) val))))))
+        (string/trim val)))))
 
 (defn ->properties [x]
   (let [prop-lines
@@ -89,7 +82,7 @@
            (group-by ->prop-key)
            (map (fn [[k vals]]
                   (let [vals (map ->prop-value vals)
-                        vals (if (contains? *multi-prop-keys* k)
+                        vals (if (> (count vals) 1)
                                ;; sorting just for testing convenience
                                (sort vals)
                                (first vals))]
@@ -98,23 +91,21 @@
       {})))
 
 (comment
-  (binding [*multi-prop-keys* #{:repo-ids}]
-    (->properties
-      {:type :section
+  (->properties
+    {:type :section
+     :content
+     [{:line-type :metadata
+       :text      "DEADLINE: <2019-04-01 Mon>"}
+      {:type :drawer
        :content
-       [{:line-type :metadata
-         :text      "DEADLINE: <2019-04-01 Mon>"}
-        {:type :drawer
-         :content
-         [{:line-type :property-drawer-item :text ":ARCHIVE_TIME: 2019-04-07 Sun 10:23"}
-          {:line-type :property-drawer-item :text ":ARCHIVE_FILE: ~/Dropbox/todo/todo.org"}
-          {:line-type :property-drawer-item :text ":ARCHIVE_OLPATH: 2019-04-01"}
-          {:line-type :property-drawer-item :text ":ARCHIVE_CATEGORY: todo"}
-          {:line-type :property-drawer-item :text ":ARCHIVE_TODO: [X]"}
-          {:line-type :property-drawer-item :text ":repo_ids: my/repo"}
-          {:line-type :property-drawer-item :text ":repo_ids+: my/other-repo"}]}]
-       :name "[X] create cards"}))
-  )
+       [{:line-type :property-drawer-item :text ":ARCHIVE_TIME: 2019-04-07 Sun 10:23"}
+        {:line-type :property-drawer-item :text ":ARCHIVE_FILE: ~/Dropbox/todo/todo.org"}
+        {:line-type :property-drawer-item :text ":ARCHIVE_OLPATH: 2019-04-01"}
+        {:line-type :property-drawer-item :text ":ARCHIVE_CATEGORY: todo"}
+        {:line-type :property-drawer-item :text ":ARCHIVE_TODO: [X]"}
+        {:line-type :property-drawer-item :text ":repo_ids: my/repo"}
+        {:line-type :property-drawer-item :text ":repo_ids+: my/other-repo"}]}]
+     :name "[X] create cards"}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; headline parsers
@@ -288,7 +279,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ->urls
-  ;; parses an org header for urls from the name and body
+  ;; parses an org node for urls from the name and body
   [x]
   (let [strs (conj (->body-as-strings x) (->name x))]
     (->> strs

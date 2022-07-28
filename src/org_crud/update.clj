@@ -4,10 +4,7 @@
    [clojure.set :as set]
    [org-crud.core :as org]
    [org-crud.util :as util]
-   [org-crud.lines :as lines]
-   [org-crud.headline :as headline]))
-
-(def ^:dynamic *item->source-file* :org/source-file)
+   [org-crud.lines :as lines]))
 
 (defn append-to-file!
   ([path lines]
@@ -61,15 +58,13 @@
 (defn updated-props [old-props props-update]
   (let [old-props    (->> old-props (map remove-key-ns) (into {}))
         props-update (->> props-update (map remove-key-ns) (into {}))
-        _            (println old-props)
-        _            (println props-update)
 
         remove-props  (->> props-update
                            (filter is-remove?)
                            (into {}))
         props-update  (remove is-remove? props-update)
-        merged-props  (util/merge-maps-with-multi
-                        headline/*multi-prop-keys* old-props props-update)
+        ;; NOTE this merge combines matching keys into a collection
+        merged-props  (util/merge-maps old-props props-update)
         merged-props  (map (fn [[k vs]]
                              (if-let [remove-signal (get remove-props k)]
                                [k (let [to-remove (second remove-signal)]
@@ -184,7 +179,7 @@
   `up` is a map describing a minimal update to make to the item.
   ex: `{:org/name \"My New Item Name\"}`
   "
-  ([item up] (update! (*item->source-file* item) item up))
+  ([item up] (update! (:org/source-file item) item up))
   ([path item up]
    (println "Updating item"
             {:path             path

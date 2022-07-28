@@ -97,9 +97,7 @@
   Uses the context to find the org-path, falling back
   to the item if the context is :top-level."
   [item context]
-  (let [org-path (if (map? context)
-                   (up/*item->source-file* context)
-                   (up/*item->source-file* item))]
+  (let [org-path (:org/source-path (if (map? context) context item))]
     (if org-path
       (add-to-file! org-path item context)
       (println "Item add attempted for bad org-path" {:org-path org-path

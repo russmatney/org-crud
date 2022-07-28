@@ -4,7 +4,6 @@
    [clojure.test :refer [deftest testing is use-fixtures]]
    [me.raynes.fs :as fs]
    [clojure.set :as set]
-   [org-crud.headline :as headline]
    [org-crud.util :as util]
    [org-crud.core :as org]
    [clojure.string :as string]))
@@ -17,8 +16,7 @@
   (fs/copy
     (str fs/*cwd* "/test/org_crud/update-test-root-item-before.org")
     (str fs/*cwd* "/test/org_crud/update-test-root-item.org"))
-  (binding [headline/*multi-prop-keys* #{:repo-ids}]
-    (f)))
+  (f))
 
 (use-fixtures :each test-fixtures)
 
