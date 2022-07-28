@@ -12,8 +12,7 @@
         :extra-deps
         {org.clojure/test.check {:mvn/version "1.1.1"}
          tick/tick              {:mvn/version "0.5.0-RC5"}
-         wing/wing              {:mvn/version "0.1.4"}
-         clj-commons/fs         {:mvn/version "1.6.310"}}}
+         wing/wing              {:mvn/version "0.1.4"}}}
 
   :test
   {:extra-paths ["test"]
@@ -23,7 +22,6 @@
     ;; TODO update code per new tick version!!
     tick/tick              {:mvn/version "0.5.0-RC5"}
     wing/wing              {:mvn/version "0.1.4"}
-    clj-commons/fs         {:mvn/version "1.6.310"}
     lambdaisland/kaocha    {:mvn/version "1.68.1059"}}}
 
   :nrepl {:extra-deps

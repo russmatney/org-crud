@@ -3,10 +3,10 @@
    [org-crud.markdown :as sut]
    [clojure.test :refer [deftest testing is]]
    [org-crud.core :as org]
-   [me.raynes.fs :as fs]
+   [babashka.fs :as fs]
    [clojure.string :as string]))
 
-(def fixture-dir (str fs/*cwd* "/test/org_crud/markdown_fixtures"))
+(def fixture-dir (str (fs/cwd) "/test/org_crud/markdown_fixtures"))
 
 (defn reset-fixture-dir []
   (let [files (fs/list-dir fixture-dir)]

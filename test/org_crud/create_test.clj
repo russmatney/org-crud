@@ -2,18 +2,18 @@
   (:require
    [org-crud.create :as sut]
    [clojure.test :refer [deftest testing is use-fixtures]]
-   [me.raynes.fs :as fs]
+   [babashka.fs :as fs]
    [org-crud.core :as org]
    [org-crud.util :as util]))
 
 (def some-path
-  (str fs/*cwd* "/test/org_crud/some-create-item-path.org"))
+  (str (fs/cwd) "/test/org_crud/some-create-item-path.org"))
 
 (defn test-fixtures
   [f]
   (fs/copy
-    (str fs/*cwd* "/test/org_crud/create-test-before.org")
-    (str fs/*cwd* "/test/org_crud/create-test.org"))
+    (str (fs/cwd) "/test/org_crud/create-test-before.org")
+    (str (fs/cwd) "/test/org_crud/create-test.org"))
 
   (fs/delete some-path)
 
@@ -26,7 +26,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def org-filepath
-  (str (str fs/*cwd*) "/test/org_crud/create-test.org"))
+  (str (fs/cwd) "/test/org_crud/create-test.org"))
 
 (defn ->items [] (org/path->flattened-items org-filepath))
 (defn ->item [pred-map] (util/get-one pred-map (->items)))

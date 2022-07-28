@@ -1,10 +1,10 @@
 (ns org-crud.core
   (:require
    [organum.core :as org]
-   [org-crud.fs :as fs]
-   [org-crud.node :as node]
    [clojure.walk :as walk]
-   [clojure.string :as string]))
+   [clojure.string :as string]
+   [babashka.fs :as fs]
+   [org-crud.node :as node]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Parse helpers
@@ -14,7 +14,8 @@
   [path]
   (try
     (-> path
-        fs/absolute
+        fs/absolutize
+        str
         org/parse-file)
     (catch Exception ex
       (println "org-crud.core/parse-org-file exception" path)

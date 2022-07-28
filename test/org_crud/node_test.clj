@@ -1,13 +1,14 @@
 (ns org-crud.node-test
   (:require
-   [org-crud.node :as sut]
    [clojure.test :refer [deftest testing is]]
-   [org-crud.core :as org]
-   [org-crud.fs :as fs]
+   [babashka.fs :as fs]
    [clojure.set :as set]
-   [clojure.string :as string]))
+   [clojure.string :as string]
 
-(def fixture-dir (str fs/*cwd* "/test/org_crud"))
+   [org-crud.node :as sut]
+   [org-crud.core :as org]))
+
+(def fixture-dir (str (fs/cwd) "/test/org_crud"))
 
 (defn parsed-org-file [fname]
   (org/path->nested-item (str fixture-dir "/" fname)))

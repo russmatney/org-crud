@@ -1,8 +1,8 @@
 (ns org-crud.node
   (:require
-   [org-crud.util :as util]
    [clojure.string :as string]
-   [org-crud.fs :as fs]))
+   [babashka.fs :as fs]
+   [org-crud.util :as util]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; parsing an org-node helpers
@@ -60,7 +60,7 @@
           keyword))))
 
 (defn ->prop-value [text]
-  (when-let [k (->prop-key text)]
+  (when-let [_k (->prop-key text)]
     (let [[_k val] (string/split text #" " 2)]
       (when val
         (string/trim val)))))
@@ -317,7 +317,7 @@
   (-> (cond
         (#{:section} (:type raw))
         (merge {:org/level       (->level raw)
-                :org/source-file (-> source-file fs/absolute str)
+                :org/source-file (-> source-file fs/absolutize str)
                 :org/id          (->id raw)
                 :org/name        (->name raw)
                 :org/headline    (->raw-headline raw)
@@ -332,7 +332,7 @@
         (#{:root} (:type raw))
         (let [props (->properties raw)]
           (merge {:org/level       (->level raw)
-                  :org/source-file (-> source-file fs/absolute str)
+                  :org/source-file (-> source-file fs/absolutize str)
                   :org/name        (:org.prop/title props)
                   :org/tags        (->tags raw)
                   :org/body        (->body raw)

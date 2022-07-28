@@ -1,9 +1,9 @@
 (ns org-crud.create
   (:require
+   [babashka.fs :as fs]
+   [clojure.string :as string]
    [org-crud.update :as up]
-   [org-crud.fs :as fs]
-   [org-crud.lines :as lines]
-   [clojure.string :as string]))
+   [org-crud.lines :as lines]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public add function
@@ -39,7 +39,7 @@
     (println "Refusing create, file exists.")
     (do
       (println "Creating file for root item" path item)
-      (fs/touch path)
+      (fs/create-file path)
       (let [lines (lines/item->root-lines item)]
         (up/append-to-file! path lines)))))
 

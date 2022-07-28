@@ -1,15 +1,15 @@
 (ns org-crud.delete-test
   (:require [org-crud.delete :as sut]
             [clojure.test :refer [deftest testing is use-fixtures]]
-            [me.raynes.fs :as fs]
+            [babashka.fs :as fs]
             [org-crud.util :as util]
             [org-crud.core :as org]))
 
 (defn test-fixtures
   [f]
   (fs/copy
-    (str fs/*cwd* "/test/org_crud/delete-test-before.org")
-    (str fs/*cwd* "/test/org_crud/delete-test.org"))
+    (str (fs/cwd) "/test/org_crud/delete-test-before.org")
+    (str (fs/cwd) "/test/org_crud/delete-test.org"))
   (f))
 
 (use-fixtures :each test-fixtures)
@@ -19,7 +19,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def org-filepath
-  (str (str fs/*cwd*) "/test/org_crud/delete-test.org"))
+  (str (fs/cwd) "/test/org_crud/delete-test.org"))
 
 (defn ->items []
   (org/path->flattened-items org-filepath))

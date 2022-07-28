@@ -1,10 +1,10 @@
 (ns org-crud.markdown
   (:require
    [clojure.string :as string]
-   [org-crud.fs :as fs]
+   [babashka.fs :as fs]
+   [clojure.set :as set]
    [org-crud.core :as org]
-   [org-crud.util :as util]
-   [clojure.set :as set]))
+   [org-crud.util :as util]))
 
 ;; TODO non-existent local links still get through
 ;; TODO handle custom local link formats (jekyll example is broken)
@@ -21,7 +21,7 @@
    (let [full-basename
          (some-> item
                  :org/source-file
-                 fs/base-name
+                 fs/file-name
                  fs/split-ext
                  first)]
      (if (and drop-datetime (re-seq #"^\d{14}-" full-basename))
@@ -100,9 +100,17 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn body-str->file-refs [s]
-(some->> s
-         (re-seq #"\[\[file:([^\]]*)\]\[[^\]]*\]\]")
-         (map second)))
+  (some->> s
+           (re-seq #"\[\[file:([^\]]*)\]\[[^\]]*\]\]")
+           (map second)))
+
+(defn body-str->id-refs [s]
+  ;; does this handle across lines?
+  ;; TODO be fun to collect the text used to reference the link too
+  ;; link-texts as a list?
+  (some->> s
+           (re-seq #"\[\[id:([^\]]*)\]\[[^\]]*\]\]")
+           (map second)))
 
 (defn org-links->md-links
   "Rearranges org-links found in the string with the md style.
@@ -124,7 +132,7 @@
                                        (string/starts-with? raw-link "file:")
                                        (let [link-prefix (or (:link-prefix opts) "")]
                                          (some-> raw-link
-                                                 fs/base-name fs/split-ext first
+                                                 fs/file-name fs/split-ext first
                                                  (string/replace "file:" "")
                                                  (#(str link-prefix "/" %))))
 

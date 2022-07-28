@@ -2,7 +2,7 @@
   (:require
    [org-crud.update :as sut]
    [clojure.test :refer [deftest testing is use-fixtures]]
-   [me.raynes.fs :as fs]
+   [babashka.fs :as fs]
    [clojure.set :as set]
    [org-crud.util :as util]
    [org-crud.core :as org]
@@ -11,11 +11,13 @@
 (defn test-fixtures
   [f]
   (fs/copy
-    (str fs/*cwd* "/test/org_crud/update-test-before.org")
-    (str fs/*cwd* "/test/org_crud/update-test.org"))
+    (str (fs/cwd) "/test/org_crud/update-test-before.org")
+    (str (fs/cwd) "/test/org_crud/update-test.org")
+    {:replace-existing true})
   (fs/copy
-    (str fs/*cwd* "/test/org_crud/update-test-root-item-before.org")
-    (str fs/*cwd* "/test/org_crud/update-test-root-item.org"))
+    (str (fs/cwd) "/test/org_crud/update-test-root-item-before.org")
+    (str (fs/cwd) "/test/org_crud/update-test-root-item.org")
+    {:replace-existing true})
   (f))
 
 (use-fixtures :each test-fixtures)
@@ -25,10 +27,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def org-filepath
-  (str (str fs/*cwd*) "/test/org_crud/update-test.org"))
+  (str (fs/cwd) "/test/org_crud/update-test.org"))
 
 (def root-item-filepath
-  (str (str fs/*cwd*) "/test/org_crud/update-test-root-item.org"))
+  (str (fs/cwd) "/test/org_crud/update-test-root-item.org"))
 
 (defn ->items []
   (org/path->flattened-items org-filepath))

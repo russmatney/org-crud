@@ -1,18 +1,19 @@
 (ns org-crud.counts
-  (:require [org-crud.fs :as fs]
-            [org-crud.core :as core]))
+  (:require
+   [babashka.fs :as fs]
+   [org-crud.core :as core]))
 
 (defn ->report-data [f]
   ;; NOTE this is only level-one totals/averages, not for the whole nested item
   ;; TODO improve reporting here - should not have expectations around structure
-  (let [name (fs/base-name f)
-        items (->> (core/path->nested-item f) :org/items)
-        total (count items)
-        word-count (when (seq items) (reduce + 0 (map :org/word-count items)))
+  (let [name               (fs/file-name f)
+        items              (->> (core/path->nested-item f) :org/items)
+        total              (count items)
+        word-count         (when (seq items) (reduce + 0 (map :org/word-count items)))
         average-word-count (when (seq items) (int (/ word-count total)))]
-    {:report/name name
-     :report/total total
-     :report/word-count word-count
+    {:report/name               name
+     :report/total              total
+     :report/word-count         word-count
      :report/average-word-count average-word-count}))
 
 (comment

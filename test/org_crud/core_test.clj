@@ -2,14 +2,14 @@
   (:require
    [org-crud.core :as sut]
    [clojure.test :refer [deftest testing is]]
-   [me.raynes.fs :as fs]))
+   [babashka.fs :as fs]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; mocks and fixtures
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def org-filepath
-  (str (str fs/*cwd*) "/test/org_crud/core-test.org"))
+  (str (fs/cwd) "/test/org_crud/core-test.org"))
 
 (defn ->items []
   (sut/path->flattened-items org-filepath))

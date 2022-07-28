@@ -1,16 +1,16 @@
 (ns org-crud.refile-test
-  (:require [org-crud.refile :as sut]
-            [clojure.test :refer [deftest testing is use-fixtures]]
-            [me.raynes.fs :as fs]
-            [org-crud.util :as util]
-            [org-crud.core :as org]))
-
+  (:require
+   [clojure.test :refer [deftest testing is use-fixtures]]
+   [babashka.fs :as fs]
+   [org-crud.refile :as sut]
+   [org-crud.util :as util]
+   [org-crud.core :as org]))
 
 (defn test-fixtures
   [f]
   (fs/copy
-    (str fs/*cwd* "/test/org_crud/refile-test-before.org")
-    (str fs/*cwd* "/test/org_crud/refile-test.org"))
+    (str (fs/cwd) "/test/org_crud/refile-test-before.org")
+    (str (fs/cwd) "/test/org_crud/refile-test.org"))
   (f))
 
 (use-fixtures :each test-fixtures)
@@ -20,7 +20,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def org-filepath
-  (str (str fs/*cwd*) "/test/org_crud/refile-test.org"))
+  (str (fs/cwd) "/test/org_crud/refile-test.org"))
 
 (defn ->items []
   (org/path->flattened-items org-filepath))
