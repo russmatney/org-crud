@@ -1,4 +1,5 @@
 #+TITLE: Readme
+#+STARTUP: content
 
 * Org CRUD
 

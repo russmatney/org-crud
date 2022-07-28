@@ -7,7 +7,7 @@
    [org-crud.lines :as lines]
    [org-crud.headline :as headline]))
 
-(def ^:dynamic *item->source-file* nil)
+(def ^:dynamic *item->source-file* :org/source-file)
 
 (defn append-to-file!
   ([path lines]

@@ -3,9 +3,8 @@
  :deps
  {org.clojars.gmorpheme/organum {:mvn/version "0.1.1"}
   clomacs/clomacs               {:mvn/version "0.0.4-SNAPSHOT"}
-  babashka/fs                   {:mvn/version "0.1.4"}
-  babashka/process              {:mvn/version "0.1.1"}
-  }
+  babashka/fs                   {:mvn/version "0.1.6"}
+  babashka/process              {:mvn/version "0.1.4"}}
 
  :aliases
  {:dev {:jvm-opts    ["-XX:-OmitStackTraceInFastThrow"]
@@ -25,8 +24,8 @@
     tick/tick              {:mvn/version "0.5.0-RC5"}
     wing/wing              {:mvn/version "0.1.4"}
     clj-commons/fs         {:mvn/version "1.6.310"}
-    lambdaisland/kaocha    {:mvn/version "1.63.998"}}}
+    lambdaisland/kaocha    {:mvn/version "1.68.1059"}}}
 
   :nrepl {:extra-deps
-          {cider/cider-nrepl             {:mvn/version "0.28.3"}
-           refactor-nrepl/refactor-nrepl {:mvn/version "3.4.1"}}}}}
+          {cider/cider-nrepl             {:mvn/version "0.28.5"}
+           refactor-nrepl/refactor-nrepl {:mvn/version "3.5.2"}}}}}
