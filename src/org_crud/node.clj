@@ -42,7 +42,7 @@
        (filter (comp #(= % :drawer) :type))
        first
        :content
-       (map :text)))
+       (map (comp string/trim :text))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; property drawers
@@ -67,16 +67,16 @@
 
 (defn ->properties [x]
   (let [prop-lines
-        (cond
-          (= :section (:type x))
+        (concat
+          ;; check the drawer/prop-bucket for all
           (->drawer x)
-
-          (= :root (:type x))
-          ;; TODO stop after first non-comment?
-          (->> x
-               :content
-               (filter #(= (:line-type %) :comment))
-               (map :text)))]
+          ;; check for additional root level props
+          (when (= :root (:type x))
+            ;; TODO stop after first non-comment?
+            (->> x
+                 :content
+                 (filter #(= (:line-type %) :comment))
+                 (map :text))))]
     (if (seq prop-lines)
       (->> prop-lines
            (group-by ->prop-key)
@@ -116,11 +116,15 @@
 
 (comment
   (keyword (str "level/" 1))
-  (keyword (str "level/" :root))
-  )
+  (keyword (str "level/" :root)))
 
 (defn ->id [hl]
-  (-> hl ->properties :org.prop/id))
+  (when-let [id (-> hl ->properties :org.prop/id)]
+    (try
+      (java.util.UUID/fromString id)
+      (catch Exception e
+        (println "Exception parsing :org/id" id)
+        id))))
 
 (defn ->name [{:keys [name type]}]
   (cond
@@ -161,29 +165,23 @@
 ;; tags
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn ->tags [{:keys [type content tags]}]
-  (cond
-    (= :root type)
-    (let [text
-          (some->>
-            content
-            (filter (fn [c]
-                      (and (= (:line-type c) :comment)
-                           (string/includes?
-                             (-> c :text string/lower-case)
-                             "#+roam_tags"))))
-            first
-            :text)]
-      (when text
-        (some->
-          (->> text
-               string/lower-case
-               (re-find #".*roam_tags: (.*)"))
-          second
-          (string/split #" ")
-          set)))
+(defn ->tags
+  ([raw] (->tags raw nil))
+  ([{:keys [type tags]} props]
+   (cond
+     (= :root type)
+     (->>
+       ;; we're merging these, will write back as filetags
+       [(:org.prop/filetags props)
+        (:org.prop/roam-tags props)
+        ;; (:org.prop/roam-aliases props) ;; TODO needs it's own handling
+        ]
+       (remove nil?)
+       (mapcat #(string/split % #" |:"))
+       (remove empty?)
+       (into #{}))
 
-    :else (-> tags (set))))
+     :else (-> tags (set)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; todo status
@@ -334,9 +332,10 @@
           (merge {:org/level       (->level raw)
                   :org/source-file (-> source-file fs/absolutize str)
                   :org/name        (:org.prop/title props)
-                  :org/tags        (->tags raw)
+                  :org/tags        (->tags raw props)
                   :org/body        (->body raw)
-                  :org/id          (:org.prop/id props)}
+                  :org/id          (if-let [id (->id raw)]
+                                     id (:org.prop/id props))}
                  props
                  (->dates raw))))
 

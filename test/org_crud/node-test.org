@@ -1,4 +1,8 @@
+:PROPERTIES:
+:ID:       109f0706-9de3-426e-a63d-3ab2fd0d107d
+:END:
 #+title: Node Test
+#+filetags: :post:somefiletag:
 
 
 * some org item

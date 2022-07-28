@@ -119,6 +119,12 @@
     (is (set/subset? #{"roam" "tags" "like" "this"}
                      (set (:org/tags item))))))
 
+(deftest parses-filetags
+  (let [item (parsed-org-file "node-test.org")]
+    (is (= #{"somefiletag" "post"} (:org/tags item)))))
+
+;; TODO support roam aliases
+;; TODO support all these on the same node?
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; priority
@@ -146,6 +152,27 @@
                           (string/includes? n "#C"))))
                     count))))))
 
-(comment
-  (count nil)
-  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ids/uuids
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest parses-ids-from-buckets
+  (let [item       (parsed-org-file "node-test.org")
+        matches-id (fn [it id]
+                     (is (= (:org/id it) (java.util.UUID/fromString id))))]
+
+    (testing "root id"
+      (matches-id item "109f0706-9de3-426e-a63d-3ab2fd0d107d"))
+
+    (testing "children ids"
+      (doall
+        (for [item (:org/items item)]
+          (cond
+            (#{"with an id"} (:org/name item))
+            (matches-id item "2c96a967-7b44-4e4c-8577-947640c03ae8")
+
+            (#{"with a spaced out property bucket"} (:org/name item))
+            (matches-id item "86af07dc-4cc2-47b4-8113-2cd2b4c9c9ba")
+
+            :else nil))))))
