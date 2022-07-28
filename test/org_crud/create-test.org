@@ -125,7 +125,4 @@ goes above me???
 
 
 
-* new headline :hi:
-:PROPERTIES:
-:hi: bye
-:END:
+* new headline

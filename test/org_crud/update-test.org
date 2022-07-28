@@ -27,6 +27,8 @@ some detail
 * add/remove multi-properties
 :PROPERTIES:
 :id: 6bf7df7a-ca6b-4566-8a12-c4a2181c57e3
+:repo-ids+: my/other-repo
+:repo-ids: my/new-repo
 :END:
 * temp
 :PROPERTIES:

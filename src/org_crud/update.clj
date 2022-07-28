@@ -127,7 +127,7 @@
 (defn matching-items? [it item]
   (or
     (and (:org/id it)
-         (= (:org/id it) (:org/id item)))
+         (= (str (:org/id it)) (str (:org/id item))))
     ;; try to match on name if no id
     (and
       ;; temp! allowing one to not have the id, so that ids can be set without some other treatment

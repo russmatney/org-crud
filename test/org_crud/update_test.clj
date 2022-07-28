@@ -263,10 +263,10 @@
 ;; update using id prop
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def same-name-1-id "c3a82f7c-ecff-4e4c-8047-bc4e11861bb0")
+(def same-name-1-id #uuid "c3a82f7c-ecff-4e4c-8047-bc4e11861bb0")
 (defn same-name-1 [] (get-headline {:org/id same-name-1-id}))
 
-(def same-name-2-id  "bcdf8060-e158-4f8c-9c4a-a9f5d58bd890")
+(def same-name-2-id  #uuid "bcdf8060-e158-4f8c-9c4a-a9f5d58bd890")
 (defn same-name-2 [] (get-headline {:org/id same-name-2-id}))
 
 (deftest ensure-same-name-with-diff-ids
@@ -326,3 +326,7 @@
     (is (= nil (-> (parse-item) :org.prop/new-prop)))
     (sut/update! root-item-filepath  (parse-item) #:org.prop{:new-prop "newprop"})
     (is (= "newprop" (-> (parse-item) :org.prop/new-prop)))))
+
+(deftest update-root-filetags
+  (is false)
+  )
