@@ -1,6 +1,6 @@
-(ns org-crud.headline-test
+(ns org-crud.node-test
   (:require
-   [org-crud.headline :as sut]
+   [org-crud.node :as sut]
    [clojure.test :refer [deftest testing is]]
    [org-crud.core :as org]
    [org-crud.fs :as fs]

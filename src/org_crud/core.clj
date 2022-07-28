@@ -2,7 +2,7 @@
   (:require
    [organum.core :as org]
    [org-crud.fs :as fs]
-   [org-crud.headline :as headline]
+   [org-crud.node :as node]
    [clojure.walk :as walk]
    [clojure.string :as string]))
 
@@ -43,7 +43,7 @@
   "Only parses :type :section (skipping :root).
 
   Produces flattened items, rather than nested.
-  This means deeper org headlines will not be contained within parents.
+  This means deeper org nodes will not be contained within parents.
   "
   [source-file parsed]
   (when (and parsed source-file)
@@ -51,7 +51,7 @@
       (fn [items next]
         (conj items (merge
                       ;; {:org-section next}
-                      (headline/->item next source-file))))
+                      (node/->item next source-file))))
       []
       parsed)))
 
@@ -59,7 +59,7 @@
   "Returns a flattened list of org items in the passed file.
 
   Produces flattened items, rather than nested.
-  This means deeper org headlines will not be contained within parents.
+  This means deeper org nodes will not be contained within parents.
   See `path->nested-items`."
   [p]
   (->> p
@@ -160,7 +160,7 @@
   (when (and source-file parsed)
     (->> parsed
          ;; (filter #(= :section (:type %)))
-         (map (fn [raw] (headline/->item raw source-file)))
+         (map (fn [raw] (node/->item raw source-file)))
          (flattened->nested
            (fn [parent item] (update parent :org/items conj item)))
          (walk/postwalk (fn [x]

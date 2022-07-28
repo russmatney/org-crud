@@ -184,7 +184,7 @@
       ;; anything else clears the status completely
       "")))
 
-(defn headline-name
+(defn node-name
   [{:keys [org/status org/tags org/name]} level]
   (let [level     (or level 1)
         level-str (apply str (repeat level "*"))
@@ -195,7 +195,7 @@
     (append-tags headline tags)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; item->lines as headline
+;; item->lines as node
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (declare item->root-lines)
@@ -205,7 +205,7 @@
   ([{:keys [org/body org/items] :as item} level]
    (if (= :level/root level)
      (item->root-lines item)
-     (let [headline       (headline-name item level)
+     (let [headline       (node-name item level)
            prop-lines     (new-property-bucket item)
            body-lines     (body->lines body)
            children-lines (->> items (mapcat item->lines))]

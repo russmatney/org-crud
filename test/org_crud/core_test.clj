@@ -22,7 +22,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (deftest path->flattened-items-test
-  (testing "Helpers parse org headlines into basic items"
+  (testing "Helpers parse org nodes into basic items"
     (let [items (->items)]
       (is (seq items))
       (doseq [item items]

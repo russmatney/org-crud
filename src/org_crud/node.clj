@@ -1,4 +1,4 @@
-(ns org-crud.headline
+(ns org-crud.node
   (:require
    [org-crud.util :as util]
    [clojure.string :as string]

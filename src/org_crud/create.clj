@@ -69,7 +69,7 @@
 
 
 (defn add-to-file!
-  "Adds an item as an org headline to the indicated filepath.
+  "Adds an item as an org node to the indicated filepath.
   `context` indicates where to put the item.
   If `context` is `:top-level`, the item is added as the last top level in the file.
   "
