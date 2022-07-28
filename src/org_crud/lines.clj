@@ -40,16 +40,30 @@
                      (str (k->org-prop-key k) (when (> i 0) "+")) v)) val)
     (new-property-text k val)))
 
-(defn new-property-bucket [item]
-  (let [props (util/ns-select-keys "org.prop" item)]
-    (when (seq props)
-      (flatten
-        (seq [":PROPERTIES:"
-              (->> props
-                   (map prop->new-property)
-                   flatten
-                   sort)
-              ":END:"])))))
+(defn new-property-bucket
+  ([item] (new-property-bucket item nil))
+  ([item filter-keys]
+   (let [props (cond-> (util/ns-select-keys "org.prop" item)
+                 (:org/id item)
+                 ;; bit of a hack, overwrite whatever might be in this prop if we have an org/id
+                 ;; this prevents two ids from being created in the property bucket
+                 (assoc :org.prop/id (:org/id item))
+
+                 true
+                 (cond->>
+                     filter-keys
+                   (filter (comp filter-keys first))
+
+                   true
+                   (into {})))]
+     (when (seq props)
+       (flatten
+         (seq [":PROPERTIES:"
+               (->> props
+                    (map prop->new-property)
+                    flatten
+                    sort)
+               ":END:"]))))))
 
 
 (comment
@@ -62,15 +76,23 @@
   (new-property-bucket
     {:org/name      "item name"
      :org/tags      #{"hello" "world"}
+     :org/id        #uuid "61765a42-1da0-41f1-9ee3-a218b4655de3"
+     :org.prop/some "value"
+     :org.prop/id   "and such"
+     :org.prop/urls ["blah" "other blah.com"]}
+    #{:org.prop/id})
+  (new-property-bucket
+    {:org/name      "item name"
+     :org/tags      #{"hello" "world"}
      :org/id        nil
      :org.prop/some "value"
      :org.prop/id   "and such"
      :org.prop/urls ["blah" "other blah.com"]})
   (new-property-bucket
-    {:org/name      "item name"
-     :org/tags      #{"hello" "world"}
-     :org/id        nil})
-    )
+    {:org/name "item name"
+     :org/tags #{"hello" "world"}
+     :org/id   nil})
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; root comment/properties
@@ -91,30 +113,32 @@
       (new-root-property-text k val))))
 
 (defn new-root-property-bucket
-  "Make sure #+title lands on top to support `deft`."
+  "Make sure property bucket with id lands on top."
   [item]
-  (let [item (update item :props #(into {} %))
-        prop-bucket
-        (->>
-          (concat
-            [[:title (:org/name item)]
-             [:id (or (:org/id item) (:org.prop/id item))]
-             (when (->> item :org/tags (map string/trim) (remove empty?) seq)
-               [:roam_tags (string/join " " (:org/tags item))])
-             (when-let [k (:org.prop/roam-key item)]
-               [:roam_key k])]
-            (some->
-              (util/ns-select-keys "org.prop" item)
-              (dissoc :org.prop/title
-                      :org.prop/id :org/tags
-                      :org.prop/roam_tags :org.prop/roam-tags
-                      :org.prop/roam-key)))
-          (remove nil?)
-          (remove (comp nil? second))
-          (map prop->new-root-property)
-          flatten
-          (remove nil?))]
-    prop-bucket))
+  (let [item (update item :props #(into {} %))]
+    (->>
+      (concat
+        [[:title (:org/name item)]
+         (when (->> item :org/tags (map string/trim) (remove empty?) seq)
+           [:filetags (str ":" (string/join ":" (:org/tags item)) ":")])
+         (when-let [k (:org.prop/roam-key item)]
+           [:roam_key k])]
+        (some->
+          (util/ns-select-keys "org.prop" item)
+          ;; create a prop bucket with everything except these explicitly handled props
+          (dissoc :org.prop/title :org.prop/id :org/tags
+                  :org.prop/roam_tags :org.prop/roam-tags :org.prop/filetags
+                  :org.prop/roam-key)))
+      (remove nil?)
+      (remove (comp nil? second))
+      (map prop->new-root-property)
+      flatten
+      (remove nil?)
+
+      (#(concat
+          ;; add prop bucket with id on top
+          (new-property-bucket item #{:org.prop/id})
+          %)))))
 
 (comment
   (new-root-property-bucket

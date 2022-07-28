@@ -1,5 +1,6 @@
 #+TITLE: Update Test Root Item
 #+ROAM_TAGS: existing
+#+filetags: :post:sometag:
 
 Orginally the update test fixture, pulled over blindly due to laziness.
 

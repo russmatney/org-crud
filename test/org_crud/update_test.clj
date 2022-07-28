@@ -32,6 +32,9 @@
 (def root-item-filepath
   (str (fs/cwd) "/test/org_crud/update-test-root-item.org"))
 
+(defn parsed-org-file [fname]
+  (org/path->nested-item (str (fs/cwd) "/test/org_crud/" fname)))
+
 (defn ->items []
   (org/path->flattened-items org-filepath))
 
@@ -316,9 +319,12 @@
 (defn parse-item []
   (org/path->nested-item root-item-filepath))
 
+(defn update-item [update]
+  (sut/update! root-item-filepath (parse-item) update))
+
 (deftest update-root-item
   (testing "root-level tags are updated as expected"
-    (sut/update! root-item-filepath (parse-item) {:org/tags "newtag"})
+    (update-item {:org/tags "newtag"})
     (is (contains? (-> (parse-item) :org/tags) "newtag"))
     (is (contains? (-> (parse-item) :org/tags) "existing")))
 
@@ -328,5 +334,11 @@
     (is (= "newprop" (-> (parse-item) :org.prop/new-prop)))))
 
 (deftest update-root-filetags
-  (is false)
-  )
+  (let [{:org/keys [tags]} (parse-item)]
+    (is (= #{"post" "sometag" "existing"} tags))
+    (update-item {:org/tags (cons "newtag" tags)})
+    (is (= #{"post" "sometag" "newtag" "existing"}
+           (-> (parse-item) :org/tags)))))
+
+(deftest update-root-with-drawer-id
+  (is false))
