@@ -47,7 +47,8 @@
     (let [items (sut/flattened->nested
                   (fn [parent item]
                     (update parent :org/items conj item))
-                  [{:org/level 1 :org/name "b"}
+                  [{:org/level :level/root :org/name "root"}
+                   {:org/level 1 :org/name "b"}
                    {:org/level 1 :org/name "a"}
                    {:org/level 2 :org/name "c"}
                    {:org/level 3 :org/name "d"}
@@ -55,17 +56,20 @@
                    {:org/level 3 :org/name "f"}
                    {:org/level 1 :org/name "g"}])]
       (is (seq items))
-      (is (= 3 (count items)))
-      (doseq [item items]
+      (is (= 1 (count items)))
+      (doseq [item (-> items first :org/items)]
         (let [level (-> item :org/level)]
           (is (= level 1))))
-      (let [c (-> (nth items 1)
+      (let [c (-> items first :org/items (nth 1)
                   :org/items first)]
         (is (= 2 (count (:org/items c))))
-        (is (->> c :org/items
-                 (filter (fn [{:keys [org/name]}]
-                           (= name "d")))
-                 first :org/items first :org/name (= "e")))))))
+        (let [e (->> c :org/items
+                     (filter (fn [{:keys [org/name]}]
+                               (= name "d")))
+                     first :org/items first)]
+          (is (= "e" (:org/name e)))
+          (testing "sets a parent name"
+            (is (= "d > c > a > root" (:org/parent-name e)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; word count test

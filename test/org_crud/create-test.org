@@ -1,59 +1,60 @@
-#+TITLE: Update Test
+#+title: Update Test
 
 * reschedule me
-SCHEDULED: <2020-03-22 Sun>
 :PROPERTIES:
-:ID:       44a33ff3-603a-44c8-82ea-a79f189c1794
+:id: 44a33ff3-603a-44c8-82ea-a79f189c1794
 :END:
+SCHEDULED: <2020-03-22 Sun>
 ** detail
 :PROPERTIES:
-:ID:       95aa9126-2e19-43e2-969e-24bdcf1ecce8
+:id: 95aa9126-2e19-43e2-969e-24bdcf1ecce8
 :END:
 some detail
 * [ ] mark me status
 :PROPERTIES:
-:ID:       46d92e9c-73f8-40bb-a946-c02859aa7f7f
+:id: 46d92e9c-73f8-40bb-a946-c02859aa7f7f
 :END:
 * add/remove tags
 :PROPERTIES:
-:ID:       a5eb95d0-b9de-448f-bdfd-1d9d1f044f1d
+:id: a5eb95d0-b9de-448f-bdfd-1d9d1f044f1d
 :END:
 * basic properties
 :PROPERTIES:
-:ID:       ade8fbef-b18f-4369-a174-6cd6affb6450
+:id: ade8fbef-b18f-4369-a174-6cd6affb6450
 :END:
 * add/remove multi-properties
 :PROPERTIES:
-:ID:       6bf7df7a-ca6b-4566-8a12-c4a2181c57e3
+:id: 6bf7df7a-ca6b-4566-8a12-c4a2181c57e3
 :END:
 * temp
 :PROPERTIES:
+:id: 0e230bca-a496-4e89-8f6b-42ef757e423e
 :repo-ids: my/other-repo
-:ID:       0e230bca-a496-4e89-8f6b-42ef757e423e
 :END:
 
 * consistent prop order
 :PROPERTIES:
-:ID:       d4817fda-5a36-4ebc-93f2-57b6adfbf740
+:id: d4817fda-5a36-4ebc-93f2-57b6adfbf740
 :END:
 
 * parent headline
 :PROPERTIES:
-:ID:       cff2d8b3-2e4c-4c51-a43d-85a7c9bdd6a6
+:id: cff2d8b3-2e4c-4c51-a43d-85a7c9bdd6a6
 :END:
 
+** new headline
 * delete headline
 :PROPERTIES:
-:ID:       f579c11f-7cab-4e3e-a909-8ecdf8c22820
+:id: f579c11f-7cab-4e3e-a909-8ecdf8c22820
 :END:
 
 ** delete nested headline
 :PROPERTIES:
-:ID:       346c6928-f3e5-4a51-831c-2e819a5f7ea1
+:id: 346c6928-f3e5-4a51-831c-2e819a5f7ea1
 :END:
 *** sub sub content content
 :PROPERTIES:
-:ID:       3ea8c3c7-c0f8-4926-bd51-9ac3532f4379
+:id: 3ea8c3c7-c0f8-4926-bd51-9ac3532f4379
 :END:
 
 #+BEGIN_SRC clojure
@@ -62,20 +63,20 @@ some detail
 
 ** deleted more content
 :PROPERTIES:
-:ID:       bfe34518-6f3c-47b4-9648-de3a4eb871c3
+:id: bfe34518-6f3c-47b4-9648-de3a4eb871c3
 :END:
 * more content
 :PROPERTIES:
-:ID:       361c3363-d857-4790-a9db-368bee9f3112
+:id: 361c3363-d857-4790-a9db-368bee9f3112
 :END:
 
 * original headline
 :PROPERTIES:
-:ID:       7590baf6-886e-4ddd-89bf-cef7092121b3
+:id: 7590baf6-886e-4ddd-89bf-cef7092121b3
 :END:
 ** some inbox item
 :PROPERTIES:
-:ID:       095dbd4e-54a4-4e23-9bb4-3c2b6b0b6750
+:id: 095dbd4e-54a4-4e23-9bb4-3c2b6b0b6750
 :END:
 With some included content
 - of various types
@@ -89,25 +90,25 @@ With some included content
 
 * target project
 :PROPERTIES:
-:ID:       09fdf0b8-3dda-4077-8bfb-0e33d6133725
+:id: 09fdf0b8-3dda-4077-8bfb-0e33d6133725
 :END:
 ** target epic
 :PROPERTIES:
-:ID:       6813be37-05a2-494f-9a46-673c660509f5
+:id: 6813be37-05a2-494f-9a46-673c660509f5
 :END:
 *** target todo
 :PROPERTIES:
-:ID:       c56622d3-8bb9-4496-9b1a-fa973ef15b43
+:id: c56622d3-8bb9-4496-9b1a-fa973ef15b43
 :END:
 
 * even more content
 :PROPERTIES:
-:ID:       3dee88a4-6b7e-44fd-b3c8-51a8b999c124
+:id: 3dee88a4-6b7e-44fd-b3c8-51a8b999c124
 :END:
 
 * parent with mid-line asterisk
 :PROPERTIES:
-:ID:       554b7f45-c039-4c1e-b0f8-90a65327d3da
+:id: 554b7f45-c039-4c1e-b0f8-90a65327d3da
 :END:
 #+BEGIN_SRC code
 blah *
@@ -116,13 +117,9 @@ goes above me???
 
 * same name, different id
 :PROPERTIES:
-:ID:       c3a82f7c-ecff-4e4c-8047-bc4e11861bb0
+:id: c3a82f7c-ecff-4e4c-8047-bc4e11861bb0
 :END:
 * same name, different id
 :PROPERTIES:
-:ID:       bcdf8060-e158-4f8c-9c4a-a9f5d58bd890
+:id: bcdf8060-e158-4f8c-9c4a-a9f5d58bd890
 :END:
-
-
-
-* new headline :hi:

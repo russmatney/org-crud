@@ -3,7 +3,6 @@
 :END:
 #+title: Update Test Root Item
 #+filetags: :sometag:existing:post:newtag:
-#+new-prop: newprop
 
 Orginally the update test fixture, pulled over blindly due to laziness.
 

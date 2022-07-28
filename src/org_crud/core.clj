@@ -13,10 +13,7 @@
 (defn parse-org-file
   [path]
   (try
-    (-> path
-        fs/absolutize
-        str
-        org/parse-file)
+    (-> path fs/absolutize str org/parse-file)
     (catch Exception ex
       (println "org-crud.core/parse-org-file exception" path)
       (println ex)
@@ -75,65 +72,74 @@
 
 (defn flattened->nested
   "Returns top-level items with sub-items as children"
-  ([xs]
-   (flattened->nested
-     (fn [parent item]
-       (update parent :org/items conj item)) xs))
-  ([update-parent xs]
+  ([xs] (flattened->nested nil xs))
+  ([before-add-to-parent xs]
    (loop [remaining  xs
           items      []
           ctx-stack  []
           last-level 0]
-     (let [{:keys [org/level] :as current}
-           (some-> remaining first)
-           level      (if (= :level/root level) 0 level)
-           level-diff (when current (- level last-level))]
+     (let [{:org/keys [level] :as current-node} (some-> remaining first)
+           level                                (if (#{:level/root} level) 0 level)
+           level-diff                           (when current-node (- level last-level))]
+       (if (and current-node (> level-diff 0))
+         ;; we moved in -> at least 1 level, push current node and recur with new level
+         (recur (rest remaining) items (conj ctx-stack current-node) level)
 
-       (if (and current (> level-diff 0))
-         ;; recur with updated
-         (recur (rest remaining)
-                items
-                ;; push current to ctx-stack
-                (conj ctx-stack current)
-                level)
-
-         ;; pop as many times as diff in level
+         ;; reduce over the level-diff or ctx-stack
          (let [{:keys [ctx-stack items]}
                (reduce
                  (fn [{:keys [ctx-stack items]} _]
-                   ;; merge top of stack with item below it
                    (let [top-of-stack (peek ctx-stack)
+                         ;; remove top from stack
                          ctx-stack    (when top-of-stack (pop ctx-stack))
-                         parent       (when (seq ctx-stack)
-                                        (some-> ctx-stack peek
-                                                (update-parent top-of-stack)))
-                         ctx-stack    (when parent
-                                        ;; replace top of stack with updated
-                                        ;; parent
-                                        (-> ctx-stack pop (conj parent)))
-                         ;; if we have a parent, don't touch items
-                         ;; otherwise, add this to items
-                         items        (if parent items
-                                          (conj items top-of-stack))]
+
+                         ;; add top-of-stack to parent items
+                         parent    (when (seq ctx-stack)
+                                     (some-> ctx-stack peek
+                                             ((fn [parent]
+                                                ;; update the item with the parent/stack context
+                                                (let [item (-> top-of-stack
+                                                               (assoc :org/parent-name
+                                                                      (->> ctx-stack
+                                                                           (map :org/name)
+                                                                           (string/join " > "))))]
+                                                  (-> parent (update :org/items conj item)))))))
+                         ;; replace parent in stack with updated parent
+                         ctx-stack (when parent
+                                     (-> ctx-stack pop (conj parent)))
+
+                         ;; update items
+                         items (cond
+                                 ;; if we have a parent, don't touch items
+                                 ;; (we already added top-o-s to the parent items)
+                                 parent items
+
+                                 ;; otherwise, add top-of-stack to items (presumably top-level)
+                                 top-of-stack (conj items top-of-stack)
+
+                                 :else items)]
                      {:ctx-stack ctx-stack
                       :items     items}))
                  {:ctx-stack ctx-stack
                   :items     items}
-                 (if current
+                 (if current-node
+                   ;; pop as many times as diff in level
                    (range level-diff 1)
+                   ;; pop as many times as diff in level
                    ctx-stack))]
-           ;; recur with updated
-           (if current
-             (recur (rest remaining) items (conj ctx-stack current) level)
+           (if current-node
+             ;; recur with updated
+             (recur (rest remaining) items (conj ctx-stack current-node) level)
+             ;; if no current-node (no `remaining`), return items
              items)))))))
 
 (comment
   (->
     (flattened->nested
-      (fn [parent item]
-        (update parent :org/items conj
-                (-> item (update :org/items reverse))))
-      [{:org/level 1 :org/name "b"}
+      (fn [item parent]
+        (-> item (assoc :org/parent-name (:org/name parent))))
+      [{:org/level :level/root :org/name "root"}
+       {:org/level 1 :org/name "b"}
        {:org/level 1 :org/name "a"}
        {:org/level 2 :org/name "c"}
        {:org/level 3 :org/name "d"}
@@ -164,6 +170,7 @@
          (map (fn [raw] (node/->item raw source-file)))
          (flattened->nested
            (fn [parent item] (update parent :org/items conj item)))
+         ;; TODO get this order right on the first pass?
          (walk/postwalk (fn [x]
                           (if (and (map? x)
                                    (seq (:org/items x)))
