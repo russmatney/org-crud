@@ -20,8 +20,18 @@
                  ;; set any parent ids
                  (assoc :org/parent-ids (->> parent-stack (map :org/id) (remove nil?) (into #{})))
                  ;; set a nested parent name
-                 (assoc :org/parent-name (->> parent-stack (map :org/name) (string/join " > ")))
-                 (assoc :org/parent-names (->> parent-stack (map :org/name) (into []))))]
+                 (assoc :org/parent-name (->> parent-stack
+                                              (map (fn [parent]
+                                                     (or (:org/name parent)
+                                                         (:org/source-file parent))))
+                                              (remove nil?)
+                                              (string/join " > ")))
+                 (assoc :org/parent-names (->> parent-stack
+                                               (map (fn [parent]
+                                                      (or (:org/name parent)
+                                                          (:org/source-file parent))))
+                                               (remove nil?)
+                                               (into []))))]
     (-> parent (update :org/items conj item))))
 
 (defn flattened->nested

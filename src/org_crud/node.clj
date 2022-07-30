@@ -2,7 +2,8 @@
   (:require
    [clojure.string :as string]
    [babashka.fs :as fs]
-   [org-crud.util :as util]))
+   [org-crud.util :as util]
+   [taoensso.timbre :as log]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; parsing an org-node helpers
@@ -118,13 +119,26 @@
   (keyword (str "level/" 1))
   (keyword (str "level/" :root)))
 
-(defn ->id [hl]
-  (when-let [id (-> hl ->properties :org.prop/id)]
-    (try
-      (java.util.UUID/fromString id)
-      (catch Exception e
-        (println "Exception parsing :org/id" id)
-        id))))
+(defn ->id [raw]
+  (when-let [id (-> raw ->properties :org.prop/id)]
+    (let [id (cond
+               (string? id) id
+
+               (seq? id)
+               (do
+                 (log/info "Org node with multiple ids!?!"
+                           (-> raw ->properties :org.prop/title))
+                 (log/info "Using id: " (first id))
+                 (first id)))]
+      (try
+        (java.util.UUID/fromString id)
+        (catch Exception e
+          (println "Exception parsing :org/id" id)
+          id)))))
+
+(comment
+  (first (reverse (list 1 5 8))))
+
 
 (defn ->name [{:keys [name type]}]
   (cond
