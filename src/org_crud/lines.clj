@@ -200,7 +200,6 @@
 
 (defn item->status-text [{:keys [org/status org/status-raw]}]
   (when status
-    (println "status" status "status-raw" status-raw)
     ;; prefer raw-status if we have it
     (or status-raw
         (case status
@@ -230,8 +229,10 @@
 (defn item->lines
   ([item] (item->lines nil item))
   ([{:keys [skip-children] :as opts} {:keys [org/body org/items] :as item}]
-   ;; NOTE the item's level wins here - maybe want override or fallback naming to make that clear
-   (let [level (or (:org/level item) (:level opts))]
+   (let [level (or
+                 (:override-level opts) ;; append-top-level
+                 (:org/level item) ;; typical update
+                 (:level opts))] ;; ...maybe not used, or useful as a fallback
      (if (= :level/root level)
        (item->root-lines opts item)
        (let [headline       (node-name item level)

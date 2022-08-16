@@ -11,20 +11,13 @@
 
 (defn append-top-level
   [path item]
-  (let [lines (lines/item->lines {:level 1} item)]
+  (let [lines (lines/item->lines {:override-level 1} item)]
     (up/append-to-file! path (concat ["\n\n"] lines))))
 
 (defn add-to-context
   [path item context]
   (println (dissoc context :org-section))
-  (up/update! path context
-              {:add-item
-               (update item :props
-                       (fn [props]
-                         (merge
-                           ;; TODO support via adapter/dynamism?
-                           ;; {:added-at (util/now)}
-                           props)))}))
+  (up/update! path context {:add-item item}))
 
 (defn create-root-file
   "Creates a new file at the passed `path` treating the item as a root-level

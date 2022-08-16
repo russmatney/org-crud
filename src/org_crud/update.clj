@@ -107,12 +107,6 @@
     (seq (:org/tags up))
     (update :org/tags update-tags (:org/tags up))
 
-    (:add-item up)
-    (update :org/items (fn [items]
-                         (conj items (-> (:add-item up)
-                                         (assoc :org/level
-                                                (+ 1 (:org/level item)))))))
-
     (:org/name up)
     (assoc :org/name (:org/name up))
 
@@ -163,13 +157,27 @@
                        (dissoc :deleting?))))
 
                (update agg :items
-                       conj (if (matching-items? it item)
-                              (let [res (apply-update it up)]
-                                res)
-                              it))))
+                       (fn [agg-items]
+                         (if (matching-items? it item)
+                           (cond
+                             ;; adding an item
+                             (:add-item up)
+                             (let [new-item
+                                   (-> up :add-item (assoc :org/level (+ 1 (:org/level it))))]
+                               ;; add to nested items _and_ as flattened item
+                               ;; redundant, but supports various ways the result is used
+                               (conj agg-items
+                                     (update it :org/items conj new-item)
+                                     new-item))
+
+                             :else (conj agg-items (apply-update it up)))
+                           (conj agg-items it))))))
            {:items []})
          :items
          (remove nil?))))
+
+(comment
+  (conj [2 3 4] 1 4))
 
 (defn write-updated
   "Writes the passed org-structure to disk as a .org file.
