@@ -22,3 +22,9 @@ tmp/
 .clj-kondo/.cache/
 
 .lsp/
+
+test/org_crud/update-test.org
+test/org_crud/update-test-root-item.org
+test/org_crud/create-test.org
+test/org_crud/refile-test.org
+test/org_crud/delete-test.org
