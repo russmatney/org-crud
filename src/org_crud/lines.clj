@@ -198,23 +198,26 @@
 ;; name / status
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn status->status-text [status]
+(defn item->status-text [{:keys [org/status org/status-raw]}]
   (when status
-    (case status
-      :status/cancelled   "CANCELLED"
-      :status/done        "[X]"
-      :status/not-started "[ ]"
-      :status/in-progress "[-]"
-      ;; anything else clears the status completely
-      "")))
+    (println "status" status "status-raw" status-raw)
+    ;; prefer raw-status if we have it
+    (or status-raw
+        (case status
+          :status/cancelled   "CANCELLED"
+          :status/done        "[X]"
+          :status/not-started "[ ]"
+          :status/in-progress "[-]"
+          :status/skipped     "SKIP"
+          ""))))
 
 (defn node-name
-  [{:keys [org/status org/tags org/name]} level]
+  [{:keys [org/status org/tags org/name] :as item} level]
   (let [level     (or level 1)
         level-str (apply str (repeat level "*"))
         headline  (str level-str
                        (when status
-                         (str " " (status->status-text status)))
+                         (str " " (item->status-text item)))
                        " " name)]
     (append-tags headline tags)))
 
@@ -225,25 +228,28 @@
 (declare item->root-lines)
 
 (defn item->lines
-  ([item] (item->lines item (:org/level item)))
-  ([{:keys [org/body org/items] :as item} level]
-   (if (= :level/root level)
-     (item->root-lines item)
-     (let [headline       (node-name item level)
-           prop-lines     (new-property-bucket item)
-           body-lines     (body->lines body)
-           children-lines (->> items (mapcat item->lines))]
-       (concat
-         (conj
-           (concat (or prop-lines []) (or body-lines []))
-           headline)
-         children-lines)))))
+  ([item] (item->lines nil item))
+  ([{:keys [skip-children] :as opts} {:keys [org/body org/items] :as item}]
+   ;; NOTE the item's level wins here - maybe want override or fallback naming to make that clear
+   (let [level (or (:org/level item) (:level opts))]
+     (if (= :level/root level)
+       (item->root-lines opts item)
+       (let [headline       (node-name item level)
+             prop-lines     (new-property-bucket item)
+             body-lines     (body->lines body)
+             children-lines (if skip-children []
+                                (->> items (mapcat (partial item->lines opts))))]
+         (concat
+           (conj
+             (concat (or prop-lines []) (or body-lines []))
+             headline)
+           children-lines))))))
 
 (comment
-  (item->lines {:org/name "hi" :org/tags ["next"] :org.prop/hi :bye} :level/root)
-  (item->lines {:org/name "hi" :org/tags ["next"] :org.prop/hi :bye} 3)
-  (new-property-bucket {:org/name "hi" :org/tags ["next"] :org.prop/hi :bye})
-  )
+  (item->lines {:level :level/root} {:org/name "hi" :org/tags ["next"] :org.prop/hi :bye})
+  (item->lines {:level :level/root} {:org/level 2 :org/name "hi" :org.prop/hi :bye})
+  (item->lines {:level 3} {:org/name "hi" :org/tags ["next"] :org.prop/hi :bye})
+  (new-property-bucket {:org/name "hi" :org/tags ["next"] :org.prop/hi :bye}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item->root-lines as full file
@@ -251,14 +257,16 @@
 
 ;; TODO elevate to exposed api temp-buffer support
 (defn item->root-lines
-  [{:keys [org/body org/items] :as item}]
-  (let [root-prop-lines (new-root-property-bucket item)
-        body-lines      (root-body->lines body)
-        children-lines  (->> items (mapcat item->lines))]
-    (concat
-      root-prop-lines
-      body-lines
-      children-lines)))
+  ([item] (item->root-lines nil item))
+  ([{:keys [skip-children] :as opts} {:keys [org/body org/items] :as item}]
+   (let [root-prop-lines (new-root-property-bucket item)
+         body-lines      (root-body->lines body)
+         children-lines  (if skip-children []
+                             (->> items (mapcat (partial item->lines opts))))]
+     (concat
+       root-prop-lines
+       body-lines
+       children-lines))))
 
 (comment
   (item->root-lines {:org/name "hi" :org/tags ["next" "day"] :org.prop/hi :bye}))

@@ -22,6 +22,8 @@
     (is (= "01 test todo" (sut/->name {:name "01 test todo" :type :section})))
     (is (= "01 test todo" (sut/->name {:name "[ ] 01 test todo" :type :section})))
     (is (= "01 test todo" (sut/->name {:name "[X] 01 test todo" :type :section})))
+    (is (= "01 test todo" (sut/->name {:name "DONE 01 test todo" :type :section})))
+    (is (= "01 test todo" (sut/->name {:name "SKIP 01 test todo" :type :section})))
     (is (= "test todo" (sut/->name {:name "test todo" :type :section})))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -11,7 +11,7 @@
 
 (defn append-top-level
   [path item]
-  (let [lines (lines/item->lines item 1)]
+  (let [lines (lines/item->lines {:level 1} item)]
     (up/append-to-file! path (concat ["\n\n"] lines))))
 
 (defn add-to-context

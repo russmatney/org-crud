@@ -138,14 +138,14 @@
 (comment
   (first (reverse (list 1 5 8))))
 
+(def headline-regex
+  #"\*?\*?\*?\*?\*? ?(?:TODO|DONE|CANCELLED|SKIP|STRT)? ?(?:\[#[ABC]{1}\])? ?(.*)")
 
 (defn ->name [{:keys [name type]}]
   (cond
     (and name (= type :section))
     (->> name
-         (re-find
-           ;; TODO pull these out - depends on the config
-           #"\*?\*?\*?\*? ?(?:TODO|DONE|CANCELLED|SKIP)? ?(?:\[#[ABC]{1}\])? ?(.*)")
+         (re-find headline-regex)
          second
          ((fn [s] (string/replace s #"\[[ X-]\] " ""))))))
 
@@ -200,30 +200,50 @@
 ;; todo status
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(def status-regex
+  #"^(TODO|DONE|CANCELLED|SKIP|STRT|\[[ X-]\])")
+
+(comment
+  (re-seq status-regex "misc headline TODO")
+  (re-seq status-regex "[X] done task")
+  (re-seq status-regex "DONE done task")
+  (re-seq status-regex "[-] started task")
+  (re-seq status-regex "STRT started task")
+  (re-seq status-regex "[ ] open task"))
+
+;; TODO maybe parse a raw status as well
 (defn ->todo-status
   [{:keys [name]}]
   (when name
-    (cond
-      (re-seq #"(\[-\])" name)
-      :status/in-progress
+    (let [matches (re-seq status-regex name)]
+      (when (seq matches)
+        (let [match (-> matches first second)]
+          {:status-raw match
+           :status
+           (cond
+             (#{"[-]" "STRT"} match)
+             :status/in-progress
 
-      (re-seq #"(\[ \]|TODO)" name)
-      :status/not-started
+             (#{"[ ]" "TODO"} match)
+             :status/not-started
 
-      (re-seq #"(\[X\]|DONE)" name)
-      :status/done
+             (#{"[X]" "DONE"} match)
+             :status/done
 
-      (re-seq #"CANCELLED" name)
-      :status/cancelled
+             (#{"CANCELLED"} match)
+             :status/cancelled
 
-      (re-seq #"SKIP" name)
-      :status/skipped
+             (#{"SKIP"} match)
+             :status/skipped
 
-      :else nil)))
+             :else nil)})))))
 
 (comment
-  (->todo-status
-    {:name "[X] parse/pull TODOs from repo files"}))
+  (->todo-status {:name "[X] parse/pull TODOs from repo files"})
+  (->todo-status {:name "[-] parse/pull TODOs from repo files"})
+  (->todo-status {:name "DONE parse/pull TODOs from repo files"})
+  (->todo-status {:name "SKIP parse/pull TODOs from repo files"})
+  (->todo-status {:name "CANCELLED parse/pull TODOs from repo files"}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; priority
@@ -350,21 +370,26 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ->item [raw source-file]
+  (when (and (-> raw :name) (string/includes? (-> raw :name) "finished"))
+    (println "name" (-> raw :name))
+    (def raw raw))
   (-> (cond
         (#{:section} (:type raw))
-        (merge {:org/level       (->level raw)
-                :org/source-file (-> source-file fs/absolutize str)
-                :org/id          (->id raw)
-                :org/name        (->name raw)
-                :org/headline    (->raw-headline raw)
-                :org/tags        (->tags raw)
-                :org/priority    (->priority raw)
-                :org/body        (->body raw)
-                :org/body-string (->body-string raw)
-                :org/links-to    (->links-to raw)
-                :org/status      (->todo-status raw)}
-               (->properties raw)
-               (->dates raw))
+        (let [{:keys [status status-raw]} (->todo-status raw)]
+          (merge {:org/level       (->level raw)
+                  :org/source-file (-> source-file fs/absolutize str)
+                  :org/id          (->id raw)
+                  :org/name        (->name raw)
+                  :org/headline    (->raw-headline raw)
+                  :org/tags        (->tags raw)
+                  :org/priority    (->priority raw)
+                  :org/body        (->body raw)
+                  :org/body-string (->body-string raw)
+                  :org/links-to    (->links-to raw)
+                  :org/status      status
+                  :org/status-raw  status-raw}
+                 (->properties raw)
+                 (->dates raw)))
 
         (#{:root} (:type raw))
         (let [props (->properties raw)]
@@ -384,4 +409,8 @@
          (when item
            (-> item
                (assoc :org/word-count (->word-count item raw))
-               (assoc :org/urls (-> raw ->urls set))))))))
+               (assoc :org/urls (-> raw ->urls set))
+               (->>
+                 ;; remove nil fields
+                 (remove (comp nil? second))
+                 (into {}))))))))

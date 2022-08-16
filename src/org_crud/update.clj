@@ -99,7 +99,10 @@
   [item up]
   (cond-> item
     (:org/status up)
-    (assoc :org/status (:org/status up))
+    (->
+      (assoc :org/status (:org/status up))
+      ;; clear the raw status so we write out the new one
+      (dissoc :org/status-raw))
 
     (seq (:org/tags up))
     (update :org/tags update-tags (:org/tags up))
@@ -175,7 +178,7 @@
   (when path
     (let [lines
           (reduce (fn [acc item]
-                    (concat acc (lines/item->lines item))) [] items)
+                    (concat acc (lines/item->lines {:skip-children true} item))) [] items)
           as-str (string/join "\n" lines)]
       (spit path as-str))))
 

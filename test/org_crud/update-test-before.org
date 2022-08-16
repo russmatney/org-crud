@@ -1,4 +1,4 @@
-#+title: Create Test
+#+title: Update Test
 
 Orginally the update test fixture, pulled over blindly due to laziness.
 
@@ -126,3 +126,9 @@ goes above me???
 :END:
 
 * no props on me!
+* TODO todo with words
+* [X] finished with brackets
+* DONE finished with words
+* SKIP skipped with words
+* [-] started with a dash
+* STRT started with a word

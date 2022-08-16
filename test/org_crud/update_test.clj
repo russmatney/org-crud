@@ -32,9 +32,6 @@
 (def root-item-filepath
   (str (fs/cwd) "/test/org_crud/update-test-root-item.org"))
 
-(defn parsed-org-file [fname]
-  (org/path->nested-item (str (fs/cwd) "/test/org_crud/" fname)))
-
 (defn ->items []
   (org/path->flattened-items org-filepath))
 
@@ -42,10 +39,21 @@
   (util/get-one pred-map (->items)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; update anything
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest update-counts-test
+  (testing "updates an item, compares before/after counts"
+    (let [ct (-> (->items) count)]
+      (sut/update! org-filepath
+                   (get-headline {:org/name "finished with brackets"})
+                   {:org/tags "newtag"})
+      (is (= ct (-> (->items) count))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; update status (done/not-started/current)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; for now, just the [ ] or [X].
 (deftest update-status-test
   (testing "updates a todo's status"
     (let [pred-map {:org/name "mark me status"}
@@ -67,6 +75,37 @@
       (sut/update! org-filepath (get-headline pred-map) {k orig})
       (let [headline (get-headline pred-map)]
         (is (= orig (get headline k)))))))
+
+(comment
+  (->>
+    (->items)
+    (map :org/name))
+  )
+
+(deftest update-status-more-statuses-test
+  (testing "adds a tag then checks that the correct statuses are set"
+    (sut/update! org-filepath
+                 (get-headline {:org/name "finished with brackets"})
+                 {:org/tags "newtag"})
+
+    (is (= :status/not-started
+           (-> {:org/name "todo with words"}
+               get-headline :org/status)))
+    (is (= :status/done
+           (-> {:org/name "finished with brackets"}
+               get-headline :org/status)))
+    (is (= :status/done
+           (-> {:org/name "finished with words"}
+               get-headline :org/status)))
+    (is (= :status/skipped
+           (-> {:org/name "skipped with words"}
+               get-headline :org/status)))
+    (is (= :status/in-progress
+           (-> {:org/name "started with a dash"}
+               get-headline :org/status)))
+    (is (= :status/in-progress
+           (-> {:org/name "started with a word"}
+               get-headline :org/status)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; update tags on headlines
