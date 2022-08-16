@@ -2,4 +2,7 @@
  :tasks
  {test (shell "./bin/kaocha")
   uberjar
-  (shell "bb   -cp $ (clojure -Spath) -m org-crud.cli --uberjar org-crud.jar")}}
+  (shell "bb   -cp $ (clojure -Spath) -m org-crud.cli --uberjar org-crud.jar")
+
+  clj-kondo      (shell "clj-kondo --lint src")
+  clj-kondo-test (shell "clj-kondo --lint test")}}
