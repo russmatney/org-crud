@@ -2,7 +2,10 @@
   (:require
    [clojure.string :as string]
    [babashka.fs :as fs]
-   [org-crud.util :as util]))
+   [org-crud.util :as util]
+
+   [organum.core :as org]
+   ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; parsing an org-node helpers
@@ -86,7 +89,9 @@
                                ;; sorting just for testing convenience
                                (sort vals)
                                (first vals))]
-                    [(keyword (str "org.prop/" (name k))) vals])))
+                    (when (seq (name k))
+                      [(keyword (str "org.prop/" (name k))) vals]))))
+           (remove nil?)
            (into {}))
       {})))
 
@@ -370,9 +375,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ->item [raw source-file]
-  (when (and (-> raw :name) (string/includes? (-> raw :name) "finished"))
-    (println "name" (-> raw :name))
-    (def raw raw))
+  (def raw raw)
   (-> (cond
         (#{:section} (:type raw))
         (let [{:keys [status status-raw]} (->todo-status raw)]
@@ -414,3 +417,10 @@
                  ;; remove nil fields
                  (remove (comp nil? second))
                  (into {}))))))))
+
+(comment
+  (def path (str (fs/home) "/todo/garden/bb_cli.org"))
+  (def parsed (-> path fs/absolutize str org/parse-file
+                  first))
+  (->item parsed path)
+  )
