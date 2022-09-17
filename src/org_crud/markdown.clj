@@ -117,50 +117,48 @@
        s
        #"\[\[([^\]]*)\]\[([^\]]*)\]\]"
        (fn [res]
-         (println "found org-link" res)
-         (let [file-path (some->> res (drop 1) first
-                                  ((fn [raw-link]
-                                     (cond
-                                       (string/starts-with? raw-link "id:")
-                                       (do
-                                         (println "raw-link starts with id:" raw-link)
-                                         (if-let [fetch-item (:fetch-item opts)]
-                                           (if-let [item (some-> raw-link
-                                                                 (string/split #"id:")
-                                                                 second
-                                                                 fetch-item)]
-                                             (do
-                                               (println "\n fetch-item found:" (:org/name item) (:org/source-file item))
-                                               ;; TODO return a usable link to the this item's page
-                                               ;; TODO make sure these items are captured and included in the output
-                                               (when-not (:org/name item)
-                                                 (println "\n\n what's this?" item))
-                                               (let [link
-                                                     (some-> item
-                                                             :org/source-file
-                                                             fs/file-name
-                                                             fs/split-ext first
-                                                             (#(str % ".html")))]
-                                                 (if link link
-                                                     (do
-                                                       (println "could not create link, returning raw link")
-                                                       raw-link))
-                                                 ))
-                                             (do
-                                               (println "fetch-item returned nil, using raw link")
-                                               raw-link))
+         (let [file-path
+               (some->> res (drop 1) first
+                        ((fn [raw-link]
+                           (cond
+                             (string/starts-with? raw-link "id:")
+                             (do
+                               (if-let [fetch-item (:fetch-item opts)]
+                                 (if-let [item (some-> raw-link
+                                                       (string/split #"id:")
+                                                       second
+                                                       fetch-item)]
+                                   (do
+                                     #_(println "\n fetch-item found:" (:org/name item) (:org/source-file item))
+                                     ;; TODO return a usable link to the this item's page
+                                     ;; TODO make sure these items are captured and included in the output
+                                     (when-not (:org/name item)
+                                       (println "\n\n what's this?" item))
+                                     (let [link
+                                           (some-> item
+                                                   :org/source-file
+                                                   fs/file-name
+                                                   fs/split-ext first
+                                                   (#(str % ".html")))]
+                                       (if link link
                                            (do
-                                             (println "no fetch-item, using raw link")
-                                             raw-link)))
+                                             (println "could not create link, returning raw link")
+                                             raw-link))))
+                                   (do
+                                     (println "fetch-item returned nil, using raw link" raw-link)
+                                     raw-link))
+                                 (do
+                                   (println "no fetch-item, using raw link")
+                                   raw-link)))
 
-                                       (string/starts-with? raw-link "file:")
-                                       (let [link-prefix (or (:link-prefix opts) "")]
-                                         (some-> raw-link
-                                                 fs/file-name fs/split-ext first
-                                                 (string/replace "file:" "")
-                                                 (#(str link-prefix "/" %))))
+                             (string/starts-with? raw-link "file:")
+                             (let [link-prefix (or (:link-prefix opts) "")]
+                               (some-> raw-link
+                                       fs/file-name fs/split-ext first
+                                       (string/replace "file:" "")
+                                       (#(str link-prefix "/" %))))
 
-                                       :else raw-link))))
+                             :else raw-link))))
                link-text (some->> res (drop 2) first)]
            (when (and file-path link-text)
              (markdown-link {:name link-text :link file-path}))))))))
@@ -193,14 +191,26 @@
                "```"]))))
 
 (defn item->md-body
+  "Handles :keep-item and :remove-item.
+  If the parent is kept, all children will be kept."
   ([item] (item->md-body item {}))
   ([item opts]
-   (let [keep-item       (:keep-item opts (constantly true))
-         parent-is-post? (keep-item item)
-         child-lines     (mapcat #(item->md-body % opts)
-                                 (cond->> (:org/items item)
-                                   (not parent-is-post?)
-                                   (filter keep-item)))
+   (let [remove-item (:remove-item opts)
+         ;; consider a default that filters everything
+         keep-item   (:keep-item opts (constantly true))
+
+         keep-parent (:keep-parent opts (keep-item item))
+         child-lines (mapcat #(item->md-body %
+                                             (cond-> opts
+                                               keep-parent
+                                               (assoc :keep-parent keep-parent)))
+                             (cond->> (:org/items item)
+
+                               remove-item
+                               (remove remove-item)
+
+                               (not keep-parent)
+                               (filter keep-item)))
          ;; _               (println "\n item" (:org/name item) (:org/tags item))
          ;; _               (println "\n child-lines" child-lines)
          ;; _               (println "\n parent-is-post?" parent-is-post?)
@@ -211,17 +221,17 @@
                     :org/name
                     (org-line->md-line opts)))
            "")
-         body-lines      (->> item
-                              :org/body
-                              (remove #(= (:line-type %) :comment))
-                              (mapcat #(body-line->md-lines % opts))
-                              (remove nil?))
-         body-lines      (when (seq body-lines)
-                           (->> body-lines
-                                (string/join "\n")
-                                org-links->md-links
-                                ((fn [s] (string/split s #"\n")))
-                                ))]
+         body-lines (->> item
+                         :org/body
+                         (remove #(= (:line-type %) :comment))
+                         (mapcat #(body-line->md-lines % opts))
+                         (remove nil?))
+         body-lines (when (seq body-lines)
+                      (->> body-lines
+                           (string/join "\n")
+                           org-links->md-links
+                           ((fn [s] (string/split s #"\n")))
+                           ))]
      (concat [header-line] body-lines child-lines))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
