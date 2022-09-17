@@ -2,17 +2,17 @@
 
  :deps
  {org.clojars.gmorpheme/organum {:mvn/version "0.1.1"}
-  clomacs/clomacs               {:mvn/version "0.0.4-SNAPSHOT"}
+  #_#_clomacs/clomacs           {:mvn/version "0.0.4-SNAPSHOT"}
   babashka/fs                   {:mvn/version "0.1.6"}
-  babashka/process              {:mvn/version "0.1.4"}}
+  babashka/process              {:mvn/version "0.1.4"}
+  wing/wing                     {:mvn/version "0.1.4"}}
 
  :aliases
  {:dev {:jvm-opts    ["-XX:-OmitStackTraceInFastThrow"]
         :extra-paths ["test"]
         :extra-deps
         {org.clojure/test.check {:mvn/version "1.1.1"}
-         tick/tick              {:mvn/version "0.5.0-RC5"}
-         wing/wing              {:mvn/version "0.1.4"}}}
+         tick/tick              {:mvn/version "0.5.0-RC5"}}}
 
   :test
   {:extra-paths ["test"]

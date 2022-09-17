@@ -3,7 +3,7 @@
    [org-crud.update :as upd]
    [org-crud.core :as org]
    [wing.repl :as w.repl]
-   [clomacs :as clomacs]
+   #_[clomacs :as clomacs]
    [clojure.string :as string]
    [babashka.fs :as fs]
    [babashka.process :as process]))
@@ -114,16 +114,16 @@
 
 
 
-  (clomacs/clomacs-defn
-    emacs-version
-    emacs-version)
+  ;; (clomacs/clomacs-defn
+  ;;   emacs-version
+  ;;   emacs-version)
 
-  (println (emacs-version))
+  ;; (println (emacs-version))
 
-  (clomacs/clomacs-defn
-    clmx-current-org-item
-    clmx-current-org-item)
+  ;; (clomacs/clomacs-defn
+  ;;   clmx-current-org-item
+  ;;   clmx-current-org-item)
 
-  (println (clmx-current-org-item))
+  ;; (println (clmx-current-org-item))
 
   )
