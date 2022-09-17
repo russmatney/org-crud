@@ -18,7 +18,7 @@
         pdrawer-re        #"^\s*:(PROPERTIES|END):"
         pdrawer           (fn [x] (second (re-matches pdrawer-re x)))
         pdrawer-item-re   #"^\s*:([0-9A-Za-z_\-]+):\s*(.*)$"
-        block-re          #"^\s*#\+(BEGIN|END)_(\w*)\s*([0-9A-Za-z_\-]*)?.*"
+        block-re          #"^\s*#\+(BEGIN|END|begin|end)_(\w*)\s*([0-9A-Za-z_\-]*)?.*"
         block             (fn [x] (rest (re-matches block-re x)))
         def-list-re       #"^\s*(-|\+|\s+[*])\s*(.*?)::.*"
         ordered-list-re   #"^\s*\d+(\.|\))\s+.*"
@@ -29,24 +29,24 @@
         inline-example-re #"^\s*:\s.*"
         horiz-re          #"^\s*-{5,}\s*$"]
     (cond
-      (re-matches headline-re ln)       :headline
-      (string/blank? ln)                :blank
-      (re-matches def-list-re ln)       :definition-list
-      (re-matches ordered-list-re ln)   :ordered-list
-      (re-matches unordered-list-re ln) :unordered-list
-      (= (pdrawer ln) "PROPERTIES")     :property-drawer-begin-block
-      (= (pdrawer ln) "END")            :property-drawer-end-block
-      (re-matches pdrawer-item-re ln)   :property-drawer-item
-      (re-matches metadata-re ln)       :metadata
-      (= (first (block ln)) "BEGIN")    :begin-block
-      (= (first (block ln)) "END")      :end-block
-      (= (second (block ln)) "COMMENT") :comment
-      (= (first ln) \#)                 :comment
-      (re-matches table-sep-re ln)      :table-separator
-      (re-matches table-row-re ln)      :table-row
-      (re-matches inline-example-re ln) :inline-example
-      (re-matches horiz-re ln)          :horizontal-rule
-      :else                             :paragraph)))
+      (re-matches headline-re ln)             :headline
+      (string/blank? ln)                      :blank
+      (re-matches def-list-re ln)             :definition-list
+      (re-matches ordered-list-re ln)         :ordered-list
+      (re-matches unordered-list-re ln)       :unordered-list
+      (= (pdrawer ln) "PROPERTIES")           :property-drawer-begin-block
+      (= (pdrawer ln) "END")                  :property-drawer-end-block
+      (re-matches pdrawer-item-re ln)         :property-drawer-item
+      (re-matches metadata-re ln)             :metadata
+      (#{"BEGIN" "begin"} (first (block ln))) :begin-block
+      (#{"END" "end"} (first (block ln)))     :end-block
+      (= (second (block ln)) "COMMENT")       :comment
+      (= (first ln) \#)                       :comment
+      (re-matches table-sep-re ln)            :table-separator
+      (re-matches table-row-re ln)            :table-row
+      (re-matches inline-example-re ln)       :inline-example
+      (re-matches horiz-re ln)                :horizontal-rule
+      :else                                   :paragraph)))
 
 (defn strip-tags
   "Return the line with tags stripped out and list of tags"
@@ -71,7 +71,7 @@
       (section (count prefix) text tags kw))))
 
 (defn parse-block [ln]
-  (let [block-re             #"^\s*#\+(BEGIN|END)_(\w*)\s*([0-9A-Za-z_\-]*)?"
+  (let [block-re             #"^\s*#\+(BEGIN|END|begin|end)_(\w*)\s*([0-9A-Za-z_\-]*)?"
         [_ _ type qualifier] (re-matches block-re ln)]
     (block type qualifier)))
 
