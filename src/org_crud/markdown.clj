@@ -117,10 +117,42 @@
        s
        #"\[\[([^\]]*)\]\[([^\]]*)\]\]"
        (fn [res]
+         (println "found org-link" res)
          (let [file-path (some->> res (drop 1) first
                                   ((fn [raw-link]
-                                     (println raw-link)
                                      (cond
+                                       (string/starts-with? raw-link "id:")
+                                       (do
+                                         (println "raw-link starts with id:" raw-link)
+                                         (if-let [fetch-item (:fetch-item opts)]
+                                           (if-let [item (some-> raw-link
+                                                                 (string/split #"id:")
+                                                                 second
+                                                                 fetch-item)]
+                                             (do
+                                               (println "\n fetch-item found:" (:org/name item) (:org/source-file item))
+                                               ;; TODO return a usable link to the this item's page
+                                               ;; TODO make sure these items are captured and included in the output
+                                               (when-not (:org/name item)
+                                                 (println "\n\n what's this?" item))
+                                               (let [link
+                                                     (some-> item
+                                                             :org/source-file
+                                                             fs/file-name
+                                                             fs/split-ext first
+                                                             (#(str % ".html")))]
+                                                 (if link link
+                                                     (do
+                                                       (println "could not create link, returning raw link")
+                                                       raw-link))
+                                                 ))
+                                             (do
+                                               (println "fetch-item returned nil, using raw link")
+                                               raw-link))
+                                           (do
+                                             (println "no fetch-item, using raw link")
+                                             raw-link)))
+
                                        (string/starts-with? raw-link "file:")
                                        (let [link-prefix (or (:link-prefix opts) "")]
                                          (some-> raw-link
@@ -163,7 +195,15 @@
 (defn item->md-body
   ([item] (item->md-body item {}))
   ([item opts]
-   (let [child-lines (mapcat #(item->md-body % opts) (:org/items item))
+   (let [keep-item       (:keep-item opts (constantly true))
+         parent-is-post? (keep-item item)
+         child-lines     (mapcat #(item->md-body % opts)
+                                 (cond->> (:org/items item)
+                                   (not parent-is-post?)
+                                   (filter keep-item)))
+         ;; _               (println "\n item" (:org/name item) (:org/tags item))
+         ;; _               (println "\n child-lines" child-lines)
+         ;; _               (println "\n parent-is-post?" parent-is-post?)
          header-line
          (if (int? (:org/level item))
            (str (apply str (repeat (:org/level item) "#")) " "
@@ -171,17 +211,17 @@
                     :org/name
                     (org-line->md-line opts)))
            "")
-         body-lines  (->> item
-                          :org/body
-                          (remove #(= (:line-type %) :comment))
-                          (mapcat #(body-line->md-lines % opts))
-                          (remove nil?))
-         body-lines  (when (seq body-lines)
-                       (->> body-lines
-                            (string/join "\n")
-                            org-links->md-links
-                            ((fn [s] (string/split s #"\n")))
-                            ))]
+         body-lines      (->> item
+                              :org/body
+                              (remove #(= (:line-type %) :comment))
+                              (mapcat #(body-line->md-lines % opts))
+                              (remove nil?))
+         body-lines      (when (seq body-lines)
+                           (->> body-lines
+                                (string/join "\n")
+                                org-links->md-links
+                                ((fn [s] (string/split s #"\n")))
+                                ))]
      (concat [header-line] body-lines child-lines))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
