@@ -347,8 +347,11 @@
            (into #{})))
 
 (defn ->links-to [x]
-  (-> x ->body-string body-str->links-to))
-
+  (->>
+    (concat
+      (-> x ->body-string body-str->links-to)
+      (-> x ->name body-str->links-to))
+    (remove nil?)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; word count
