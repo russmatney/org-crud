@@ -8,8 +8,7 @@
   "Parses and returns a single item, the `:root` of the org file,
   with the rest of the nodes/children as `:items`.
 
-  See also: `path->flattened-items`.
-  "
+  See also: `path->flattened-items`."
   [p] (parse/parse-file p))
 
 (comment
