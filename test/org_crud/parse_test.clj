@@ -1,7 +1,9 @@
 (ns org-crud.parse-test
   (:require
    [clojure.test :refer [deftest is testing]]
-   [org-crud.parse :as sut]))
+   [org-crud.parse :as sut]
+   [org-crud.schema :as schema]
+   org-crud.test-util))
 
 (defn prop-bucket [test-data]
   (->>
@@ -17,11 +19,13 @@
 
 (deftest parse-lines-test-basic
   (testing "basic parse-lines works"
-    (let [s    "some line"
-          node (sut/parse-lines [s])]
+    (let [t    "some title"
+          node (sut/parse-lines
+                 [(str "#+title: " t)])]
+      (is (valid schema/item-schema node))
       (is (= (:org/word-count node) 2))
       (is (= (:org/level node) :level/root))
-      (is (= (:org/body-string node) s))))
+      (is (= (:org/name node) t))))
 
   (testing "parses file properties, title, created-at, and filetags"
     (let [title      "my special title"
@@ -34,6 +38,7 @@
               [(str "#+TITLE: " title)
                (str "#+filetags: :tools:clojure:")
                (str "#+CREATED_AT: " created-at)]))]
+      (is (valid schema/item-schema node))
       (is (= (-> node :org/name) title))
       (is (= (-> node :org/id) id))
       (is (= (-> node :org.prop/created-at) created-at))
@@ -74,6 +79,8 @@
           todos (->> node :org/items (filter :org/status)
                      (map (fn [td] [(:org/id td) td]))
                      (into {}))]
+      (is (valid schema/item-schema node))
+
       (is (= (-> (todos id-1) :org/status) :status/not-started))
       (is (= (-> (todos id-1) :org/name) "not started"))
       (is (= (-> (todos id-4) :org/status) :status/not-started))
@@ -107,6 +114,7 @@
           items (->> node :org/items
                      (map (fn [n] [(:org/name n) n]))
                      (into {}))]
+      (is (valid schema/item-schema node))
       (is (= (-> (items "todo with tags") :org/tags) #{"some" "tag"}))
       (is (= (-> (items "some misc note") :org/tags) #{"post" "idea"})))))
 

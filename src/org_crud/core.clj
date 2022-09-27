@@ -26,7 +26,7 @@
 
   See `path->nested-items` for a single object with nested items."
   [p]
-  (tree-seq (comp seq :org/items) :org/items [(path->nested-item p)]))
+  (tree-seq (comp seq :org/items) :org/items (path->nested-item p)))
 
 (comment
   (let [p (str (fs/home) "/todo/projects.org")]

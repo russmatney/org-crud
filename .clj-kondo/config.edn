@@ -1,0 +1,5 @@
+{:linters
+ {:unresolved-symbol
+  {:exclude
+   [;; supported by test-util as a clojure.test assert-expr
+    valid]}}}
