@@ -48,8 +48,7 @@
       (testing "all uh dem"
         (is (= {:org/closed    "2022-04-30 Sat 17:42"
                 :org/deadline  "2022-04-30 Sat"
-                :org/scheduled "2022-04-30 Sat"
-                }
+                :org/scheduled "2022-04-30 Sat"}
                (sut/metadata->date-map
                  "CLOSED: [2022-04-30 Sat 17:42] DEADLINE: <2022-04-30 Sat> SCHEDULED: <2022-04-30 Sat>")))))))
 

@@ -3,14 +3,112 @@
    [clojure.test :refer [deftest is testing]]
    [org-crud.parse :as sut]))
 
+(defn prop-bucket [test-data]
+  (->>
+    [":PROPERTIES:"
+     (when-let [id (:id test-data)]
+       (str ":ID:       " id))
+     ":END:"]
+    (remove nil?)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; basic
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (deftest parse-lines-test-basic
   (testing "basic parse-lines works"
     (let [s    "some line"
-          node (first (sut/parse-lines [s]))]
+          node (sut/parse-lines [s])]
       (is (= (:org/word-count node) 2))
       (is (= (:org/level node) :level/root))
-      (is (= (:org/body-string node) s)))))
+      (is (= (:org/body-string node) s))))
 
+  (testing "parses file properties, title, created-at, and filetags"
+    (let [title      "my special title"
+          created-at "20220920:132237"
+          id         #uuid "c7dc484f-72d5-4fdb-aca3-05440000f63f"
+          node
+          (sut/parse-lines
+            (concat
+              (prop-bucket {:id id})
+              [(str "#+TITLE: " title)
+               (str "#+filetags: :tools:clojure:")
+               (str "#+CREATED_AT: " created-at)]))]
+      (is (= (-> node :org/name) title))
+      (is (= (-> node :org/id) id))
+      (is (= (-> node :org.prop/created-at) created-at))
+      (is (= (-> node :org/tags) #{"tools" "clojure"})))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; todos
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest parses-todos
+  (testing "parses todo statuses and ids"
+    (let [id-1 #uuid "a7dc484f-72d5-4fdb-aca3-05440000f63f"
+          id-2 #uuid "b7dc484f-72d5-4fdb-aca3-05440000f63f"
+          id-3 #uuid "c7dc484f-72d5-4fdb-aca3-05440000f63f"
+          id-4 #uuid "d7dc484f-72d5-4fdb-aca3-05440000f63f"
+          id-5 #uuid "e7dc484f-72d5-4fdb-aca3-05440000f63f"
+          id-6 #uuid "f7dc484f-72d5-4fdb-aca3-05440000f63f"
+          id-7 #uuid "a8dc484f-72d5-4fdb-aca3-05440000f63f"
+          node
+          (sut/parse-lines
+            (concat
+              ["#+TITLE: sample file"
+               "* [ ] not started"]
+              (prop-bucket {:id id-1})
+              ["* [X] completed"]
+              (prop-bucket {:id id-2})
+              ["* [-] in progress"]
+              (prop-bucket {:id id-3})
+              ["* TODO not started two"]
+              (prop-bucket {:id id-4})
+              ["* DONE completed two"]
+              (prop-bucket {:id id-5})
+              ["* CANCELLED cancelled"]
+              (prop-bucket {:id id-6})
+              ["* SKIP skipped"]
+              (prop-bucket {:id id-7})))
+
+          todos (->> node :org/items (filter :org/status)
+                     (map (fn [td] [(:org/id td) td]))
+                     (into {}))]
+      (is (= (-> (todos id-1) :org/status) :status/not-started))
+      (is (= (-> (todos id-1) :org/name) "not started"))
+      (is (= (-> (todos id-4) :org/status) :status/not-started))
+      (is (= (-> (todos id-4) :org/name) "not started two"))
+
+      (is (= (-> (todos id-2) :org/status) :status/done))
+      (is (= (-> (todos id-2) :org/name) "completed"))
+      (is (= (-> (todos id-5) :org/status) :status/done))
+      (is (= (-> (todos id-5) :org/name) "completed two"))
+
+      (is (= (-> (todos id-3) :org/status) :status/in-progress))
+      (is (= (-> (todos id-3) :org/name) "in progress"))
+
+      (is (= (-> (todos id-6) :org/status) :status/cancelled))
+      (is (= (-> (todos id-6) :org/name) "cancelled"))
+
+      (is (= (-> (todos id-7) :org/status) :status/skipped))
+      (is (= (-> (todos id-7) :org/name) "skipped")))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; tags
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest parses-tags
+  (testing "parses tags"
+    (let [node  (sut/parse-lines
+                  (concat
+                    ["#+TITLE: sample file"
+                     "* [ ] todo with tags :some:tag:"
+                     "* some misc note :post:idea:"]))
+          items (->> node :org/items
+                     (map (fn [n] [(:org/name n) n]))
+                     (into {}))]
+      (is (= (-> (items "todo with tags") :org/tags) #{"some" "tag"}))
+      (is (= (-> (items "some misc note") :org/tags) #{"post" "idea"})))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; flattned->nested

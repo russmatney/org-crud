@@ -127,10 +127,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn parse-lines
-  "Parses a seq of strings as org lines.
-
-  Parses lines before the first headline as a root element.
-  Returns a list of 'nodes'.
+  "Parses a seq of strings into a single org-crud node.
+  Returns a single root node.
 
   Expects to be handed lines in order from a single file,
   but maybe be useful as a parser for org content in other situations.
@@ -138,12 +136,13 @@
   ([lines] (parse-lines lines nil))
   ([lines path]
    (when (seq lines)
-     (->> lines
-          (reduce #'organum.core/handle-line [(#'organum.core/root)])
-          ;; TODO bake node/->item logic into the handle-line helpers
-          (map #(node/->item % path))
-          flattened->nested
-          (remove nil?)))))
+     (some->> lines
+              (reduce #'organum.core/handle-line [(#'organum.core/root)])
+              ;; TODO bake node/->item logic into the handle-line helpers
+              (map #(node/->item % path))
+              flattened->nested
+              (remove nil?)
+              first))))
 
 (defn parse-file
   [path]
