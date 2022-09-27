@@ -378,7 +378,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ->item [raw source-file]
-  (def raw raw)
   (-> (cond
         (#{:section} (:type raw))
         (let [{:keys [status status-raw]} (->todo-status raw)]

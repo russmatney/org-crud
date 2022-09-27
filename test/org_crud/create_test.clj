@@ -37,7 +37,7 @@
 ;; creating new headlines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def new-headline-name "" "new headline")
+(def new-headline-name "new headline")
 
 (defn ->new-headline []
   (->item {:org/name new-headline-name}))

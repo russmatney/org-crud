@@ -122,34 +122,33 @@
                         ((fn [raw-link]
                            (cond
                              (string/starts-with? raw-link "id:")
-                             (do
-                               (if-let [fetch-item (:fetch-item opts)]
-                                 (if-let [item (some-> raw-link
-                                                       (string/split #"id:")
-                                                       second
-                                                       fetch-item)]
-                                   (do
-                                     #_(println "\n fetch-item found:" (:org/name item) (:org/source-file item))
-                                     ;; TODO return a usable link to the this item's page
-                                     ;; TODO make sure these items are captured and included in the output
-                                     (when-not (:org/name item)
-                                       (println "\n\n what's this?" item))
-                                     (let [link
-                                           (some-> item
-                                                   :org/source-file
-                                                   fs/file-name
-                                                   fs/split-ext first
-                                                   (#(str % ".html")))]
-                                       (if link link
-                                           (do
-                                             (println "could not create link, returning raw link")
-                                             raw-link))))
-                                   (do
-                                     (println "fetch-item returned nil, using raw link" raw-link)
-                                     raw-link))
+                             (if-let [fetch-item (:fetch-item opts)]
+                               (if-let [item (some-> raw-link
+                                                     (string/split #"id:")
+                                                     second
+                                                     fetch-item)]
                                  (do
-                                   (println "no fetch-item, using raw link")
-                                   raw-link)))
+                                   #_(println "\n fetch-item found:" (:org/name item) (:org/source-file item))
+                                   ;; TODO return a usable link to the this item's page
+                                   ;; TODO make sure these items are captured and included in the output
+                                   (when-not (:org/name item)
+                                     (println "\n\n what's this?" item))
+                                   (let [link
+                                         (some-> item
+                                                 :org/source-file
+                                                 fs/file-name
+                                                 fs/split-ext first
+                                                 (#(str % ".html")))]
+                                     (if link link
+                                         (do
+                                           (println "could not create link, returning raw link")
+                                           raw-link))))
+                                 (do
+                                   (println "fetch-item returned nil, using raw link" raw-link)
+                                   raw-link))
+                               (do
+                                 (println "no fetch-item, using raw link")
+                                 raw-link))
 
                              (string/starts-with? raw-link "file:")
                              (let [link-prefix (or (:link-prefix opts) "")]

@@ -94,7 +94,7 @@
 
 (defmulti handle-line
   "Parse line and return updated state."
-  (fn [state ln] (classify-line ln)))
+  (fn [_state ln] (classify-line ln)))
 
 (defmethod handle-line :headline [state ln]
   (conj state (parse-headline ln)))
@@ -102,13 +102,13 @@
 (defmethod handle-line :begin-block [state ln]
   (conj state (parse-block ln)))
 
-(defmethod handle-line :end-block [state ln]
+(defmethod handle-line :end-block [state _ln]
   (subsume-top state))
 
-(defmethod handle-line :property-drawer-begin-block [state ln]
+(defmethod handle-line :property-drawer-begin-block [state _ln]
   (conj state (drawer)))
 
-(defmethod handle-line :property-drawer-end-block [state ln]
+(defmethod handle-line :property-drawer-end-block [state _ln]
   (subsume-top state))
 
 (defmethod handle-line :default [state ln]

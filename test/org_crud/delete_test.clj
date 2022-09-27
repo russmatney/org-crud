@@ -32,10 +32,10 @@
 ;; delete a headline
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def deleted-headline-name ""
+(def deleted-headline-name
   "delete headline")
 
-(def deleted-nested-headline-name ""
+(def deleted-nested-headline-name
   "delete nested headline")
 
 (defn ->deleted-headline []

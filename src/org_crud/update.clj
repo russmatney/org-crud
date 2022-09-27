@@ -7,9 +7,9 @@
    [org-crud.lines :as lines]))
 
 (defn append-to-file!
-  ([path lines]
-   (let [as-str (string/join "\n" lines)]
-     (spit path as-str :append true))))
+  [path lines]
+  (let [as-str (string/join "\n" lines)]
+    (spit path as-str :append true)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Tag Updates
