@@ -2,8 +2,7 @@
   (:require
    [clojure.string :as string]
    [babashka.fs :as fs]
-   [org-crud.util :as util]
-   [org-crud.parse :as parse]))
+   [org-crud.util :as util]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; parsing an org-node helpers
@@ -380,7 +379,7 @@
         (#{:section} (:type raw))
         (let [{:keys [status status-raw]} (->todo-status raw)]
           (merge {:org/level       (->level raw)
-                  :org/source-file (-> source-file fs/absolutize str)
+                  :org/source-file (some-> source-file fs/absolutize str)
                   :org/id          (->id raw)
                   :org/name        (->name raw)
                   :org/headline    (->raw-headline raw)
@@ -397,7 +396,7 @@
         (#{:root} (:type raw))
         (let [props (->properties raw)]
           (merge {:org/level       (->level raw)
-                  :org/source-file (-> source-file fs/absolutize str)
+                  :org/source-file (some-> source-file fs/absolutize str)
                   :org/name        (:org.prop/title props)
                   :org/tags        (->tags raw props)
                   :org/body        (->body raw)
@@ -419,7 +418,8 @@
                  (into {}))))))))
 
 (comment
+  (require 'org-crud.parse)
   (def path (str (fs/home) "/todo/garden/bb_cli.org"))
-  (def parsed (-> path parse/parse-file first))
+  (def parsed (-> path org-crud.parse/parse-file first))
   (->item parsed path)
   )
