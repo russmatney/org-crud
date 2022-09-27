@@ -1,11 +1,10 @@
 (ns org-crud.core
   (:require
-   [organum.core :as org]
    [clojure.walk :as walk]
    [clojure.string :as string]
    [babashka.fs :as fs]
+   [org-crud.parse :as parse]
    [org-crud.node :as node]))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 'nesting' an ordered, flattened list of parsed org nodes
@@ -121,33 +120,6 @@
      {:org/level 1 :org/name "g"}]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Parse helpers
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn parse-org-file
-  [path]
-  (try
-    (-> path fs/absolutize str org/parse-file)
-    (catch Exception ex
-      (println "org-crud.core/parse-org-file exception" path)
-      (println ex)
-      nil)))
-
-(comment
-  (parse-org-file "repos.org"))
-
-(defn parse-org-lines
-  "Very close to the internal org/parse-file function,
-  except that it expects a seq of text lines.
-
-  Useful for getting non-org text into organum's 'body' structure
-  for commit messages and other non-org sources.
-  "
-  [lines]
-  (when (seq lines)
-    (reduce #'org/handle-line [(#'org/root)] lines)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Parsing nested items
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -167,7 +139,7 @@
   If you want the org file as a flattened list, see `path->flattened-items`.
   "
   [p]
-  (some->> p parse-org-file (parsed->nested-items p) (remove nil?) first))
+  (some->> p parse/parse-file (parsed->nested-items p) (remove nil?) first))
 
 (defn dir->nested-items
   "For now, :recursive? goes one layer down.

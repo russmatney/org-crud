@@ -3,9 +3,7 @@
    [clojure.string :as string]
    [babashka.fs :as fs]
    [org-crud.util :as util]
-
-   [organum.core :as org]
-   ))
+   [org-crud.parse :as parse]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; parsing an org-node helpers
@@ -422,7 +420,6 @@
 
 (comment
   (def path (str (fs/home) "/todo/garden/bb_cli.org"))
-  (def parsed (-> path fs/absolutize str org/parse-file
-                  first))
+  (def parsed (-> path parse/parse-file first))
   (->item parsed path)
   )
