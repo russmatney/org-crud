@@ -36,8 +36,11 @@ jobs:
           key: cljdeps-${{ hashFiles('deps.edn') }}
           restore-keys: cljdeps-
 
-      - name: Run Tests
+      - name: Run Tests (JVM)
         run: clojure -M:test
+
+      - name: Run Tests (Babashka)
+        run: ./bb_test_runner.clj
 
   Linter:
     runs-on: ubuntu-latest
