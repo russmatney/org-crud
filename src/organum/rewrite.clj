@@ -165,4 +165,5 @@
 (comment
   (parse-file (str (fs/home) "/todo/readme.org"))
   (parse-file (str (fs/home) "/todo/daily/2022-09-26.org"))
+  (parse-file (str (fs/home) "/todo/daily/2022-09-27.org"))
   (parse-file (str (fs/home) "/todo/journal.org")))

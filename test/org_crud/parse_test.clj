@@ -179,4 +179,24 @@
           (testing "sets relative-index name"
             (is (= 0 (:org/relative-index e))))
           (testing "sets a parent name"
-            (is (= "d > c > b > root" (:org/parent-name e)))))))))
+            (is (= "d > c > b > root" (:org/parent-name e))))))))
+
+  (testing "doesnt drop strangely nested items"
+    (let [root-id (random-uuid)
+          b-id    (random-uuid)
+          node    (sut/parse-lines
+                    ["#+title: root"
+                     "* a"
+                     "***** b"
+                     "** c"])]
+      (is (valid schema/item-schema node))
+
+      (let [items (:org/items node)
+            a     (->> items (filter (comp #{"a"} :org/name)) first)]
+        (is (= (count items) 1))
+        (let [bandc (:org/items a)
+              b     (->> bandc (filter (comp #{"b"} :org/name)) first)
+              c     (->> bandc (filter (comp #{"c"} :org/name)) first)]
+          (is (not (nil? b)))
+          ;; TODO where's my item!!! fix this item
+          #_(is (not (nil? c))))))))
