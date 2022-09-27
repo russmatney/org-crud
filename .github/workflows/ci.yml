@@ -13,7 +13,9 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v3.5.1
         with:
-          java-version: 15
+          distribution: temurin
+          java-version: 18
+          cache: 'maven'
       - name: Setup Clojure
         uses: DeLaGuardo/setup-clojure@05cb4bfdf57855f122e75b71e45224775cdfc4a0
         with:
