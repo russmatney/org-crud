@@ -4,15 +4,6 @@
             [clojure.string :as string]
             [babashka.fs :as fs]))
 
-;; node constructors
-
-(defn node [type] {:type type :content []})
-(defn root [] (node :root))
-(defn section [level name tags kw] (merge (node :section) {:level level :name name :tags tags :kw kw}))
-(defn block [type qualifier] (merge (node :block) {:block-type type :qualifier qualifier}))
-(defn drawer [] (node :drawer))
-(defn line [type text] {:line-type type :text text})
-
 (defn classify-line
   "Classify a line for dispatch to handle-line multimethod."
   [ln]
@@ -66,16 +57,24 @@
       [(string/triml (string/replace-first ln (words 0) "")) (words 0)]
       [ln nil])))
 
-(defn parse-headline [ln]
-  (when-let [[_ prefix text] (re-matches  #"^(\*+)\s*(.*?)$" ln)]
-    (let [[text tags] (strip-tags text)
-          [text kw]   (strip-keyword text)]
-      (section (count prefix) text tags kw))))
+;; node constructors
 
-(defn parse-block [ln]
-  (let [block-re             #"^\s*#\+(BEGIN|END|begin|end)_(\w*)\s*([0-9A-Za-z_\-]*)?"
-        [_ _ type qualifier] (re-matches block-re ln)]
-    (block type qualifier)))
+(defn node [type] {:type type :content []})
+
+(defn root [] (node :root))
+
+(defn section [level name tags kw]
+  (merge (node :section)
+         {:level level :name name :tags tags :kw kw}))
+
+(defn block [type qualifier]
+  (merge (node :block)
+         {:block-type type :qualifier qualifier}))
+
+(defn drawer [] (node :drawer))
+
+(defn line [type text]
+  {:line-type type :text text})
 
 ;; State helpers
 
@@ -94,12 +93,26 @@
         state (pop state)]
     (subsume state top)))
 
+(defn create-new-section [ln]
+  (when-let [[_ prefix text] (re-matches  #"^(\*+)\s*(.*?)$" ln)]
+    (let [[text tags] (strip-tags text)
+          [text kw]   (strip-keyword text)]
+      (section (count prefix) text tags kw))))
+
+(defn parse-block [ln]
+  (let [block-re             #"^\s*#\+(BEGIN|END|begin|end)_(\w*)\s*([0-9A-Za-z_\-]*)?"
+        [_ _ type qualifier] (re-matches block-re ln)]
+    ;; TODO get other key values on blocks?
+    (block type qualifier)))
+
+;; handle line
+
 (defmulti handle-line
   "Parse line and return updated state."
   (fn [_state ln] (classify-line ln)))
 
 (defmethod handle-line :headline [state ln]
-  (conj state (parse-headline ln)))
+  (conj state (create-new-section ln)))
 
 (defmethod handle-line :begin-block [state ln]
   (conj state (parse-block ln)))
@@ -116,6 +129,8 @@
 (defmethod handle-line :default [state ln]
   (subsume state (line (classify-line ln) ln)))
 
+;; parse file
+
 (defn parse-file
   "Parse file (name / url / File) into (flat) sequence of sections. First section may be type :root,
    subsequent are type :section. Other parsed representations may be contained within the sections"
@@ -126,4 +141,5 @@
 (comment
   (parse-file (str (fs/home) "/todo/readme.org"))
   (parse-file (str (fs/home) "/todo/daily/2022-09-26.org"))
+  (parse-file (str (fs/home) "/todo/daily/2022-09-27.org"))
   (parse-file (str (fs/home) "/todo/journal.org")))
