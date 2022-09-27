@@ -1,6 +1,7 @@
 {:paths ["src"]
  :tasks
- {test (shell "./bin/kaocha")
+ {test-jvm (shell "./bin/kaocha")
+  test-bb  (shell "./bb_test_runner.clj")
 
   clj-kondo      (shell "clj-kondo --lint src")
   clj-kondo-test (shell "clj-kondo --lint test")

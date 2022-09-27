@@ -1,6 +1,8 @@
 (ns organum.core
+  "From: https://github.com/gmorpheme/organum"
   (:require [clojure.java.io :as io]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [babashka.fs :as fs]))
 
 ;; node constructors
 
@@ -41,7 +43,7 @@
       (#{"BEGIN" "begin"} (first (block ln))) :begin-block
       (#{"END" "end"} (first (block ln)))     :end-block
       (= (second (block ln)) "COMMENT")       :comment
-      (= (first ln) \#)                       :comment
+      (= (first ln) \#)                       #_ (not (= (second ln) \+)) :comment
       (re-matches table-sep-re ln)            :table-separator
       (re-matches table-row-re ln)            :table-row
       (re-matches inline-example-re ln)       :inline-example
@@ -120,3 +122,8 @@
   [f]
   (with-open [rdr (io/reader f)]
     (reduce handle-line [(root)] (line-seq rdr))))
+
+(comment
+  (parse-file (str (fs/home) "/todo/readme.org"))
+  (parse-file (str (fs/home) "/todo/daily/2022-09-26.org"))
+  (parse-file (str (fs/home) "/todo/journal.org")))

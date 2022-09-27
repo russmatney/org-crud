@@ -1,13 +1,11 @@
 {:path ["src"]
 
  :deps
- {org.clojars.gmorpheme/organum {:mvn/version "0.1.1"}
-  babashka/fs                   {:mvn/version "0.1.11"}
-  babashka/process              {:mvn/version "0.2.10"}
-  wing/wing                     {:mvn/version "0.1.4"}
-
-  metosin/malli    {:mvn/version "0.8.9"}
-  org.babashka/cli {:mvn/version "0.4.37"}}
+ {babashka/fs           {:mvn/version "0.1.11"}
+  babashka/process      {:mvn/version "0.2.10"}
+  wing/wing             {:mvn/version "0.1.4"}
+  metosin/malli         {:mvn/version "0.8.9"}
+  instaparse/instaparse {:mvn/version "1.4.12"}}
 
  :aliases
  {:dev {:jvm-opts    ["-XX:-OmitStackTraceInFastThrow"]
