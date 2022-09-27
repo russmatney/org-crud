@@ -190,11 +190,11 @@
                 :link/text "links"}
                {:link/id   #uuid "910e0d6e-759d-4a9b-809c-78a6a0b6538b"
                 :link/text "across lines"}}
-             (:org/links-to item))))
+             (set (:org/links-to item)))))
 
     (testing "child node roam links"
       (is (= #{{:link/id   #uuid "910e0d6e-759d-4a9b-809c-78a6a0b6538b"
                 :link/text "links"}
                {:link/id   #uuid "910e0d6e-759d-4a9b-809c-78a6a0b6538b"
                 :link/text "sometimes multiple times"}}
-             (-> "child with links" item-with-name :org/links-to))))))
+             (-> "child with links" item-with-name :org/links-to set))))))
