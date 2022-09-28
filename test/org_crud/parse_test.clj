@@ -98,7 +98,25 @@
       (is (= (-> (todos id-6) :org/name) "cancelled"))
 
       (is (= (-> (todos id-7) :org/status) :status/skipped))
-      (is (= (-> (todos id-7) :org/name) "skipped")))))
+      (is (= (-> (todos id-7) :org/name) "skipped"))))
+
+  (testing "ids in headlines and scheduled dates"
+    (let [id      #uuid "7daae9e6-ba06-4121-b422-77d7d157fa2b"
+          link-id #uuid "c7dc484f-72d5-4fdb-aca3-05440000f63f"
+          date    "2022-09-29 Thu"
+          node    (sut/parse-lines
+                    ["#+title: some title"
+                     (str "* [ ] implement that vim clojure lib's intro to clojure in [[id:" link-id "][clerk]]")
+                     (str "SCHEDULED: <" date ">")
+                     ":PROPERTIES:"
+                     (str ":ID:       " id)
+                     ":END:"])
+          todo    (->> node :org/items first)]
+      (is (valid schema/item-schema node))
+      (is (= (-> todo :org/status) :status/not-started))
+      (is (= (-> todo :org/id) id))
+      (is (= (-> todo :org/scheduled) date))
+      (is (= (-> todo :org/links-to set) #{{:link/id link-id :link/text "clerk"}})))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; tags
