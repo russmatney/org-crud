@@ -99,6 +99,7 @@
 ;; item -> markdown body
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+^{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn body-str->file-refs [s]
   (some->> s
            (re-seq #"\[\[file:([^\]]*)\]\[[^\]]*\]\]")
@@ -184,7 +185,7 @@
      [(-> (:text line) (org-line->md-line opts))]
 
      (and (= :block (:type line))
-          (= "SRC" (:block-type line)))
+          (#{"SRC" "src"} (:block-type line)))
      (flatten [(str "``` " (:qualifier line))
                (map #(body-line->md-lines % opts) (:content line))
                "```"]))))
