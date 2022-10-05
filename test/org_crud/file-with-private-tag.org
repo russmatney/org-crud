@@ -1,0 +1,7 @@
+:PROPERTIES:
+:ID:       03373bf0-d2d8-4a14-8564-0c1914e5e897
+:END:
+#+title: File With Private Tag
+#+filetags: :tags:private:
+
+This file should never be exported by org-crud.

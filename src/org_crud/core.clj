@@ -2,14 +2,38 @@
   (:require
    [clojure.string :as string]
    [babashka.fs :as fs]
-   [org-crud.parse :as parse]))
+   [org-crud.parse :as parse]
+   [clojure.set :as set]
+   [clojure.walk :as walk]))
+
+(def always-exclude #{"private"})
+
+(defn reject-items [item reject-p]
+  (when-not (reject-p item)
+    (walk/postwalk
+      (fn [node]
+        (cond
+          (not (map? node)) node
+
+          (and (map? node) (seq (:org/items node)))
+          (update node :org/items #(remove reject-p %))
+
+          :else node))
+      item)))
 
 (defn path->nested-item
   "Parses and returns a single item, the `:root` of the org file,
   with the rest of the nodes/children as `:items`.
 
   See also: `path->flattened-items`."
-  [p] (parse/parse-file p))
+  ([p] (path->nested-item nil p))
+  ([opts p]
+   (let [exclude-tags (:exclude-tags opts #{})
+         exclude-tags (set (concat exclude-tags always-exclude))]
+     (->
+       (parse/parse-file p)
+       (reject-items (fn [item]
+                       (seq (set/intersection exclude-tags (:org/tags item)))))))))
 
 (comment
   (let [p (str (fs/home) "/todo/projects.org")]
@@ -24,8 +48,12 @@
   so there is some duplication in this structure.
 
   See `path->nested-items` for a single object with nested items."
-  [p]
-  (tree-seq (comp seq :org/items) :org/items (path->nested-item p)))
+  ([p] (path->flattened-items nil p))
+  ([opts p]
+   (->>
+     (tree-seq (comp seq :org/items) :org/items (path->nested-item opts p))
+     (remove nil?)
+     seq)))
 
 (comment
   (let [p (str (fs/home) "/todo/projects.org")]
@@ -49,7 +77,7 @@
                  [f])))
         (apply concat)
         (filter #(contains? #{".org"} (fs/extension %)))
-        (map path->nested-item)
+        (map (partial path->nested-item opts))
         (remove nil?))))
 
 (comment

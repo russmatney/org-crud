@@ -1,5 +1,5 @@
 #+TITLE: Core Test
-#+ROAM_TAGS: roam tags like this
+#+filetags: :roam:tags:like:this:
 
 Some otha body
 
@@ -24,3 +24,13 @@ body words
 ** items
 *** that are nested
 body words
+* some private tagged header :private:
+* test-tagged header :test:
+** with a few subheads
+** with misc names
+** this one is private :private:
+should not survive default filters
+*** should not escape
+** and this one :test:
+*** has a private child :private:
+*** and a public child :misc:
