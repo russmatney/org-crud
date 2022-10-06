@@ -347,9 +347,10 @@
       (is (= (->> parsed-items
                   ;; removing the org-section to ease debugging
                   ;; one difference is property capitalization
-                  (map #(dissoc % :org-section)))
+                  ;; last-modified definitely changes when it is updated
+                  (map #(dissoc % :org-section :file/last-modified)))
              (->> (->items)
-                  (map #(dissoc % :org-section))))))))
+                  (map #(dissoc % :org-section :file/last-modified))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Updating root items

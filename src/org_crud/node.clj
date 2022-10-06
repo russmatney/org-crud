@@ -371,6 +371,14 @@
   (->word-count nil nil))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; short path
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn ->short-path [source-file]
+  (when (and source-file (fs/exists? source-file))
+    (str (-> source-file fs/parent fs/file-name) "/" (fs/file-name source-file))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; item - parsed org-items
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -403,7 +411,14 @@
                   :org/body-string (->body-string raw)
                   :org/links-to    (->links-to raw)
                   :org/id          (if-let [id (->id raw)]
-                                     id (:org.prop/id props))}
+                                     id (:org.prop/id props))
+
+                  ;; pulled in from clawe
+                  :file/last-modified (some-> source-file fs/last-modified-time str)
+                  :garden/file-name   (some-> source-file fs/file-name)
+                  :org/short-path     (some-> source-file ->short-path)
+                  ;; note this could be overwritten by props
+                  :org.prop/title     (some-> source-file fs/file-name)}
                  props
                  (->dates raw))))
 
