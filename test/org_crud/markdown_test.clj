@@ -15,9 +15,6 @@
            (filter #(= (fs/extension %) ".md"))
            (map fs/delete)))))
 
-(defn parsed-org-files []
-  (org/dir->nested-items fixture-dir))
-
 (defn parsed-org-file [fname]
   (org/path->nested-item (str fixture-dir "/" fname)))
 
@@ -315,6 +312,107 @@
     (testing "includes markdown-style links"
       (is (contains? (set lines)
                      "# [text name](/link-name) blah")))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; link options
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def some-id "54f28ddb-dafd-4473-998e-c43d26c4b29e")
+(def some-file "path/to/some-file.org")
+
+(def item-with-id-link
+  {:org/level :level/root
+   :org/name  "Example Org File"
+   :org/items
+   [{:org/level 1
+     :org/name  "content with a link"
+     :org/body
+     [{:line-type :unordered-list
+       :text
+       (str "[[id:" some-id "][easy capture]]")}]}]})
+
+(def item-with-file-link
+  {:org/level :level/root
+   :org/name  "Example Org File"
+   :org/items
+   [{:org/level 1
+     :org/name  "content with a link"
+     :org/body
+     [{:line-type :unordered-list
+       :text
+       (str "[[file:" some-file "][easy capture]]")}]}]})
+
+(deftest ->md-links-respect-options
+  (testing "fetch-item is called w/ the link uuid"
+    (let [id-atom (atom nil)]
+      (sut/item->md-body
+        item-with-id-link
+        {:fetch-item (fn [id] (reset! id-atom id) nil)})
+      (is (= @id-atom some-id))))
+
+  (testing "fetch-item's result has some default handling"
+    (let [src-file "blah/some-org-path.org"
+          lines
+          (sut/item->md-body
+            item-with-id-link
+            {:fetch-item (fn [_id]
+                           {:org/source-file src-file
+                            :org/name        "some name"})})]
+      (is (contains? (set lines)
+                     "[easy capture](some-org-path.html)"))))
+
+  (testing "id->link-uri is preferred for building a markdown link"
+    (let [uri     "some-uri"
+          id-atom (atom nil)
+          lines
+          (sut/item->md-body
+            item-with-id-link
+            {:id->link-uri (fn [id] (reset! id-atom id) uri)})]
+      (is (= @id-atom some-id))
+      (is (contains? (set lines)
+                     (str "[easy capture](" uri ")")))))
+
+  (testing "id->link-uri returning nil results in plain-text (no link)"
+    (let [id-atom (atom nil)
+          lines
+          (sut/item->md-body
+            item-with-id-link
+            {:id->link-uri (fn [id] (reset! id-atom id) nil)})]
+      (is (= @id-atom some-id))
+      (is (contains? (set lines)
+                     (str "easy capture")))))
+
+  (testing "args->link-text can be used to set the returned text"
+    (let [args-atom (atom nil)
+          lines
+          (sut/item->md-body
+            item-with-id-link
+            {:args->link-text (fn [args] (reset! args-atom args) "some-text")})]
+      (is (= @args-atom {:link-text "easy capture"
+                         :link-uri  (str "id:" some-id)}))
+      (is (contains? (set lines)
+                     (str "some-text")))))
+
+  (testing "file->link-uri is preferred for building a markdown link"
+    (let [uri       "some-uri"
+          file-atom (atom nil)
+          lines
+          (sut/item->md-body
+            item-with-file-link
+            {:file->link-uri (fn [file] (reset! file-atom file) uri)})]
+      (is (= @file-atom some-file))
+      (is (contains? (set lines)
+                     (str "[easy capture](" uri ")")))))
+
+  (testing "file->link-uri returning nil results in plain-text (no link)"
+    (let [file-atom (atom nil)
+          lines
+          (sut/item->md-body
+            item-with-file-link
+            {:file->link-uri (fn [file] (reset! file-atom file) nil)})]
+      (is (= @file-atom some-file))
+      (is (contains? (set lines)
+                     (str "easy capture"))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; backlinks

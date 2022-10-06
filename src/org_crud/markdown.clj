@@ -51,10 +51,6 @@
    ;; TODO build jekyll-style or templated link
    (-> item (item->file-basename opts))))
 
-(defn markdown-link
-  [{:keys [name link]}]
-  (str "[" name "](" link ")"))
-
 (defn item->md-filename
   ([item] (item->md-filename item {}))
   ([item {:as opts :keys [blog-type]}]
@@ -105,6 +101,72 @@
            (re-seq #"\[\[file:([^\]]*)\]\[[^\]]*\]\]")
            (map second)))
 
+(defn markdown-link
+  [{:keys [name link]}]
+  (str "[" name "](" link ")"))
+
+(defn ->md-link
+  "Converts the passed link-text and link-uri to a working md link (or text).
+  opts can include: `:id->link-uri`, `:file->link-uri`, `:args->link-text`.
+
+  org roam uses id: prefixed links, so the passed opt funcs will likely lookup and return
+  a uri if the link should be exposed.
+
+  org uses file: links, most of these could be ignored, but perhaps some could link to
+  files on github (if they are links to repo paths, for eg.). Not sure how they'd be perma-linked
+  though.
+
+  http: and other links will pass through here just fine."
+  [{:keys [link-text link-uri] :as link-args} opts]
+  (let [link-type (cond
+                    (string/starts-with? link-uri "id:")   :id
+                    (string/starts-with? link-uri "file:") :file
+                    :else                                  nil)]
+    (cond
+      (and (= link-type :id) (:id->link-uri opts))
+      (let [id       (some-> link-uri (string/split #"id:") second)
+            link-uri ((:id->link-uri opts) id)]
+        (if link-uri (markdown-link {:name link-text :link link-uri}) link-text))
+
+      (and (= link-type :file) (:file->link-uri opts))
+      (let [file     (some-> link-uri (string/split #"file:") second)
+            link-uri ((:file->link-uri opts) file)]
+        (if link-uri (markdown-link {:name link-text :link link-uri}) link-text))
+
+      ;; only called with :id or :file link types
+      (and link-type (:args->link-text opts))
+      (let [text ((:args->link-text opts) link-args)]
+        (or text link-text))
+
+      ;; this path is deprecated but left in for now
+      (and (string/starts-with? link-uri "id:") (:fetch-item opts))
+      (let [fetch-item (:fetch-item opts)
+            id         (some-> link-uri (string/split #"id:") second)]
+        (if-let [item (fetch-item id)]
+          (let [link (some-> item :org/source-file fs/file-name
+                             fs/split-ext first (#(str % ".html")))]
+            (if link
+              (markdown-link {:name link-text :link link})
+              (do
+                (println "could not create link, returning raw link")
+                (markdown-link {:name link-text :link link-uri}))))
+          (do
+            (println "fetch-item returned nil, using raw link" link-uri)
+            (markdown-link {:name link-text :link link-uri}))))
+
+      ;; deprecated, was once a viable fallback
+      (string/starts-with? link-uri "file:")
+      (let [link-prefix (or (:link-prefix opts) "")
+            link-uri
+            (some-> link-uri
+                    fs/file-name fs/split-ext first
+                    (string/replace "file:" "")
+                    (#(str link-prefix "/" %)))]
+        (markdown-link {:name link-text :link link-uri}))
+
+      ;; used for normal http: links
+      :else (markdown-link {:name link-text :link link-uri}))))
+
 (defn org-links->md-links
   "Rearranges org-links found in the string with the md style.
   The structure is a supported relative link usable with the gatsby-catch-links
@@ -118,50 +180,11 @@
        s
        #"\[\[([^\]]*)\]\[([^\]]*)\]\]"
        (fn [res]
-         (let [file-path
-               (some->> res (drop 1) first
-                        ((fn [raw-link]
-                           (cond
-                             (string/starts-with? raw-link "id:")
-                             (if-let [fetch-item (:fetch-item opts)]
-                               (if-let [item (some-> raw-link
-                                                     (string/split #"id:")
-                                                     second
-                                                     fetch-item)]
-                                 (do
-                                   #_(println "\n fetch-item found:" (:org/name item) (:org/source-file item))
-                                   ;; TODO return a usable link to the this item's page
-                                   ;; TODO make sure these items are captured and included in the output
-                                   (when-not (:org/name item)
-                                     (println "\n\n what's this?" item))
-                                   (let [link
-                                         (some-> item
-                                                 :org/source-file
-                                                 fs/file-name
-                                                 fs/split-ext first
-                                                 (#(str % ".html")))]
-                                     (if link link
-                                         (do
-                                           (println "could not create link, returning raw link")
-                                           raw-link))))
-                                 (do
-                                   (println "fetch-item returned nil, using raw link" raw-link)
-                                   raw-link))
-                               (do
-                                 (println "no fetch-item, using raw link")
-                                 raw-link))
-
-                             (string/starts-with? raw-link "file:")
-                             (let [link-prefix (or (:link-prefix opts) "")]
-                               (some-> raw-link
-                                       fs/file-name fs/split-ext first
-                                       (string/replace "file:" "")
-                                       (#(str link-prefix "/" %))))
-
-                             :else raw-link))))
-               link-text (some->> res (drop 2) first)]
-           (when (and file-path link-text)
-             (markdown-link {:name link-text :link file-path}))))))))
+         (let [link-text (some->> res (drop 2) first)
+               link-uri  (some->> res (drop 1) first)]
+           (if (and link-text link-uri)
+             (->md-link {:link-text link-text :link-uri link-uri} opts)
+             link-text)))))))
 
 (comment
   (org-links->md-links
