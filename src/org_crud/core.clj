@@ -39,6 +39,12 @@
   (let [p (str (fs/home) "/todo/projects.org")]
     (path->nested-item p)))
 
+(defn nested-item->flattened-items [nested-item]
+  (->>
+    nested-item
+    (tree-seq (comp seq :org/items) :org/items)
+    (remove nil?)
+    seq))
 
 (defn path->flattened-items
   "Returns a flattened list of org items in the passed file.
@@ -51,7 +57,8 @@
   ([p] (path->flattened-items nil p))
   ([opts p]
    (->>
-     (tree-seq (comp seq :org/items) :org/items (path->nested-item opts p))
+     (path->nested-item opts p)
+     (tree-seq (comp seq :org/items) :org/items)
      (remove nil?)
      seq)))
 

@@ -234,9 +234,6 @@
 
                                (not keep-parent)
                                (filter keep-item)))
-         ;; _               (println "\n item" (:org/name item) (:org/tags item))
-         ;; _               (println "\n child-lines" child-lines)
-         ;; _               (println "\n parent-is-post?" parent-is-post?)
          header-line
          (if (int? (:org/level item))
            (str (apply str (repeat (:org/level item) "#")) " "
