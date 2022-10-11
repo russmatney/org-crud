@@ -12,7 +12,8 @@
   "Parses content :table-row :line-types into a list of strs"
   [{:keys [content]}]
   (->> content
-       (filter #(= (:line-type %) :table-row))
+       (filter (comp #{:table-row :unordered-list :definition-list :ordered-list :paragraph}
+                     :line-type))
        (map :text)))
 
 (defn ->body-string [raw]

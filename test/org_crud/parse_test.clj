@@ -98,15 +98,16 @@
       (is (= (-> (todos id-6) :org/name) "cancelled"))
 
       (is (= (-> (todos id-7) :org/status) :status/skipped))
-      (is (= (-> (todos id-7) :org/name) "skipped"))))
+      (is (= (-> (todos id-7) :org/name) "skipped")))))
 
+(deftest parses-ids-and-dates-from-todos-headlines
   (testing "ids in headlines and scheduled dates"
     (let [id      #uuid "7daae9e6-ba06-4121-b422-77d7d157fa2b"
           link-id #uuid "c7dc484f-72d5-4fdb-aca3-05440000f63f"
           date    "2022-09-29 Thu"
           node    (sut/parse-lines
                     ["#+title: some title"
-                     (str "* [ ] implement that vim clojure lib's intro to clojure in [[id:" link-id "][clerk]]")
+                     (str "* [ ] implement :ConjureSchool in [[id:" link-id "][clerk]]")
                      (str "SCHEDULED: <" date ">")
                      ":PROPERTIES:"
                      (str ":ID:       " id)
@@ -117,6 +118,42 @@
       (is (= (-> todo :org/id) id))
       (is (= (-> todo :org/scheduled) date))
       (is (= (-> todo :org/links-to set) #{{:link/id link-id :link/text "clerk"}})))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; links-to
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest parses-links-in-several-forms
+  (testing "links in headlines"
+    (let [link-id #uuid "c7dc484f-72d5-4fdb-aca3-05440000f63f"
+          node    (sut/parse-lines
+                    ["#+title: some title"
+                     (str "* some content [[id:" link-id "][linky]]")])
+          todo    (->> node :org/items first)]
+      (is (valid schema/item-schema node))
+      (is (= (-> todo :org/links-to set)
+             #{{:link/id link-id :link/text "linky"}}))))
+
+  (testing "links in root item context"
+    (let [link-id #uuid "c7dc484f-72d5-4fdb-aca3-05440000f63f"
+          node    (sut/parse-lines
+                    ["#+title: some title"
+                     ""
+                     (str "some content [[id:" link-id "][linky]]")])]
+      (is (valid schema/item-schema node))
+      (is (= (-> node :org/links-to set)
+             #{{:link/id link-id :link/text "linky"}}))))
+
+  (testing "links in bulletted lists"
+    (let [link-id #uuid "c7dc484f-72d5-4fdb-aca3-05440000f63f"
+          node    (sut/parse-lines
+                    ["#+title: some title"
+                     ""
+                     (str "- [[id:" link-id "][linky]]")])]
+      (is (valid schema/item-schema node))
+      (is (= (-> node :org/links-to set)
+             #{{:link/id link-id :link/text "linky"}}))
+      node)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; tags
