@@ -6,7 +6,7 @@
    [clojure.set :as set]
    [clojure.walk :as walk]))
 
-(def always-exclude #{"private"})
+(def always-exclude #{"private" "personal" "hide"})
 
 (defn reject-items [item reject-p]
   (when-not (reject-p item)
