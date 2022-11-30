@@ -177,6 +177,45 @@
   (when level
     (str (apply str (repeat level "*")) " " name)))
 
+(defn interpose-pattern
+  "Replace parts of a string `s` matching `pattern` with function `replace-fn`."
+  [s pattern replace-fn]
+  (->> (loop [s s out []]
+         (let [next-replacement (replace-fn s)
+               parts            (string/split s pattern 2)]
+           (if (< (count parts) 2)
+             (concat out (if next-replacement (conj parts next-replacement) parts))
+             (let [[new-s rest] parts
+                   out          (concat out [new-s next-replacement])]
+               (recur rest out)))))
+       (remove #{""})))
+
+(def link-re #"\[\[.*\]\[(.*)\]\]")
+(defn ->link-text [s]
+  (some->>
+    (re-seq link-re s)
+    first
+    second))
+
+(comment
+  (->link-text "* Reduce [[id:some-id][baggage]]")
+  (re-seq link-re "* Reduce [[id:some-id][baggage]]")
+  (re-matches link-re "* Reduce [[id:some-id][baggage]]")
+  )
+
+
+(defn ->name-string
+  "Returns a string version of the headline (removing org-links)"
+  [node]
+  (let [name (->name node)]
+    (apply str
+           (interpose-pattern name link-re ->link-text))))
+
+(comment
+  (->name-string {:name "* [X] Reduce baggage" :type :section})
+  (->name-string {:name "* Reduce baggage" :type :section})
+  (->name-string {:name "* Reduce [[id:some-id][baggage]]" :type :section}))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; tags
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -391,6 +430,7 @@
                   :org/source-file (some-> source-file fs/absolutize str)
                   :org/id          (->id raw)
                   :org/name        (->name raw)
+                  :org/name-string (->name-string raw)
                   :org/headline    (->raw-headline raw)
                   :org/tags        (->tags raw)
                   :org/priority    (->priority raw)
@@ -407,6 +447,7 @@
           (merge {:org/level       (->level raw)
                   :org/source-file (some-> source-file fs/absolutize str)
                   :org/name        (:org.prop/title props)
+                  :org/name-string (:org.prop/title props)
                   :org/tags        (->tags raw props)
                   :org/body        (->body raw)
                   :org/body-string (->body-string raw)

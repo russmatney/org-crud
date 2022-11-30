@@ -26,6 +26,12 @@
     (is (= "01 test todo" (sut/->name {:name "SKIP 01 test todo" :type :section})))
     (is (= "test todo" (sut/->name {:name "test todo" :type :section})))))
 
+(deftest ->name-string-test
+  (testing "removes org-links"
+    (is (= "test todo" (sut/->name-string {:name "[ ] test todo" :type :section})))
+    (is (= "test todo" (sut/->name-string {:name "test todo" :type :section})))
+    (is (= "test todo" (sut/->name-string {:name "test [[id:some-id][todo]]" :type :section})))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; date parsers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
