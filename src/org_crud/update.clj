@@ -199,6 +199,12 @@
 
   `up` is a map describing a minimal update to make to the item.
   ex: `{:org/name \"My New Item Name\"}`
+
+  Collections are appended (rather than removing existing tags):
+  ex: `{:org/tags \"sometag\"}`
+
+  To remove a tag, use a `[:remove \"tag-name\"]` tuple:
+  ex: `{:org/tags [:remove \"sometag\"]}`
   "
   ([item up] (update! (:org/source-file item) item up))
   ([path item up]
