@@ -153,8 +153,34 @@
       (sut/update! org-filepath (get-headline pred-map) {:org/tags "othertag"})
       (sut/update! org-filepath (get-headline pred-map)
                    {:org/tags [:remove "othertag"]})
-      (is (= (:org/tags (get-headline pred-map)) #{"newtag"})))
-    ))
+      (is (= (:org/tags (get-headline pred-map)) #{"newtag"})))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; update priorities on headlines
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest update-priority-test
+  (testing "updates a headline's priority"
+    (let [pred-map {:org/name "add/remove priority"}
+          priority "A"
+          k        :org/priority]
+      (let [headline (get-headline pred-map)]
+        (is (= nil (get headline k))))
+
+      ;; set priority
+      (sut/update! org-filepath (get-headline pred-map) {k priority})
+      (let [headline (get-headline pred-map)]
+        (is (= priority (get headline k))))
+
+      ;; set different priority
+      (sut/update! org-filepath (get-headline pred-map) {k "C"})
+      (let [headline (get-headline pred-map)]
+        (is (= "C" (get headline k))))
+
+      ;; remove priority
+      (sut/update! org-filepath (get-headline pred-map) {k nil})
+      (let [headline (get-headline pred-map)]
+        (is (= nil (get headline k)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; update property on property buckets

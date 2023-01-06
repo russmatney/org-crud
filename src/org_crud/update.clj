@@ -107,9 +107,7 @@
     (seq (:org/tags up))
     (update :org/tags update-tags (:org/tags up))
 
-    ;; TODO consider validation of this input
-    ;; TODO unit tests
-    (:org/priority up)
+    (contains? up :org/priority)
     (assoc :org/priority (:org/priority up))
 
     (:org/name up)

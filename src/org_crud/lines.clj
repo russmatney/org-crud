@@ -211,12 +211,14 @@
           ""))))
 
 (defn node-name
-  [{:keys [org/status org/tags org/name] :as item} level]
+  [{:keys [org/status org/tags org/name org/priority] :as item} level]
   (let [level     (or level 1)
         level-str (apply str (repeat level "*"))
         headline  (str level-str
-                       (when status
-                         (str " " (item->status-text item)))
+                       (when status (str " " (item->status-text item)))
+                       (when priority (str " [#"
+                                           ;; TODO consider validation
+                                           priority "]"))
                        " " name)]
     (append-tags headline tags)))
 
