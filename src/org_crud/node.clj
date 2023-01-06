@@ -150,7 +150,10 @@
     (->> name
          (re-find headline-regex)
          second
-         ((fn [s] (string/replace s #"\[[ X-]\] " ""))))))
+         ((fn [s]
+            (-> s
+                (string/replace #"\[#[ABC]\] " "")
+                (string/replace #"\[[ X-]\] " "")))))))
 
 (comment
   (->name
@@ -163,6 +166,7 @@
   (->name {:name "* Reduce baggage" :type :section})
   (->name {:name "* Reduce baggage"})
   (->name {:name "* TODO [#A] Reduce baggage" :type :section})
+  (->name {:name "* [ ] [#A] Reduce baggage" :type :section})
   (let [raw
         {:type    :root,
          :content [{:line-type :comment, :text "#+TITLE: finally, a wiki!" }
@@ -200,8 +204,7 @@
 (comment
   (->link-text "* Reduce [[id:some-id][baggage]]")
   (re-seq link-re "* Reduce [[id:some-id][baggage]]")
-  (re-matches link-re "* Reduce [[id:some-id][baggage]]")
-  )
+  (re-matches link-re "* Reduce [[id:some-id][baggage]]"))
 
 
 (defn ->name-string
@@ -212,6 +215,7 @@
            (interpose-pattern name link-re ->link-text))))
 
 (comment
+  (->name-string {:name "* [X] [#A] Reduce baggage" :type :section})
   (->name-string {:name "* [X] Reduce baggage" :type :section})
   (->name-string {:name "* Reduce baggage" :type :section})
   (->name-string {:name "* Reduce [[id:some-id][baggage]]" :type :section}))

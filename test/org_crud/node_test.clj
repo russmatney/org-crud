@@ -146,6 +146,7 @@
       (is (= "C" three))
       (is (= "C" four)))
 
+    ;; make sure the names don't include the priority
     (let [names (map :org/name sorted)]
       (is (= 0 (->> names
                     (filter

@@ -20,7 +20,7 @@ some detail
 :PROPERTIES:
 :ID:       a5eb95d0-b9de-448f-bdfd-1d9d1f044f1d
 :END:
-* add/remove priority
+* [ ] add/remove priority
 :PROPERTIES:
 :ID:       86d018de-f495-495a-bac3-a0eaeb526815
 :END:

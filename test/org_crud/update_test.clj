@@ -117,9 +117,9 @@
           tags        #{"test" "yother"}
           another-tag "anothertag"
           empty       #{}
-          k           :org/tags]
-      (let [headline (get-headline pred-map)]
-        (is (= (get headline k) empty)))
+          k           :org/tags
+          headline    (get-headline pred-map)]
+      (is (= (get headline k) empty))
 
       ;; add two tags, expect both
       (sut/update! org-filepath (get-headline pred-map) {k tags})
@@ -163,19 +163,31 @@
   (testing "updates a headline's priority"
     (let [pred-map {:org/name "add/remove priority"}
           priority "A"
-          k        :org/priority]
-      (let [headline (get-headline pred-map)]
-        (is (= nil (get headline k))))
+          k        :org/priority
+          headline (get-headline pred-map)
+          name     (:org/name headline)]
+      (is (= nil (get headline k)))
 
       ;; set priority
       (sut/update! org-filepath (get-headline pred-map) {k priority})
       (let [headline (get-headline pred-map)]
-        (is (= priority (get headline k))))
+        (is (= priority (get headline k)))
+        ;; make sure name doesn't change
+        (is (= name (:org/name headline))))
 
       ;; set different priority
       (sut/update! org-filepath (get-headline pred-map) {k "C"})
       (let [headline (get-headline pred-map)]
-        (is (= "C" (get headline k))))
+        (is (= "C" (get headline k)))
+        ;; make sure name doesn't change
+        (is (= name (:org/name headline))))
+
+      ;; set same priority
+      (sut/update! org-filepath (get-headline pred-map) {k "C"})
+      (let [headline (get-headline pred-map)]
+        (is (= "C" (get headline k)))
+        ;; make sure name doesn't change
+        (is (= name (:org/name headline))))
 
       ;; remove priority
       (sut/update! org-filepath (get-headline pred-map) {k nil})
