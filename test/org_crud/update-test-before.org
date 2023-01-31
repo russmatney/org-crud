@@ -136,3 +136,21 @@ goes above me???
 * SKIP skipped with words
 * [-] started with a dash
 * STRT started with a word
+* this node has code
+
+that should not be dropped when this doc is updated
+
+#+BEGIN_SRC clojure
+(def my-clj-var "with a string val")
+
+(comment
+  (count my-clj-var))
+#+END_SRC
+
+then some prose, followed by more code
+
+#+begin_src gdscript
+print("some strs")
+
+print("other strs")
+#+end_src

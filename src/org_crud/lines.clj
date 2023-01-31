@@ -169,14 +169,14 @@
         (:text line)
         (conj agg (:text line))
 
-        (and (= :block (:type line))
-             (= "SRC" (:block-type line)))
+        (and (#{:block} (:type line))
+             (#{"SRC" "src"} (:block-type line)))
         (apply conj agg (flatten [(str "#+BEGIN_SRC " (:qualifier line))
                                   (map :text (:content line))
                                   "#+END_SRC"]))
 
-        (and (= :drawer (:type line))
-             (= :property-drawer-item (some-> line :content first :line-type)))
+        (and (#{:drawer} (:type line))
+             (#{:property-drawer-item} (some-> line :content first :line-type)))
         ;; skip property drawers, they are handled elsewhere
         ;; could write these here, but i like them coming from `props` as a map
         agg

@@ -79,8 +79,7 @@
 (comment
   (->>
     (->items)
-    (map :org/name))
-  )
+    (map :org/name)))
 
 (deftest update-status-more-statuses-test
   (testing "adds a tag then checks that the correct statuses are set"
@@ -422,3 +421,46 @@
   (let [{:org/keys [id]} (parse-item)]
     (update-item {:org.prop/my-prop "val"})
     (is (= id (-> (parse-item) :org/id)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; code blocks
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest update-item-with-code-blocks
+  (let [parse-and-assert-code-blocks
+        (fn []
+          (let [headline      (get-headline {:org/name "this node has code"})
+                src-blocks    (->> headline :org/body
+                                   (filter (comp #{"SRC" "src"}
+                                                 :block-type)))
+                [blk-1 blk-2] src-blocks
+                [blk-content-1 blk-content-2]
+                (->> src-blocks
+                     (map (fn [block] (->> block :content (map :text)
+                                           (string/join "\n")))))]
+            (is (= (:qualifier blk-1) "clojure"))
+            (is blk-content-1)
+            (is (string/includes? blk-content-1 "my-clj-var"))
+            (is (= (:qualifier blk-2) "gdscript"))
+            (is blk-content-2)
+            (is (string/includes? blk-content-2 "print"))))]
+    (testing "reading code blocks"
+      (parse-and-assert-code-blocks))
+
+    (testing "adding an org-prop, then re-reading"
+      (let [headline (get-headline {:org/name "this node has code"})]
+        (sut/update! org-filepath headline {:org.prop/some-prop "abc"}))
+
+      (let [h (get-headline {:org/name "this node has code"})]
+        (is (:org.prop/some-prop h) "abc"))
+
+      (parse-and-assert-code-blocks))
+
+    (testing "setting a todo status, then re-reading"
+      (let [headline (get-headline {:org/name "this node has code"})]
+        (sut/update! org-filepath headline {:org/status :status/in-progress}))
+
+      (let [h (get-headline {:org/name "this node has code"})]
+        (is (:org/status h) :status/in-progress))
+
+      (parse-and-assert-code-blocks))))
