@@ -86,22 +86,22 @@
   [tree]
   (reduce tree-fixer '() tree))
 
-(defn clean-headline
-  [stars & args]
-  (let [level       (keyword (str "h" (count (second stars))))
-        first-lists (->> args
-                         (take-while (complement string?))
-                         (drop-while string?))
-        title       (->> args
-                         (drop-while (complement string?))
-                         (take-while string?)
-                         (apply str)
-                         ;; inline-markup
-                         )
-        last-lists  (->> args
-                         (drop-while (complement string?))
-                         (drop-while string?))]
-    (vec (concat [level] first-lists [title] last-lists))))
+;; (defn clean-headline
+;;   [stars & args]
+;;   (let [level       (keyword (str "h" (count (second stars))))
+;;         first-lists (->> args
+;;                          (take-while (complement string?))
+;;                          (drop-while string?))
+;;         title       (->> args
+;;                          (drop-while (complement string?))
+;;                          (take-while string?)
+;;                          (apply str)
+;;                          ;; inline-markup
+;;                          )
+;;         last-lists  (->> args
+;;                          (drop-while (complement string?))
+;;                          (drop-while string?))]
+;;     (vec (concat [level] first-lists [title] last-lists))))
 
 #_(defn rejoin-lines
     "Rejoin lines with appropriate line breaks."
@@ -148,7 +148,7 @@
        doc-metadata
        (map (partial reparse-string headlines))
        fix-tree
-       (insta/transform {:h clean-headline})
+       ;; (insta/transform {:h clean-headline})
        #_(insta/transform {:section (fn [& stuff]
                                       (break-cleaner stuff :section))})
        #_rejoin-lines
