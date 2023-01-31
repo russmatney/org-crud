@@ -170,10 +170,17 @@
         (conj agg (:text line))
 
         (and (#{:block} (:type line))
-             (#{"SRC" "src"} (:block-type line)))
-        (apply conj agg (flatten [(str "#+BEGIN_SRC " (:qualifier line))
-                                  (map :text (:content line))
-                                  "#+END_SRC"]))
+             (#{"SRC" "src"
+                "QUOTE" "quote"} (:block-type line)))
+        (let [block-type  (:block-type line)
+              is-upper?   (= block-type (string/upper-case block-type))
+              [begin end] (->> (if is-upper? ["#+BEGIN_" "#+END_"]
+                                   ["#+begin_" "#+end_"])
+                               (map (fn [clause]
+                                      (str clause block-type " "))))]
+          (apply conj agg (flatten [(str begin (:qualifier line))
+                                    (map :text (:content line))
+                                    end])))
 
         (and (#{:drawer} (:type line))
              (#{:property-drawer-item} (some-> line :content first :line-type)))

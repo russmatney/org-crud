@@ -376,8 +376,8 @@
 ;; writing parsed org back to disk
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(deftest write-updated
-  (testing "writes the parsed org back to disk properly"
+(deftest write-updated-roundtrip
+  (testing "the parsed org items should be equivalent after being written and reparsed"
     (let [parsed-items (->items)]
       (sut/write-updated org-filepath parsed-items)
       (is (= (count parsed-items) (count (->items))))
@@ -423,14 +423,15 @@
     (is (= id (-> (parse-item) :org/id)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; code blocks
+;; blocks
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; code blocks
 (deftest update-item-with-code-blocks
-  (let [parse-and-assert-code-blocks
+  (let [->hl (fn [] (get-headline {:org/name "this node has code"}))
+        parse-and-assert-code-blocks
         (fn []
-          (let [headline      (get-headline {:org/name "this node has code"})
-                src-blocks    (->> headline :org/body
+          (let [src-blocks    (->> (->hl) :org/body
                                    (filter (comp #{"SRC" "src"}
                                                  :block-type)))
                 [blk-1 blk-2] src-blocks
@@ -448,19 +449,43 @@
       (parse-and-assert-code-blocks))
 
     (testing "adding an org-prop, then re-reading"
-      (let [headline (get-headline {:org/name "this node has code"})]
-        (sut/update! org-filepath headline {:org.prop/some-prop "abc"}))
-
-      (let [h (get-headline {:org/name "this node has code"})]
-        (is (:org.prop/some-prop h) "abc"))
-
+      (sut/update! org-filepath (->hl) {:org.prop/some-prop "abc"})
+      (is (:org.prop/some-prop (->hl)) "abc")
       (parse-and-assert-code-blocks))
 
     (testing "setting a todo status, then re-reading"
-      (let [headline (get-headline {:org/name "this node has code"})]
-        (sut/update! org-filepath headline {:org/status :status/in-progress}))
-
-      (let [h (get-headline {:org/name "this node has code"})]
-        (is (:org/status h) :status/in-progress))
-
+      (sut/update! org-filepath (->hl) {:org/status :status/in-progress})
+      (is (:org/status (->hl)) :status/in-progress)
       (parse-and-assert-code-blocks))))
+
+;; quote blocks
+(deftest update-item-with-quote-blocks
+  (let [->hl (fn [] (get-headline {:org/name "this node has quotes"}))
+        parse-and-assert
+        (fn []
+          (let [blocks        (->> (->hl) :org/body
+                                   (filter (comp #{"QUOTE" "quote"}
+                                                 :block-type)))
+                [blk-1 blk-2] blocks
+                [blk-content-1 blk-content-2]
+                (->> blocks
+                     (map (fn [block] (->> block :content (map :text)
+                                           (string/join "\n")))))]
+            (is (= (:qualifier blk-1) "someone"))
+            (is blk-content-1)
+            (is (string/includes? blk-content-1 "from someone"))
+            (is (= (:qualifier blk-2) "another_someone"))
+            (is blk-content-2)
+            (is (string/includes? blk-content-2 "from another someone"))))]
+    (testing "reading quote blocks"
+      (parse-and-assert))
+
+    (testing "adding an org-prop, then re-reading"
+      (sut/update! org-filepath (->hl) {:org.prop/some-prop "abc"})
+      (is (:org.prop/some-prop (->hl)) "abc")
+      (parse-and-assert))
+
+    (testing "setting a todo status, then re-reading"
+      (sut/update! org-filepath (->hl) {:org/status :status/in-progress})
+      (is (:org/status (->hl)) :status/in-progress)
+      (parse-and-assert))))

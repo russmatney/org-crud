@@ -154,3 +154,17 @@ print("some strs")
 
 print("other strs")
 #+end_src
+
+* this node has quotes
+
+a quote block for ya
+
+#+begin_quote someone
+some quote from someone
+#+end_quote
+
+and then
+
+#+BEGIN_QUOTE another_someone
+another quote from another someone
+#+END_QUOTE
