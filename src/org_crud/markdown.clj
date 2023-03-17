@@ -182,9 +182,21 @@
        (fn [res]
          (let [link-text (some->> res (drop 2) first)
                link-uri  (some->> res (drop 1) first)]
-           (if (and link-text link-uri)
+           ;; TODO write unit test
+           (cond
+             (and link-text (:drop-links opts))
+             link-text
+
+             ;; drop org `id:uuid` links
+             (and link-uri
+                  (:drop-id-links opts)
+                  (re-seq #"^id:.*" link-uri ))
+             link-text
+
+             (and link-text link-uri)
              (->md-link {:link-text link-text :link-uri link-uri} opts)
-             link-text)))))))
+
+             :else link-text)))))))
 
 (comment
   (org-links->md-links
