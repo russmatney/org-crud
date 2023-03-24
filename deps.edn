@@ -1,32 +1,30 @@
 {:path ["src"]
 
  :deps
- {babashka/fs           {:mvn/version "0.1.11"}
-  babashka/process      {:mvn/version "0.2.10"}
+ {babashka/fs           {:mvn/version "0.3.17"}
+  babashka/process      {:mvn/version "0.4.16"}
   wing/wing             {:mvn/version "0.1.4"}
-  metosin/malli         {:mvn/version "0.8.9"}
-  instaparse/instaparse {:mvn/version "1.4.12"}}
+  metosin/malli         {:mvn/version "0.10.4"}
+  instaparse/instaparse {:mvn/version "1.4.12"}
+  tick/tick             {:mvn/version "0.6.0"}}
 
  :aliases
  {:dev {:jvm-opts    ["-XX:-OmitStackTraceInFastThrow"]
         :extra-paths ["test"]
         :extra-deps
-        {org.clojure/test.check {:mvn/version "1.1.1"}
-         tick/tick              {:mvn/version "0.5.0-RC5"}}}
+        {org.clojure/test.check {:mvn/version "1.1.1"}}}
 
   :test
   {:extra-paths ["test"]
    :main-opts   ["-m" "kaocha.runner"]
    :extra-deps
    {org.clojure/test.check {:mvn/version "1.1.1"}
-    ;; TODO update code per new tick version!!
-    tick/tick              {:mvn/version "0.5.0-RC5"}
     wing/wing              {:mvn/version "0.1.4"}
-    lambdaisland/kaocha    {:mvn/version "1.70.1086"}}}
+    lambdaisland/kaocha    {:mvn/version "1.80.1274"}}}
 
   :nrepl {:extra-deps
-          {cider/cider-nrepl             {:mvn/version "0.28.6"}
-           refactor-nrepl/refactor-nrepl {:mvn/version "3.5.5"}}}
+          {cider/cider-nrepl             {:mvn/version "0.30.0"}
+           refactor-nrepl/refactor-nrepl {:mvn/version "3.6.0"}}}
 
-  :outdated {:extra-deps {com.github.liquidz/antq {:mvn/version "2.1.927"}}
+  :outdated {:extra-deps {com.github.liquidz/antq {:mvn/version "2.1.1017"}}
              :main-opts  ["-m" "antq.core"]}}}
