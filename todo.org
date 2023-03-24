@@ -4,10 +4,11 @@
 CLOSED: [2022-04-30 Sat 17:08]
 ... or move to that one? b/c it's already done?
 * project-wide
+** [X] improve test coverage
+CLOSED: [2023-03-24 Fri 16:17]
 ** [ ] add to clojars
-** [ ] improve test coverage
 ** [ ] write a larger usage guide
-** [ ] readme refresh, and in org
+** [ ] readme refresh
 It's been a few years!
 * parsing/writing
 ** [X] handle round-tripping items/item-lists better
@@ -30,11 +31,12 @@ CLOSED: [2022-04-30 Sat 18:05]
 CLOSED: [2022-04-30 Sat 18:05]
 ** [X] don't add empty property buckets to every item
 CLOSED: [2021-02-15 Mon 14:05]
-** [ ] support source blocks
-** [ ] support images with files/names/captions
-** [ ] support tables
+** [X] support source blocks
+CLOSED: [2023-03-24 Fri 16:17]
 ** [ ] support logbooks
 right now it seems to just throw out items with logbooks
+** [ ] support tables
+** [ ] support images with files/names/captions
 * analyzing/manipulating org items
 ** [ ] expose walk api for reducing over the nested structure
 * agenda

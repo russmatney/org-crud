@@ -136,6 +136,8 @@
   [node parent parent-stack]
   (let [item (-> node
                  ;; set any parent ids
+                 ;; TODO probably stick with a stack here
+                 ;; so consumers can get a nearest-parent or furthest-parent
                  (assoc :org/parent-ids (->> parent-stack (map :org/id) (remove nil?) (into #{})))
                  ;; set a nested parent name
                  (assoc :org/parent-name (->> parent-stack
