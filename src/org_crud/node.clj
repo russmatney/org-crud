@@ -66,32 +66,36 @@
       (when val
         (string/trim val)))))
 
+(defn prop-lines->properties
+  ([prop-lines] (prop-lines->properties prop-lines "org.prop"))
+  ([prop-lines prefix]
+   (if (seq prop-lines)
+     (->> prop-lines
+          (group-by ->prop-key)
+          (map (fn [[k vals]]
+                 (let [vals (map ->prop-value vals)
+                       vals (if (> (count vals) 1)
+                              ;; sorting just for testing convenience
+                              (sort vals)
+                              (first vals))]
+                   (when (seq (name k))
+                     [(keyword (str prefix "/" (name k))) vals]))))
+          (remove nil?)
+          (into {}))
+     {})))
+
 (defn ->properties [x]
-  (let [prop-lines
-        (concat
-          ;; check the drawer/prop-bucket for all
-          (->drawer x)
-          ;; check for additional root level props
-          (when (= :root (:type x))
-            ;; TODO stop after first non-comment?
-            (->> x
-                 :content
-                 (filter #(= (:line-type %) :comment))
-                 (map :text))))]
-    (if (seq prop-lines)
-      (->> prop-lines
-           (group-by ->prop-key)
-           (map (fn [[k vals]]
-                  (let [vals (map ->prop-value vals)
-                        vals (if (> (count vals) 1)
-                               ;; sorting just for testing convenience
-                               (sort vals)
-                               (first vals))]
-                    (when (seq (name k))
-                      [(keyword (str "org.prop/" (name k))) vals]))))
-           (remove nil?)
-           (into {}))
-      {})))
+  (prop-lines->properties
+    (concat
+      ;; check the drawer/prop-bucket for all
+      (->drawer x)
+      ;; check for additional root level props
+      (when (= :root (:type x))
+        ;; TODO stop after first non-comment?
+        (->> x
+             :content
+             (filter #(= (:line-type %) :comment))
+             (map :text))))))
 
 (comment
   (->properties
@@ -399,6 +403,70 @@
     (remove nil?)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; images
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn ->images [x]
+  (let [content (:content x)
+        image-paths
+        (->> content (filter (comp #{:table-row} :line-type))
+             (map :text)
+             (filter #(and (re-seq #"^\[\[" %) (re-seq #"]]$" %)))
+             (map (fn [l]
+                    (-> l
+                        (string/replace "[[" "")
+                        (string/replace "]]" ""))))
+             (filter fs/extension))
+        paths-and-indexes
+        (->> image-paths
+             (map (fn [p]
+                    (->> content (map-indexed vector)
+                         (map
+                           (fn [[i c]]
+                             (when (-> c :text (string/includes? p))
+                               [p i])))
+                         (remove nil?)
+                         first)))
+             (remove nil?))
+        paths-and-comments
+        (->> paths-and-indexes
+             (map (fn [[path index]]
+                    (let [rng (range (dec index) -1 -1)
+                          comments
+                          (->> rng
+                               ;; walk backwards to collect properties
+                               (take-while (fn [i]
+                                             (let [line (get content i)]
+                                               (when (and
+                                                       line
+                                                       (-> line :line-type #{:comment}))
+                                                 line))))
+                               (map #(get content %)))]
+                      [path comments]))))]
+    (->> paths-and-comments
+         (map (fn [[path comments]]
+                (merge
+                  (prop-lines->properties (map :text comments) "image")
+                  {:image/path      path
+                   :image/extension (fs/extension path)}))))))
+
+
+(comment
+  (->images
+    {:type    :section
+     :content [{:line-type :comment
+                :text      "#+name: gameplay recording from HatBot"}
+               {:line-type :comment
+                :text      "#+caption: Some clip or other"}
+               {:line-type :table-row
+                :text      "[[~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4]]"}]
+     :level   1
+     :name    "blog supporting images"
+     :tags    ["blog" "clip"]
+     :kw      nil}))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; word count
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -434,40 +502,39 @@
   (-> (cond
         (#{:section} (:type raw))
         (let [{:keys [status status-raw]} (->todo-status raw)]
-          (merge {:org/level       (->level raw)
-                  :org/source-file (some-> source-file fs/absolutize str)
+          (merge {:org/body        (->body raw)
+                  :org/body-string (->body-string raw)
+                  :org/headline    (->raw-headline raw)
                   :org/id          (->id raw)
+                  :org/images      (->images raw)
+                  :org/level       (->level raw)
+                  :org/links-to    (->links-to raw)
                   :org/name        (->name raw)
                   :org/name-string (->name-string raw)
-                  :org/headline    (->raw-headline raw)
-                  :org/tags        (->tags raw)
                   :org/priority    (->priority raw)
-                  :org/body        (->body raw)
-                  :org/body-string (->body-string raw)
-                  :org/links-to    (->links-to raw)
+                  :org/source-file (some-> source-file fs/absolutize str)
                   :org/status      status
-                  :org/status-raw  status-raw}
+                  :org/status-raw  status-raw
+                  :org/tags        (->tags raw)}
                  (->properties raw)
                  (->dates raw)))
 
         (#{:root} (:type raw))
         (let [props (->properties raw)]
-          (merge {:org/level       (->level raw)
-                  :org/source-file (some-> source-file fs/absolutize str)
-                  :org/name        (:org.prop/title props)
-                  :org/name-string (:org.prop/title props)
-                  :org/tags        (->tags raw props)
-                  :org/body        (->body raw)
-                  :org/body-string (->body-string raw)
-                  :org/links-to    (->links-to raw)
-                  :org/id          (if-let [id (->id raw)]
-                                     id (:org.prop/id props))
-
-                  ;; pulled in from clawe
-                  :file/last-modified (some-> source-file fs/last-modified-time str)
+          (merge {:file/last-modified (some-> source-file fs/last-modified-time str)
                   :garden/file-name   (some-> source-file fs/file-name)
+                  :org/body           (->body raw)
+                  :org/body-string    (->body-string raw)
+                  :org/id             (if-let [id (->id raw)]
+                                        id (:org.prop/id props))
+                  :org/images         (->images raw)
+                  :org/level          (->level raw)
+                  :org/links-to       (->links-to raw)
+                  :org/name           (:org.prop/title props)
+                  :org/name-string    (:org.prop/title props)
                   :org/short-path     (some-> source-file ->short-path)
-                  ;; note this could be overwritten by props
+                  :org/source-file    (some-> source-file fs/absolutize str)
+                  :org/tags           (->tags raw props)
                   :org.prop/title     (some-> source-file fs/file-name)}
                  props
                  (->dates raw))))

@@ -205,3 +205,24 @@
                {:link/id   #uuid "910e0d6e-759d-4a9b-809c-78a6a0b6538b"
                 :link/text "sometimes multiple times"}}
              (-> "child with links" item-with-name :org/links-to set))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; images
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest node-images
+  (let [item           (parsed-org-file "node-test.org")
+        item-with-name (fn [n]
+                         (some->> item :org/items
+                                  (filter (comp #(string/includes? % n)
+                                                :org/name-string))
+                                  first))]
+
+    (testing ":org/images parses name, caption, path, extension"
+      (let [it (item-with-name "blog supporting")]
+        (is it)
+        (is (= [{:image/name      "gameplay recording from HatBot"
+                 :image/caption   "Some clip or other"
+                 :image/path      "~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4"
+                 :image/extension "mp4"}]
+               (-> it :org/images vec)))))))

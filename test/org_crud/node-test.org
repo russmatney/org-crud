@@ -34,3 +34,8 @@ CLOSED: [2022-04-30 Sat 17:42] DEADLINE: <2022-04-30 Sat> SCHEDULED: <2022-04-30
 children nodes have [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]] too
 
 they can link to the same, [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][sometimes multiple times]]
+
+* blog supporting [[id:9e25c038-b7b1-4fd8-8470-3027e556b353][screenshots]] and [[id:6d10fd84-59c2-402b-989d-9a6e582cec23][clips]] :blog:clip:
+#+name: gameplay recording from HatBot
+#+caption: Some clip or other
+[[~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4]]
