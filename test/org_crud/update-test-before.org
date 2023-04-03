@@ -168,3 +168,8 @@ and then
 #+BEGIN_QUOTE another_someone
 another quote from another someone
 #+END_QUOTE
+
+* blog supporting [[id:9e25c038-b7b1-4fd8-8470-3027e556b353][screenshots]] and [[id:6d10fd84-59c2-402b-989d-9a6e582cec23][clips]] :blog:clip:
+#+name: gameplay recording from HatBot
+#+caption: Some clip or other
+[[~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4]]

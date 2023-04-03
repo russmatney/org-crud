@@ -8,6 +8,7 @@
    [org-crud.core :as org]
    [clojure.string :as string]))
 
+
 (defn test-fixtures
   [f]
   (fs/copy
@@ -489,3 +490,27 @@
       (sut/update! org-filepath (->hl) {:org/status :status/in-progress})
       (is (:org/status (->hl)) :status/in-progress)
       (parse-and-assert))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; images
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest update-item-image
+  (let [->hl #(get-headline {:org/name-string "blog supporting screenshots and clips"})
+        parse-and-assert
+        (fn []
+          (is (string/includes? (-> (->hl) :org/images first :image/path) "gifs/Peek"))
+          (is (= (-> (->hl) :org/images first :image/extension) "mp4")))]
+
+    (testing "parses image data" (parse-and-assert))
+    (testing "updating the node doesn't break the image parse"
+      (let [hl           (->hl)
+            updated-tags (conj (:org/tags hl) "newtag")]
+        (sut/update! org-filepath hl {:org/tags updated-tags})
+        (parse-and-assert)
+        (is (= (-> (->hl) :org/tags) updated-tags))))
+
+    ;; TODO update image properties (name/caption)
+    ;; TODO update image path
+    ))
