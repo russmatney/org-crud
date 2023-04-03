@@ -194,8 +194,10 @@
                (recur rest out)))))
        (remove #{""})))
 
-(def link-re #"\[\[.*\]\[(.*)\]\]")
-(defn ->link-text [s]
+(def link-re #"\[\[[^\]]*\]\[([^\]]*)\]\]")
+(defn ->link-text
+  "Used with interpost-pattern, which does not need all the matches, just the next one."
+  [s]
   (some->>
     (re-seq link-re s)
     first
@@ -204,21 +206,23 @@
 (comment
   (->link-text "* Reduce [[id:some-id][baggage]]")
   (re-seq link-re "* Reduce [[id:some-id][baggage]]")
-  (re-matches link-re "* Reduce [[id:some-id][baggage]]"))
 
+  (->link-text "test [[id:some-id][with inner]] text [[id:other-id][todo]]")
+  (re-seq link-re "test [[id:some-id][with inner]] text [[id:other-id][todo]]"))
 
 (defn ->name-string
   "Returns a string version of the headline (removing org-links)"
   [node]
   (let [name (->name node)]
-    (apply str
-           (interpose-pattern name link-re ->link-text))))
+    (apply str (interpose-pattern name link-re ->link-text))))
 
 (comment
   (->name-string {:name "* [X] [#A] Reduce baggage" :type :section})
   (->name-string {:name "* [X] Reduce baggage" :type :section})
   (->name-string {:name "* Reduce baggage" :type :section})
-  (->name-string {:name "* Reduce [[id:some-id][baggage]]" :type :section}))
+  (->name-string {:name "* Reduce [[id:some-id][baggage]]" :type :section})
+  (->name-string
+    {:name "test [[id:some-id][with inner]] text [[id:other-id][todo]]" :type :section}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; tags

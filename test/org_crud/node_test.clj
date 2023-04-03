@@ -30,7 +30,8 @@
   (testing "removes org-links"
     (is (= "test todo" (sut/->name-string {:name "[ ] test todo" :type :section})))
     (is (= "test todo" (sut/->name-string {:name "test todo" :type :section})))
-    (is (= "test todo" (sut/->name-string {:name "test [[id:some-id][todo]]" :type :section})))))
+    (is (= "test todo" (sut/->name-string {:name "test [[id:some-id][todo]]" :type :section})))
+    (is (= "test with inner text todo" (sut/->name-string {:name "test [[id:some-id][with inner]] text [[id:other-id][todo]]" :type :section})))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; date parsers
