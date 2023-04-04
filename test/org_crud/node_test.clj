@@ -221,8 +221,13 @@
     (testing ":org/images parses name, caption, path, extension"
       (let [it (item-with-name "blog supporting")]
         (is it)
-        (is (= [{:image/name      "gameplay recording from HatBot"
-                 :image/caption   "Some clip or other"
-                 :image/path      "~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4"
-                 :image/extension "mp4"}]
-               (-> it :org/images vec)))))))
+        (is (-> it :org/images vec first))
+        (let [img (-> it :org/images vec first)]
+          (is (= (:image/name img) "gameplay recording from HatBot"))
+          (is (= (:image/caption img) "Some clip or other"))
+          (is (= (:image/path img) "~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4"))
+          (is (:image/path-expanded img))
+          (is (= (:image/path-expanded img)
+                 (str (fs/expand-home "~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4"))))
+          (is (= (:image/extension img) "mp4"))
+          (is (= (:image/date-string img) "2023-03-13 09:30")))))))

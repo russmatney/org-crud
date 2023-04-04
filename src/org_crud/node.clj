@@ -335,6 +335,7 @@
 
 (defn ->date-pattern [label s]
   (let [pattern (re-pattern (str label org-date-regex))]
+    ;; TODO consider parsing a tick date
     (safe-find pattern s)))
 
 (defn ->date-for-label [label s]
@@ -406,6 +407,31 @@
 ;; images
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn path->date [path]
+  (let [fname (fs/file-name path)
+        [y m d h min]
+        (some->
+          (re-seq #"(\d{4})-(\d{2})-(\d{2})[ |_](\d{2})[-|:](\d{2})" fname)
+          first
+          rest)]
+    ;; TODO consider parsing a tick date
+    (when (and y m d)
+      (str y "-" m "-" d
+           (when (and h min)
+             (str " " h ":" min))))))
+
+(comment
+
+  (re-seq #"(\d{4})-(\d{2})-(\d{2}) (\d{2})-(\d{2})"
+          "[[~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4]]")
+  (path->date "[[~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4]]")
+  (path->date
+    "[[~/Screenshots/screenshot_2022-12-04_14:52:04-0500.jpg]]")
+
+  (path->date
+    "[[~/Screenshots/screenshot_with-some-other-fname.jpg]]")
+  )
+
 (defn ->images [x]
   (let [content (:content x)
         image-paths
@@ -445,10 +471,14 @@
                       [path comments]))))]
     (->> paths-and-comments
          (map (fn [[path comments]]
-                (merge
-                  (prop-lines->properties (map :text comments) "image")
-                  {:image/path      path
-                   :image/extension (fs/extension path)}))))))
+                (let [parsed-date (path->date path)]
+                  (merge
+                    (prop-lines->properties (map :text comments) "image")
+                    {:image/path          path
+                     :image/path-expanded (str (fs/expand-home path))
+                     :image/extension     (fs/extension path)}
+                    (when parsed-date
+                      {:image/date-string parsed-date}))))))))
 
 
 (comment
