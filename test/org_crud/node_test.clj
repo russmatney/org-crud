@@ -218,6 +218,18 @@
                                                 :org/name-string))
                                   first))]
 
+    (testing ":org/images parses top-level images without issue"
+      (is item)
+      (let [img (-> item :org/images vec first)]
+        (is (= (:image/name img) "top-level images work great"))
+        (is (= (:image/caption img) "Some clip or other"))
+        (is (= (:image/path img) "~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4"))
+        (is (:image/path-expanded img))
+        (is (= (:image/path-expanded img)
+               (str (fs/expand-home "~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4"))))
+        (is (= (:image/extension img) "mp4"))
+        (is (= (:image/date-string img) "2023-03-13 09:30"))))
+
     (testing ":org/images parses name, caption, path, extension"
       (let [it (item-with-name "blog supporting")]
         (is it)
@@ -230,4 +242,19 @@
           (is (= (:image/path-expanded img)
                  (str (fs/expand-home "~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4"))))
           (is (= (:image/extension img) "mp4"))
-          (is (= (:image/date-string img) "2023-03-13 09:30")))))))
+          (is (= (:image/date-string img) "2023-03-13 09:30")))))
+
+    (testing ":org/images parses multiple images in one item"
+      (let [it (item-with-name "multiple images parse")]
+        (is it)
+        (is (-> it :org/images vec first))
+        (let [[img1 img2 img3] (-> it :org/images vec)]
+          (is (= (:image/name img1) "gameplay recording from HatBot"))
+          (is (= (:image/caption img1) "Some clip or other"))
+          (is (= (:image/path img1) "~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4"))
+          (is (= (:image/name img2) "some rando screenshot"))
+          (is (= (:image/caption img2) "that you can't wait to see"))
+          (is (= (:image/path img2) "~/Screenshots/screenshot_2023-04-03_12:10:59-0400.jpg"))
+          (is (= (:image/name img3) "some screenshot that doesn't exist"))
+          (is (= (:image/caption img3) "that you'll never see"))
+          (is (= (:image/path img3) "~/Screenshots/screenshot_i_dont_exist.jpg")))))))

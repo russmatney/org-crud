@@ -449,7 +449,8 @@
                     (->> content (map-indexed vector)
                          (map
                            (fn [[i c]]
-                             (when (-> c :text (string/includes? p))
+                             (when ;; not every c has :text (e.g. blocks/drawers)
+                                 (some-> c :text (string/includes? p))
                                [p i])))
                          (remove nil?)
                          first)))

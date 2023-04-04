@@ -9,6 +9,10 @@ This is my test node, sometimes with [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][
 Sometimes these links break across lines likeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][across
 lines]].
 
+#+name: top-level images work great
+#+caption: Some clip or other
+[[~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4]]
+
 
 * some org item
 ** [X] my completed todo
@@ -39,3 +43,25 @@ they can link to the same, [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][sometimes 
 #+name: gameplay recording from HatBot
 #+caption: Some clip or other
 [[~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4]]
+* multiple images parse as expected
+
+#+name: gameplay recording from HatBot
+#+caption: Some clip or other
+[[~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4]]
+
+#+name: some rando screenshot
+#+caption: that you can't wait to see
+[[~/Screenshots/screenshot_2023-04-03_12:10:59-0400.jpg]]
+
+some blobs of text
+and other things
+#+begin_src sh
+echo hello there
+#+end_src
+
+#+RESULTS:
+: hello there
+
+#+name: some screenshot that doesn't exist
+#+caption: that you'll never see
+[[~/Screenshots/screenshot_i_dont_exist.jpg]]
