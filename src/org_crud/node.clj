@@ -432,16 +432,28 @@
     "[[~/Screenshots/screenshot_with-some-other-fname.jpg]]")
   )
 
+(defn is-image-line?
+  "Could get much stricter, and consume the rest of the filtering.
+  Maybe whitelist some expected extensions?"
+  [text]
+  (and
+    (not (re-seq #"id:" text))
+    (re-seq #"\/" text)
+    (re-seq #"^\[\[" text)
+    (re-seq #"]]$" text)))
+
 (defn ->images [x]
   (let [content (:content x)
         image-paths
         (->> content (filter (comp #{:table-row} :line-type))
              (map :text)
-             (filter #(and (re-seq #"^\[\[" %) (re-seq #"]]$" %)))
+             (filter is-image-line?)
              (map (fn [l]
                     (-> l
                         (string/replace "[[" "")
                         (string/replace "]]" ""))))
+             (remove (fn [s] ;; remove named links that snuck through
+                       (string/includes? s "][")))
              (filter fs/extension))
         paths-and-indexes
         (->> image-paths

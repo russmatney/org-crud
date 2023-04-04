@@ -65,3 +65,19 @@ echo hello there
 #+name: some screenshot that doesn't exist
 #+caption: that you'll never see
 [[~/Screenshots/screenshot_i_dont_exist.jpg]]
+* not an image path
+
+these are not images, and should not parse like them:
+
+[[id:14935eb7-90d1-45e2-aa93-12d29db0ae8a][mynameis.wha.tev.ers]]
+
+[[id:7f52ed62-a1be-4c92-8edf-23804d78539d][projectile un-ignore .gitignore files]]
+* image path with text immediately preceding it
+
+multiple lines
+of preceding text
+including
+godot editor plugin: click and drag support for dock position
+#+name: screenshot of godot dock position popup
+#+caption: click and drag like a window manager
+[[~/Screenshots/screenshot_2023-02-03_22:38:44-0500.jpg]]

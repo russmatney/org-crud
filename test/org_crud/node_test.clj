@@ -220,7 +220,7 @@
 
     (testing ":org/images parses top-level images without issue"
       (is item)
-      (let [img (-> item :org/images vec first)]
+      (let [img (-> item :org/images first)]
         (is (= (:image/name img) "top-level images work great"))
         (is (= (:image/caption img) "Some clip or other"))
         (is (= (:image/path img) "~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4"))
@@ -233,8 +233,8 @@
     (testing ":org/images parses name, caption, path, extension"
       (let [it (item-with-name "blog supporting")]
         (is it)
-        (is (-> it :org/images vec first))
-        (let [img (-> it :org/images vec first)]
+        (is (-> it :org/images first))
+        (let [img (-> it :org/images first)]
           (is (= (:image/name img) "gameplay recording from HatBot"))
           (is (= (:image/caption img) "Some clip or other"))
           (is (= (:image/path img) "~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4"))
@@ -247,7 +247,7 @@
     (testing ":org/images parses multiple images in one item"
       (let [it (item-with-name "multiple images parse")]
         (is it)
-        (is (-> it :org/images vec first))
+        (is (-> it :org/images first))
         (let [[img1 img2 img3] (-> it :org/images vec)]
           (is (= (:image/name img1) "gameplay recording from HatBot"))
           (is (= (:image/caption img1) "Some clip or other"))
@@ -257,4 +257,18 @@
           (is (= (:image/path img2) "~/Screenshots/screenshot_2023-04-03_12:10:59-0400.jpg"))
           (is (= (:image/name img3) "some screenshot that doesn't exist"))
           (is (= (:image/caption img3) "that you'll never see"))
-          (is (= (:image/path img3) "~/Screenshots/screenshot_i_dont_exist.jpg")))))))
+          (is (= (:image/path img3) "~/Screenshots/screenshot_i_dont_exist.jpg")))))
+
+    (testing ":org/images does not get invoked for weird-image-like roam links"
+      (let [it (item-with-name "not an image path")]
+        (is it)
+        (is (= [] (-> it :org/images vec)))))
+
+    (testing ":org/images handles text immediately preceding an image name"
+      (let [it (item-with-name "image path with text immediately preceding it")]
+        (is it)
+        (is (-> it :org/images first))
+        (let [img (-> it :org/images first)]
+          (is (= (:image/name img) "screenshot of godot dock position popup"))
+          (is (= (:image/caption img) "click and drag like a window manager"))
+          (is (= (:image/path img) "~/Screenshots/screenshot_2023-02-03_22:38:44-0500.jpg")))))))
