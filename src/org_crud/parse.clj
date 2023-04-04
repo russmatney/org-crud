@@ -255,8 +255,8 @@
 (defn parse-file
   [path]
   (try
-    (with-open [rdr (io/reader (-> path fs/absolutize str))]
-      (parse-lines (line-seq rdr) path))
+    (with-open [rdr (io/reader (-> path fs/expand-home str))]
+      (parse-lines (line-seq rdr) (fs/expand-home path)))
     (catch Exception ex
       (println "org-crud.parse/parse-file exception" path)
       (println ex)
@@ -264,6 +264,7 @@
 
 (comment
   (parse-file (str (fs/home) "/todo/readme.org"))
+  (parse-file "~/todo/readme.org")
   (parse-file (str (fs/home) "/todo/daily/2022-09-26.org"))
   (parse-file (str (fs/home) "/todo/daily/2022-09-27.org"))
   (parse-file (str (fs/home) "/todo/journal.org")))
