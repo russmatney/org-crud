@@ -36,6 +36,9 @@
 (defn ->items []
   (org/path->flattened-items org-filepath))
 
+(defn ->item []
+  (org/path->nested-item org-filepath))
+
 (defn get-headline [pred-map]
   (util/get-one pred-map (->items)))
 
@@ -513,4 +516,25 @@
 
     ;; TODO update image properties (name/caption)
     ;; TODO update image path
+    ))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; update without touching :file/last-modified
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deftest update-ignore-last-modified
+  (let [item  (->item)
+        og-lm (:file/last-modified item)]
+    (is item)
+    (is og-lm)
+    (testing "update normally bumps last-modified"
+      (sut/update! org-filepath item {:org/tags "newtag"})
+      (is (not (= og-lm (-> (->item) :file/last-modified)))))
+
+    (testing "update optionally maintains last-modified"
+      (let [new-lm (-> (->item) :file/last-modified)]
+        (sut/update! org-filepath item {:org/tags                       "newtag"
+                                        :org.update/reset-last-modified true})
+        (is (= new-lm (-> (->item) :file/last-modified)))))
     ))

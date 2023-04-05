@@ -4,7 +4,8 @@
    [clojure.set :as set]
    [org-crud.core :as org]
    [org-crud.util :as util]
-   [org-crud.lines :as lines]))
+   [org-crud.lines :as lines]
+   [babashka.fs :as fs]))
 
 (defn append-to-file!
   [path lines]
@@ -185,13 +186,20 @@
 (defn write-updated
   "Writes the passed org-structure to disk as a .org file.
   Clears whatever was in the file before writing."
-  [path items]
-  (when path
-    (let [lines
-          (reduce (fn [acc item]
-                    (concat acc (lines/item->lines {:skip-children true} item))) [] items)
-          as-str (string/join "\n" lines)]
-      (spit path as-str))))
+  ([path items] (write-updated path items nil))
+  ([path items opts]
+   (when path
+     (let [lines
+           (reduce (fn [acc item]
+                     (concat acc (lines/item->lines {:skip-children true} item))) [] items)
+           as-str (string/join "\n" lines)]
+
+       ;; optional maintain last-modified across updates
+       (if (:org.update/reset-last-modified opts)
+         (let [current-lm (fs/last-modified-time path)]
+           (spit path as-str)
+           (fs/set-last-modified-time path current-lm))
+         (spit path as-str))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public Update function
@@ -218,7 +226,7 @@
              :update           up})
    (let [parsed-items (org/path->flattened-items path)
          updated      (update-items parsed-items item up)]
-     (write-updated path updated))))
+     (write-updated path updated up))))
 
 (defn update-path-with-fn!
   "item->up should construct an update based on the passed item.
