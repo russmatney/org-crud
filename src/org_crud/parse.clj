@@ -142,13 +142,13 @@
                  ;; set a nested parent name
                  (assoc :org/parent-name (->> parent-stack
                                               (map (fn [parent]
-                                                     (or (:org/name parent)
+                                                     (or (:org/name-string parent)
                                                          (:org/source-file parent))))
                                               (remove nil?)
                                               (string/join " > ")))
                  (assoc :org/parent-names (->> parent-stack
                                                (map (fn [parent]
-                                                      (or (:org/name parent)
+                                                      (or (:org/name-string parent)
                                                           (:org/source-file parent))))
                                                (remove nil?)
                                                (into []))))]

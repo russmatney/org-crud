@@ -555,6 +555,7 @@
                   :org/name        (->name raw)
                   :org/name-string (->name-string raw)
                   :org/priority    (->priority raw)
+                  :org/short-path  (some-> source-file ->short-path)
                   :org/source-file (some-> source-file fs/absolutize str)
                   :org/status      status
                   :org/status-raw  status-raw
