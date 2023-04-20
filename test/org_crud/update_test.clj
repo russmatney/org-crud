@@ -533,8 +533,13 @@
       (is (not (= og-lm (-> (->item) :file/last-modified)))))
 
     (testing "update optionally maintains last-modified"
-      (let [new-lm (-> (->item) :file/last-modified)]
+      (let [lm (-> (->item) :file/last-modified)]
         (sut/update! org-filepath item {:org/tags                       "newtag"
                                         :org.update/reset-last-modified true})
-        (is (= new-lm (-> (->item) :file/last-modified)))))
-    ))
+        ;; the 'reset' last-modified can shift it's precision
+        ;; e.g. "2023-04-20T19:10:58.611746733Z" vs "2023-04-20T19:10:58.611746Z"
+        ;; so we hack it to drop the 'Z' and then compare
+        (let [read-lm (-> (->item) :file/last-modified)
+              read-lm (->> read-lm butlast (apply str))]
+          (is read-lm)
+          (is (string/includes? lm read-lm)))))))
