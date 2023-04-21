@@ -542,56 +542,57 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ->item [raw source-file]
-  (-> (cond
-        (#{:section} (:type raw))
-        (let [{:keys [status status-raw]} (->todo-status raw)]
-          (merge {:org/body        (->body raw)
-                  :org/body-string (->body-string raw)
-                  :org/headline    (->raw-headline raw)
-                  :org/id          (->id raw)
-                  :org/images      (->images raw)
-                  :org/level       (->level raw)
-                  :org/links-to    (->links-to raw)
-                  :org/name        (->name raw)
-                  :org/name-string (->name-string raw)
-                  :org/priority    (->priority raw)
-                  :org/short-path  (some-> source-file ->short-path)
-                  :org/source-file (some-> source-file fs/absolutize str)
-                  :org/status      status
-                  :org/status-raw  status-raw
-                  :org/tags        (->tags raw)}
-                 (->properties raw)
-                 (->dates raw)))
+  (let [last-modified (some-> source-file fs/last-modified-time str)]
+    (-> (cond
+          (#{:section} (:type raw))
+          (let [{:keys [status status-raw]} (->todo-status raw)]
+            (merge {:file/last-modified last-modified
+                    :org/body           (->body raw)
+                    :org/body-string    (->body-string raw)
+                    :org/headline       (->raw-headline raw)
+                    :org/id             (->id raw)
+                    :org/images         (->images raw)
+                    :org/level          (->level raw)
+                    :org/links-to       (->links-to raw)
+                    :org/name           (->name raw)
+                    :org/name-string    (->name-string raw)
+                    :org/priority       (->priority raw)
+                    :org/short-path     (some-> source-file ->short-path)
+                    :org/source-file    (some-> source-file fs/absolutize str)
+                    :org/status         status
+                    :org/status-raw     status-raw
+                    :org/tags           (->tags raw)}
+                   (->properties raw)
+                   (->dates raw)))
 
-        (#{:root} (:type raw))
-        (let [props (->properties raw)]
-          (merge {:file/last-modified (some-> source-file fs/last-modified-time str)
-                  :garden/file-name   (some-> source-file fs/file-name)
-                  :org/body           (->body raw)
-                  :org/body-string    (->body-string raw)
-                  :org/id             (if-let [id (->id raw)]
-                                        id (:org.prop/id props))
-                  :org/images         (->images raw)
-                  :org/level          (->level raw)
-                  :org/links-to       (->links-to raw)
-                  :org/name           (:org.prop/title props)
-                  :org/name-string    (:org.prop/title props)
-                  :org/short-path     (some-> source-file ->short-path)
-                  :org/source-file    (some-> source-file fs/absolutize str)
-                  :org/tags           (->tags raw props)
-                  :org.prop/title     (some-> source-file fs/file-name)}
-                 props
-                 (->dates raw))))
+          (#{:root} (:type raw))
+          (let [props (->properties raw)]
+            (merge {:file/last-modified last-modified
+                    :org/body           (->body raw)
+                    :org/body-string    (->body-string raw)
+                    :org/id             (if-let [id (->id raw)]
+                                          id (:org.prop/id props))
+                    :org/images         (->images raw)
+                    :org/level          (->level raw)
+                    :org/links-to       (->links-to raw)
+                    :org/name           (:org.prop/title props)
+                    :org/name-string    (:org.prop/title props)
+                    :org/short-path     (some-> source-file ->short-path)
+                    :org/source-file    (some-> source-file fs/absolutize str)
+                    :org/tags           (->tags raw props)
+                    :org.prop/title     (some-> source-file fs/file-name)}
+                   props
+                   (->dates raw))))
 
-      ((fn [item]
-         (when item
-           (-> item
-               (assoc :org/word-count (->word-count item raw))
-               (assoc :org/urls (-> raw ->urls set))
-               (->>
-                 ;; remove nil fields
-                 (remove (comp nil? second))
-                 (into {}))))))))
+        ((fn [item]
+           (when item
+             (-> item
+                 (assoc :org/word-count (->word-count item raw))
+                 (assoc :org/urls (-> raw ->urls set))
+                 (->>
+                   ;; remove nil fields
+                   (remove (comp nil? second))
+                   (into {})))))))))
 
 (comment
   (require 'org-crud.parse)
