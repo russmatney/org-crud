@@ -217,14 +217,18 @@
   To remove a tag, use a `[:remove \"tag-name\"]` tuple:
   ex: `{:org/tags [:remove \"sometag\"]}`
   "
-  ([item up] (update! (:org/source-file item) item up))
+  ([item up]
+   ;; support updating the source-file via update
+   (update! (:org/source-file up (:org/source-file item)) item up))
   ([path item up]
    (println "Updating item"
             {:path             path
              :item-source-file (:org/source-file item)
              :item-name        (:org/name item)
-             :update           up})
-   (let [parsed-items (org/path->flattened-items path)
+             :update           (select-keys up [:org/name-string
+                                                :org/source-file
+                                                :org/id])})
+   (let [parsed-items (org/path->flattened-items (:org/source-file item))
          updated      (update-items parsed-items item up)]
      (write-updated path updated up))))
 

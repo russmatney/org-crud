@@ -6,19 +6,20 @@
    #_[clomacs :as clomacs]
    [clojure.string :as string]
    [babashka.fs :as fs]
-   [babashka.process :as process]))
+   [babashka.process :as process]
+   [org-crud.update :as update]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Ensuring uuids on all nodes
 
 (defn ensure-id [item]
   (let [id
-        (or (:id item)
-            (-> item :props :id)
+        (or (:org/id item)
+            (:org/props.id item)
             (str (java.util.UUID/randomUUID)))]
     (-> item
-        (assoc :id id)
-        (assoc-in [:props :id] id))))
+        (assoc :org/id id)
+        (assoc :org/props.id id))))
 
 (comment
   (def --roam-dir "/home/russ/Dropbox/notes")
@@ -113,7 +114,6 @@
           {:id id :props {:id id}}))))
 
 
-
   ;; (clomacs/clomacs-defn
   ;;   emacs-version
   ;;   emacs-version)
@@ -131,16 +131,95 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; merge org-roam files
 
-(defn merge-org-roam-files [args]
-  args
-  (def files (fs/list-dir "~/todo/**/*.org"))
-  (def old-id #uuid "")
-  (def new-id #uuid "")
 
-  (->> files
-     (map (fn [file]
-            (->> (file slurp)
-               (map (fn [line]
-                  (string/replace line old-id new-id)))
-               (string/join "\n")
-               (spit file))))))
+(defn find-replace-in-org-dir [{:keys [old-id new-id dry-run]}]
+  (let [dry-run
+        ;; default to dry-run, require opt-out
+        (if (= dry-run false) false true)]
+    (println "\n\n\tFind-replacing across your org files!!")
+    (if dry-run (println "\tDRY RUN!") (println "\tBOMBS AWAY!"))
+
+    (let [files
+          (concat
+            (fs/list-dir (fs/expand-home "~/todo/garden") "*.org")
+            (fs/list-dir (fs/expand-home "~/todo/daily") "*.org")
+            (fs/list-dir (fs/expand-home "~/todo/garden/workspaces") "*.org"))]
+      (->> files
+           #_(take 50)
+           (map (fn [file]
+                  (let [lm           (fs/last-modified-time file)
+                        any-changes? (atom false)
+                        res
+                        (cond->> (slurp (str file))
+                          true (string/split-lines)
+                          true
+                          (map
+                            (fn [line]
+                              (if (string/includes? line old-id)
+                                (do
+                                  (when dry-run
+                                    (println "\n\t" (fs/file-name file)
+                                             "\nwould replace" line
+                                             "\nwith" (string/replace line old-id new-id)))
+
+                                  (when-not @any-changes?
+                                    (reset! any-changes? true))
+
+                                  (when-not dry-run
+                                    (println "\n\t updating" (fs/file-name file) "\n" line
+                                             "\nwith" (string/replace line old-id new-id)))
+
+                                  (if dry-run
+                                    line (string/replace line old-id new-id)))
+                                line)))
+                          true                (string/join "\n")
+                          (and (not dry-run)
+                               @any-changes?) (spit (str file)))]
+                    (fs/set-last-modified-time file lm)
+                    res)))
+           (remove nil?)
+           count))))
+
+(comment
+  (find-replace-in-org-dir
+    {:old-id  "id:df00a174-36ab-42de-92ef-2ec5b0d7bf03"
+     :new-id  "id:f617ee24-cfad-4c6e-8dff-227ae56c22e5"
+     :dry-run true})
+
+  (->>
+    (fs/list-dir (fs/expand-home "~/todo/garden/workspaces") "*.org")
+    (take 1)
+    (map str)
+    (map org-crud.core/path->nested-item)
+    (map
+      (fn [{:keys [org/id org/short-path org/source-file] :as item}]
+        ;; could just copy the file over via `cp`
+        ;; no need to get this fancy
+        (when id
+          (println short-path "id: " id)
+          (let [dest-file (-> source-file (string/replace "/workspaces" ""))
+                new-item  (-> item
+                              (dissoc :org/id :org.prop/id)
+                              ensure-id ;; get a new uuid
+                              (assoc :org/source-file dest-file))
+
+                new-id (if (fs/exists? (:org/source-file new-item))
+                         (->
+                           new-item
+                           :org/source-file
+                           org-crud.core/path->nested-item
+                           :org/id)
+                         (:org/id new-item))]
+            (println dest-file "new-id: " new-id)
+            (if (fs/exists? (:org/source-file new-item))
+              (println "matching garden file exists! maybe we should merge?")
+              (do
+                (println "copying over existing content")
+                (org-crud.update/update! item new-item)))
+
+            (when (and id new-id)
+              (find-replace-in-org-dir {:old-id  (str "id:" id)
+                                        :new-id  (str "id:" new-id)
+                                        :dry-run false}))))))
+    doall)
+  )
