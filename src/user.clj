@@ -1,6 +1,5 @@
 (ns user
   (:require
-   [org-crud.update :as upd]
    [org-crud.core :as org]
    [wing.repl :as w.repl]
    #_[clomacs :as clomacs]
@@ -25,8 +24,8 @@
   (def --roam-dir "/home/russ/Dropbox/notes")
 
   (org/dir->nested-items --roam-dir)
-  (upd/update-dir-with-fn! {:dir        --roam-dir
-                            :recursive? true} ensure-id)
+  (update/update-dir-with-fn! {:dir        --roam-dir
+                               :recursive? true} ensure-id)
   )
 
 
@@ -82,7 +81,7 @@
              ;; (println "new-filepath" new-filepath)
 
              ;; update props
-             (upd/update! (:org/source-file org) org {:org.prop/created-at created-at})
+             (update/update! (:org/source-file org) org {:org.prop/created-at created-at})
 
              ;; move file
              (->
@@ -105,7 +104,7 @@
     (and (not (:id item))
          (not (-> item :props :id))))
 
-  (upd/update-dir-with-fn!
+  (update/update-dir-with-fn!
     {:dir --roam-dir}
     (fn [item]
       (when (missing-id item)
@@ -184,42 +183,49 @@
   (find-replace-in-org-dir
     {:old-id  "id:df00a174-36ab-42de-92ef-2ec5b0d7bf03"
      :new-id  "id:f617ee24-cfad-4c6e-8dff-227ae56c22e5"
-     :dry-run true})
+     :dry-run true}))
 
-  (->>
-    (fs/list-dir (fs/expand-home "~/todo/garden/workspaces") "*.org")
-    (take 1)
-    (map str)
-    (map org-crud.core/path->nested-item)
-    (map
-      (fn [{:keys [org/id org/short-path org/source-file] :as item}]
-        ;; could just copy the file over via `cp`
-        ;; no need to get this fancy
-        (when id
-          (println short-path "id: " id)
-          (let [dest-file (-> source-file (string/replace "/workspaces" ""))
-                new-item  (-> item
-                              (dissoc :org/id :org.prop/id)
-                              ensure-id ;; get a new uuid
-                              (assoc :org/source-file dest-file))
+(defn get-workspace-files
+  ([] (get-workspace-files nil))
+  ([n]
+   (cond->> (fs/list-dir (fs/expand-home "~/todo/garden/workspaces") "*.org")
+     n (take n))))
 
-                new-id (if (fs/exists? (:org/source-file new-item))
-                         (->
-                           new-item
-                           :org/source-file
-                           org-crud.core/path->nested-item
-                           :org/id)
-                         (:org/id new-item))]
-            (println dest-file "new-id: " new-id)
-            (if (fs/exists? (:org/source-file new-item))
-              (println "matching garden file exists! maybe we should merge?")
-              (do
-                (println "copying over existing content")
-                (org-crud.update/update! item new-item)))
+(defn move-workspace-note-and-refs
+  "Moves the passed item to a same-named file without the `/workspaces` part of the path.
 
-            (when (and id new-id)
-              (find-replace-in-org-dir {:old-id  (str "id:" id)
-                                        :new-id  (str "id:" new-id)
-                                        :dry-run false}))))))
-    doall)
-  )
+  Find-replaces references to the passed item with references to the new (or existing) item."
+  [{:keys [org/id org/short-path org/source-file] :as item} dry-run]
+  ;; could just copy the file over via `cp`
+  ;; no need to get this fancy
+  (when id
+    (println short-path "id: " id)
+    (let [dest-file (-> source-file (string/replace "/workspaces" ""))
+          new-item  (-> item
+                        (dissoc :org/id :org.prop/id)
+                        ensure-id ;; get a new uuid
+                        (assoc :org/source-file dest-file))
+
+          new-id (if (fs/exists? (:org/source-file new-item))
+                   (->
+                     new-item
+                     :org/source-file
+                     org-crud.core/path->nested-item
+                     :org/id)
+                   (:org/id new-item))]
+      (println dest-file "new-id: " new-id)
+      (if (fs/exists? (:org/source-file new-item))
+        (println "matching garden file exists! Should probably merge the content.")
+        (do
+          (println "copying over existing content")
+          (update/update! item new-item)))
+
+      (when (and id new-id)
+        (find-replace-in-org-dir {:old-id  (str "id:" id)
+                                  :new-id  (str "id:" new-id)
+                                  :dry-run dry-run})))))
+
+(comment
+  (some->
+    (get-workspace-files 1) first org-crud.core/path->nested-item
+    (move-workspace-note-and-refs false)))
