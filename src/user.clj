@@ -127,3 +127,20 @@
   ;; (println (clmx-current-org-item))
 
   )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; merge org-roam files
+
+(defn merge-org-roam-files [args]
+  args
+  (def files (fs/list-dir "~/todo/**/*.org"))
+  (def old-id #uuid "")
+  (def new-id #uuid "")
+
+  (->> files
+     (map (fn [file]
+            (->> (file slurp)
+               (map (fn [line]
+                  (string/replace line old-id new-id)))
+               (string/join "\n")
+               (spit file))))))
