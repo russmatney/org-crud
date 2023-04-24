@@ -132,6 +132,27 @@
     (is (= #{"somefiletag" "post"} (:org/tags item)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; level
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(comment
+  (->>
+    (parsed-org-file "node-test.org")
+    (tree-seq (comp seq :org/items) :org/items)))
+
+(deftest level-test
+  (let [item   (parsed-org-file "node-test.org")
+        sorted (->> item (tree-seq (comp seq :org/items) :org/items) (sort-by :org/level-int))]
+    (is (->> sorted (map :org/level-int) (remove int?) empty?))
+    (is (= (count sorted)
+           (->> sorted (map :org/level-int) (filter int?) count)))
+
+    (let [less-than-0 (->> sorted (map :org/level-int) (filter #(< % 0)))
+          more-than-6 (->> sorted (map :org/level-int) (filter #(> % 6)))]
+      (is (empty? less-than-0))
+      (is (empty? more-than-6)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; priority
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

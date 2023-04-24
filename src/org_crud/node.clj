@@ -121,9 +121,8 @@
 (defn ->level [{:keys [level]}]
   (or level :level/root))
 
-(comment
-  (keyword (str "level/" 1))
-  (keyword (str "level/" :root)))
+(defn ->level-int [{:keys [level]}]
+  (or level 0))
 
 (defn ->id [raw]
   (when-let [id (-> raw ->properties :org.prop/id)]
@@ -553,6 +552,7 @@
                     :org/id             (->id raw)
                     :org/images         (->images raw)
                     :org/level          (->level raw)
+                    :org/level-int      (->level-int raw)
                     :org/links-to       (->links-to raw)
                     :org/name           (->name raw)
                     :org/name-string    (->name-string raw)
@@ -574,6 +574,7 @@
                                           id (:org.prop/id props))
                     :org/images         (->images raw)
                     :org/level          (->level raw)
+                    :org/level-int      (->level-int raw)
                     :org/links-to       (->links-to raw)
                     :org/name           (:org.prop/title props)
                     :org/name-string    (:org.prop/title props)
@@ -598,5 +599,4 @@
   (require 'org-crud.parse)
   (def path (str (fs/home) "/todo/garden/bb_cli.org"))
   (def parsed (-> path org-crud.parse/parse-file first))
-  (->item parsed path)
-  )
+  (->item parsed path))

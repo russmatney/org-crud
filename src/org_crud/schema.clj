@@ -7,6 +7,7 @@
   [:map
    [:org/name :string]
    [:org/name-string :string]
+   [:org/level-int :int]
    [:org/id {:optional true} :uuid]
    [:org/status {:optional true} :keyword]
    [:org/tags {:optional true} [:set :string]]
