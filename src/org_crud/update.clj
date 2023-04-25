@@ -225,9 +225,11 @@
             {:path             path
              :item-source-file (:org/source-file item)
              :item-name        (:org/name item)
-             :update           (select-keys up [:org/name-string
-                                                :org/source-file
-                                                :org/id])})
+             :update           (if (map? up) (select-keys
+                                               up [:org/name-string
+                                                   :org/source-file
+                                                   :org/id])
+                                   up)})
    (let [parsed-items (org/path->flattened-items (:org/source-file item))
          updated      (update-items parsed-items item up)]
      (write-updated path updated up))))

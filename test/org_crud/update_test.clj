@@ -383,15 +383,26 @@
 (deftest write-updated-roundtrip
   (testing "the parsed org items should be equivalent after being written and reparsed"
     (let [parsed-items (->items)]
-      (sut/write-updated org-filepath parsed-items)
+      (sut/write-updated org-filepath parsed-items
+                         {:org.update/reset-last-modified true})
       (is (= (count parsed-items) (count (->items))))
+      ;; easier to debug one item than all (below)
+      (is (= (->> parsed-items
+                  (mapcat :org/items)
+                  (take 1)
+                  ;; removing the org-section to ease debugging
+                  ;; one difference is property capitalization
+                  (map #(dissoc % :org-section)))
+             (->> (->items)
+                  (mapcat :org/items)
+                  (take 1)
+                  (map #(dissoc % :org-section)))))
       (is (= (->> parsed-items
                   ;; removing the org-section to ease debugging
                   ;; one difference is property capitalization
-                  ;; last-modified definitely changes when it is updated
-                  (map #(dissoc % :org-section :file/last-modified)))
+                  (map #(dissoc % :org-section)))
              (->> (->items)
-                  (map #(dissoc % :org-section :file/last-modified))))))))
+                  (map #(dissoc % :org-section))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Updating root items
