@@ -7,7 +7,7 @@ A tool for reading and writing org content via clojure, as well as converting
 org to markdown.
 
 > Ninety percent of everything is crud.
-> – [Theodore Sturgeon](https://www.quotes.net/quote/53367)
+> – [[https://www.quotes.net/quote/53367][Theodore Sturgeon]]
 
 ** Status
 
@@ -28,7 +28,7 @@ org-mode. That tool needed to be able to treat org files like a database of
 items.
 
 It was pulled out to allow a few other libraries to use it independently
-([russmatney/ralphie](https://github.com/russmatney/ralphie)), and also to add
+([[https://github.com/russmatney/ralphie][russmatney/ralphie]]), and also to add
 support for converting org files to markdown. See [Markdown](*markdown).
 
 Org-crud aims to provide simple interactions with org files to clojure
@@ -37,20 +37,19 @@ environments.
 ** Background
 
 There is not much to the parser besides a thin layer on top of
-[organum](https://github.com/gmorpheme/organum). Organum does not nest the org
+[[https://github.com/gmorpheme/organum][organum]]. Organum does not nest the org
 items - it returns a flattened list, regardless of the items' hierarchical
 relationship. Org-crud provides both a flattened and nested option for parsing
 org items.
 
-This library is also [babashka](https://github.com/borkdude/babashka)
+This library is also [[https://github.com/borkdude/babashka][babashka]]
 compatible, so you can drop it into a bb script without issue. This was
-necessary for tools like [ralphie](https://github.com/russmatney/ralphie) to run
-the exporter. You can see how ralphie consumes it [in the ralphie.notes
-namespace](https://github.com/russmatney/ralphie/blob/f6432e433e7e447aa1c0784e62ade2935c557cfc/src/ralphie/notes.clj*L21)
+necessary for tools like [[https://github.com/russmatney/ralphie][ralphie]] to run
+the exporter. You can see how ralphie consumes it [[https://github.com/russmatney/ralphie/blob/f6432e433e7e447aa1c0784e62ade2935c557cfc/src/ralphie/notes.clj*L21][in the ralphie.notes namespace]]
 
 ** Features
 
-- [Babashka](https://github.com/borkdude/babashka) compatible!
+- [[https://github.com/borkdude/babashka][Babashka]] compatible
 - List nested or flattened org items
 - Update existing org items
   - Updates by :ID:
@@ -170,7 +169,7 @@ Org-crud provides a namespace for converting org files to markdown, and a
 babashka-based cli tool for running this conversion on the command line.
 
 In order for this to work, you'll need to have
-[Babashka](https://github.com/borkdude/babashka*quickstart) (and [clojure](https://clojure.org/guides/getting_started)) installed and
+[[https://github.com/borkdude/babashka#quickstart][Babashka]] (and [[https://clojure.org/guides/getting_started][clojure]] installed and
 available on the command line as `bb` and `clojure`.
 
 #+begin_src sh
@@ -178,7 +177,7 @@ bb org-crud.jar org-to-markdown ~/Dropbox/notes tmp-out
 #+end_src
 
 Note that this support targets a use-case for publishing an
-[org-roam](https://github.com/org-roam/org-roam/) directory as markdown, but
+[[https://github.com/org-roam/org-roam/][org-roam]] directory as markdown, but
 otherwise is probably not a complete org->markdown conversion solution. If you
 have more use-cases that you'd like to see supported, please open an issue
 describing the use-case, and I'd be happy to take a shot at it.
@@ -259,9 +258,9 @@ as my usage benefitted from the IDs elsewhere.
 
 ** Relevant/Related tools
 
-- [ox-hugo](https://github.com/kaushalmodi/ox-hugo)
-- [organum](https://github.com/gmorpheme/organum)
-- [org-roam](https://github.com/org-roam/org-roam)
+- [[https://github.com/kaushalmodi/ox-hugo][ox-hugo]]
+- [[https://github.com/gmorpheme/organum][organum]]
+- [[https://github.com/org-roam/org-roam][org-roam]]
 
 ** Development
 *** Running the cli using the source

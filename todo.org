@@ -1,4 +1,4 @@
-#+TITLE: Todo
+#+title: Todo
 
 * [X] rewrite readme as org
 CLOSED: [2022-04-30 Sat 17:08]
@@ -33,26 +33,26 @@ CLOSED: [2022-04-30 Sat 18:05]
 CLOSED: [2021-02-15 Mon 14:05]
 ** [X] support source blocks
 CLOSED: [2023-03-24 Fri 16:17]
+** [X] support images with files/names/captions
+CLOSED: [2023-05-01 Mon 14:00]
 ** [ ] support logbooks
 right now it seems to just throw out items with logbooks
 ** [ ] support tables
-** [ ] support images with files/names/captions
 * analyzing/manipulating org items
 ** [ ] expose walk api for reducing over the nested structure
 * agenda
 ** [ ] provide first class agenda CRUD support
 maybe via clomacs?
 * cli features
-** [X] doctor task: uuid duplication resolution helper
-CLOSED: [2021-02-14 Sun 19:56]
-:LOGBOOK:
-CLOCK: [2021-02-14 Sun 19:09]--[2021-03-28 Sun 14:47] => 1002:38
-:END:
 for help dealing with roam duplicate uuid errors
 (the errors are definitely my fault, but still annoying)
-** [ ] doctor task: uuid duplication auto-magic fixer
+** SKIP doctor task: uuid duplication auto-magic fixer
+CLOSED: [2023-05-01 Mon 14:00]
 Work has begun here, and works in interactive mode.
 Sadly this is blocked by the update function mishandling some org cases -
 in it's current state it can wipe data from files that get updated.
 More info is in the parsing/writing todos above.
-** [ ] doctor task: clean up broken org-links after refiling/moving docs
+** SKIP doctor task: clean up broken org-links after refiling/moving docs
+:PROPERTIES:
+:id: 22c7e0d7-d42f-48b0-a8de-1face1f8fd44
+:END:
