@@ -29,7 +29,7 @@ items.
 
 It was pulled out to allow a few other libraries to use it independently
 ([[https://github.com/russmatney/ralphie][russmatney/ralphie]]), and also to add
-support for converting org files to markdown. See [Markdown](*markdown).
+support for converting org files to markdown. See [[#markdown][Markdown]].
 
 Org-crud aims to provide simple interactions with org files to clojure
 environments.
