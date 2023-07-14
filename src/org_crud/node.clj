@@ -213,11 +213,14 @@
   (->link-text "test [[id:some-id][with inner]] text [[id:other-id][todo]]")
   (re-seq link-re "test [[id:some-id][with inner]] text [[id:other-id][todo]]"))
 
+(defn ->plain-string [s]
+  (apply str (interpose-pattern s link-re ->link-text)))
+
 (defn ->name-string
   "Returns a string version of the headline (removing org-links)"
   [node]
-  (let [name (->name node)]
-    (apply str (interpose-pattern name link-re ->link-text))))
+  (->plain-string (->name node)))
+
 
 (comment
   (->name-string {:name "* [X] [#A] Reduce baggage" :type :section})
@@ -388,18 +391,24 @@
            (map rest)
            (remove nil?)
            (map (fn [[id text]]
-                  {:link/id             (java.util.UUID/fromString id)
-                   :link/text           (-> text
-                                            string/trim
-                                            (string/split #"\s")
-                                            (->> (string/join " ")))
-                   :link/context        s
-                   :link/matching-lines (->> s
-                                             string/split-lines
-                                             (filter (fn [line]
-                                                       (string/includes? line
-                                                                         id)))
-                                             (into []))}))
+                  (let [matching-lines
+                        (->> s
+                             string/split-lines
+                             (filter (fn [line]
+                                       (string/includes? line id)))
+                             (into []))]
+                    {:link/id                  (java.util.UUID/fromString id)
+                     :link/text                (-> text
+                                                   string/trim
+                                                   (string/split #"\s")
+                                                   (->> (string/join " ")))
+                     :link/context             s
+                     :link/context-str         (->plain-string s)
+                     :link/matching-lines      matching-lines
+                     :link/matching-lines-strs (->> matching-lines
+                                                    (map ->plain-string)
+                                                    (into []))
+                     })))
            (into #{})))
 
 (defn ->links-to [x]

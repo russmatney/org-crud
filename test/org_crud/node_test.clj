@@ -215,22 +215,39 @@
 
     (testing "root node roam links"
       (let [[a b] (:org/links-to item)]
-        (is (= a {:link/id      #uuid "01839801-01a5-4ca9-ad2b-d4b9e122be14"
-                  :link/text    "across lines"
+        (is (= a {:link/id   #uuid "01839801-01a5-4ca9-ad2b-d4b9e122be14"
+                  :link/text "across lines"
+                  :link/context
+                  "This is my test node, sometimes with [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]].
+Sometimes these links break across lines likeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee [[id:01839801-01a5-4ca9-ad2b-d4b9e122be14][across
+lines]]
+[[~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4]]",
+                  :link/context-str
+                  "This is my test node, sometimes with links.
+Sometimes these links break across lines likeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee across
+lines
+[[~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4]]",
+                  :link/matching-lines
+                  ["Sometimes these links break across lines likeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee [[id:01839801-01a5-4ca9-ad2b-d4b9e122be14][across"],
+                  :link/matching-lines-strs
+                  ["Sometimes these links break across lines likeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee [[id:01839801-01a5-4ca9-ad2b-d4b9e122be14][across"]}))
+
+        (is (= b {:link/id      #uuid "910e0d6e-759d-4a9b-809c-78a6a0b6538b"
+                  :link/text    "links"
                   :link/context "This is my test node, sometimes with [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]].
 Sometimes these links break across lines likeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee [[id:01839801-01a5-4ca9-ad2b-d4b9e122be14][across
 lines]]
 [[~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4]]",
-                  :link/matching-lines
-                  ["Sometimes these links break across lines likeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee [[id:01839801-01a5-4ca9-ad2b-d4b9e122be14][across"]}))
-
-        (is (= b {:link/id             #uuid "910e0d6e-759d-4a9b-809c-78a6a0b6538b"
-                  :link/text           "links"
-                  :link/context        "This is my test node, sometimes with [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]].
-Sometimes these links break across lines likeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee [[id:01839801-01a5-4ca9-ad2b-d4b9e122be14][across
-lines]]
+                  :link/context-str
+                  "This is my test node, sometimes with links.
+Sometimes these links break across lines likeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee across
+lines
 [[~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4]]",
-                  :link/matching-lines ["This is my test node, sometimes with [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]]."]}))))
+                  :link/matching-lines
+                  ["This is my test node, sometimes with [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]]."],
+                  :link/matching-lines-strs
+                  ["This is my test node, sometimes with links."]
+                  }))))
 
     (testing "child node roam links"
       (let [[a b] (-> "child with links" item-with-name :org/links-to)]
@@ -239,6 +256,12 @@ lines]]
                   :link/context
                   "children nodes have [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]] too
 they can link to the same, [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][sometimes multiple times]]",
+                  :link/context-str
+                  "children nodes have links too
+they can link to the same, sometimes multiple times",
+                  :link/matching-lines-strs
+                  ["children nodes have links too"
+                   "they can link to the same, sometimes multiple times"]
                   :link/matching-lines
                   ["children nodes have [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]] too"
                    "they can link to the same, [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][sometimes multiple times]]"]}))
@@ -250,7 +273,13 @@ they can link to the same, [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][sometimes 
 they can link to the same, [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][sometimes multiple times]]",
                   :link/matching-lines
                   ["children nodes have [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]] too"
-                   "they can link to the same, [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][sometimes multiple times]]"]}))))))
+                   "they can link to the same, [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][sometimes multiple times]]"]
+                  :link/context-str
+                  "children nodes have links too
+they can link to the same, sometimes multiple times",
+                  :link/matching-lines-strs
+                  ["children nodes have links too"
+                   "they can link to the same, sometimes multiple times"] }))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; images
