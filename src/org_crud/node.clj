@@ -388,11 +388,18 @@
            (map rest)
            (remove nil?)
            (map (fn [[id text]]
-                  {:link/id   (java.util.UUID/fromString id)
-                   :link/text (-> text
-                                  string/trim
-                                  (string/split #"\s")
-                                  (->> (string/join " ")))}))
+                  {:link/id             (java.util.UUID/fromString id)
+                   :link/text           (-> text
+                                            string/trim
+                                            (string/split #"\s")
+                                            (->> (string/join " ")))
+                   :link/context        s
+                   :link/matching-lines (->> s
+                                             string/split-lines
+                                             (filter (fn [line]
+                                                       (string/includes? line
+                                                                         id)))
+                                             (into []))}))
            (into #{})))
 
 (defn ->links-to [x]

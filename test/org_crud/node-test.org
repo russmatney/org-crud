@@ -6,8 +6,8 @@
 
 This is my test node, sometimes with [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]].
 
-Sometimes these links break across lines likeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][across
-lines]].
+Sometimes these links break across lines likeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee [[id:01839801-01a5-4ca9-ad2b-d4b9e122be14][across
+lines]]
 
 #+name: top-level images work great
 #+caption: Some clip or other

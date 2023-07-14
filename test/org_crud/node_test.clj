@@ -214,18 +214,43 @@
                          (some->> item :org/items (filter (comp #{n} :org/name)) first))]
 
     (testing "root node roam links"
-      (is (= #{{:link/id   #uuid "910e0d6e-759d-4a9b-809c-78a6a0b6538b"
-                :link/text "links"}
-               {:link/id   #uuid "910e0d6e-759d-4a9b-809c-78a6a0b6538b"
-                :link/text "across lines"}}
-             (set (:org/links-to item)))))
+      (let [[a b] (:org/links-to item)]
+        (is (= a {:link/id      #uuid "01839801-01a5-4ca9-ad2b-d4b9e122be14"
+                  :link/text    "across lines"
+                  :link/context "This is my test node, sometimes with [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]].
+Sometimes these links break across lines likeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee [[id:01839801-01a5-4ca9-ad2b-d4b9e122be14][across
+lines]]
+[[~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4]]",
+                  :link/matching-lines
+                  ["Sometimes these links break across lines likeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee [[id:01839801-01a5-4ca9-ad2b-d4b9e122be14][across"]}))
+
+        (is (= b {:link/id             #uuid "910e0d6e-759d-4a9b-809c-78a6a0b6538b"
+                  :link/text           "links"
+                  :link/context        "This is my test node, sometimes with [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]].
+Sometimes these links break across lines likeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee [[id:01839801-01a5-4ca9-ad2b-d4b9e122be14][across
+lines]]
+[[~/Dropbox/gifs/Peek 2023-03-13 09-30.mp4]]",
+                  :link/matching-lines ["This is my test node, sometimes with [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]]."]}))))
 
     (testing "child node roam links"
-      (is (= #{{:link/id   #uuid "910e0d6e-759d-4a9b-809c-78a6a0b6538b"
-                :link/text "links"}
-               {:link/id   #uuid "910e0d6e-759d-4a9b-809c-78a6a0b6538b"
-                :link/text "sometimes multiple times"}}
-             (-> "child with links" item-with-name :org/links-to set))))))
+      (let [[a b] (-> "child with links" item-with-name :org/links-to)]
+        (is (= a {:link/id   #uuid "910e0d6e-759d-4a9b-809c-78a6a0b6538b"
+                  :link/text "sometimes multiple times"
+                  :link/context
+                  "children nodes have [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]] too
+they can link to the same, [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][sometimes multiple times]]",
+                  :link/matching-lines
+                  ["children nodes have [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]] too"
+                   "they can link to the same, [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][sometimes multiple times]]"]}))
+
+        (is (= b {:link/id   #uuid "910e0d6e-759d-4a9b-809c-78a6a0b6538b"
+                  :link/text "links"
+                  :link/context
+                  "children nodes have [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]] too
+they can link to the same, [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][sometimes multiple times]]",
+                  :link/matching-lines
+                  ["children nodes have [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][links]] too"
+                   "they can link to the same, [[id:910e0d6e-759d-4a9b-809c-78a6a0b6538b][sometimes multiple times]]"]}))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; images
