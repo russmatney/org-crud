@@ -83,7 +83,7 @@
                  (fs/list-dir f)
                  [f])))
         (apply concat)
-        (filter #(contains? #{".org"} (fs/extension %)))
+        (filter #(contains? #{"org"} (fs/extension %)))
         (map (partial path->nested-item opts))
         (remove nil?))))
 

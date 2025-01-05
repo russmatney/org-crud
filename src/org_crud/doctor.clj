@@ -21,7 +21,7 @@
                      (fs/list-dir f)
                      [f])))
          (remove fs/directory?)
-         (filter (comp #{".org"} fs/extension)))))
+         (filter (comp #{"org"} fs/extension)))))
 
 (comment
   (count (org-files)))

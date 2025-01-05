@@ -12,7 +12,7 @@
   (let [files (fs/list-dir fixture-dir)]
     (doall
       (->> files
-           (filter #(= (fs/extension %) ".md"))
+           (filter #(= (fs/extension %) "md"))
            (map fs/delete)))))
 
 (defn parsed-org-file [fname]
