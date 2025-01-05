@@ -1,12 +1,12 @@
 {:path ["src"]
 
  :deps
- {babashka/fs           {:mvn/version "0.4.19"}
-  babashka/process      {:mvn/version "0.5.21"}
+ {babashka/fs           {:mvn/version "0.5.23"}
+  babashka/process      {:mvn/version "0.5.22"}
   wing/wing             {:mvn/version "0.1.4"}
-  metosin/malli         {:mvn/version "0.11.0"}
-  instaparse/instaparse {:mvn/version "1.4.12"}
-  tick/tick             {:mvn/version "0.6.2"}}
+  metosin/malli         {:mvn/version "0.17.0"}
+  instaparse/instaparse {:mvn/version "1.5.0"}
+  tick/tick             {:mvn/version "1.0"}}
 
  :aliases
  {:dev {:jvm-opts    ["-XX:-OmitStackTraceInFastThrow"]
@@ -19,11 +19,11 @@
    :main-opts   ["-m" "kaocha.runner"]
    :extra-deps
    {org.clojure/test.check {:mvn/version "1.1.1"}
-    lambdaisland/kaocha    {:mvn/version "1.85.1342"}}}
+    lambdaisland/kaocha    {:mvn/version "1.91.1392"}}}
 
   :nrepl {:extra-deps
-          {cider/cider-nrepl             {:mvn/version "0.31.0"}
-           refactor-nrepl/refactor-nrepl {:mvn/version "3.7.1"}}}
+          {cider/cider-nrepl             {:mvn/version "0.51.1"}
+           refactor-nrepl/refactor-nrepl {:mvn/version "3.10.0"}}}
 
-  :outdated {:extra-deps {com.github.liquidz/antq {:mvn/version "2.5.1095"}}
+  :outdated {:extra-deps {com.github.liquidz/antq {:mvn/version "2.11.1264"}}
              :main-opts  ["-m" "antq.core"]}}}
